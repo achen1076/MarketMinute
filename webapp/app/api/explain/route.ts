@@ -1,5 +1,21 @@
+// app/api/explain/route.ts
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { runMiniChat } from "@/lib/openai";
+import { getNewsForSymbol, NewsItem } from "@/lib/news";
+import {
+  getExplanationFromCache,
+  setExplanationInCache,
+  cleanExpiredExplanations,
+} from "@/lib/explainCache";
+
+type ExplainPayload = {
+  symbol: string;
+  changePct: number;
+  price: number | null;
+  watchlistName: string | null;
+  relatedNews: NewsItem[];
+};
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -7,23 +23,76 @@ export async function POST(req: Request) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
-  const { symbol, changePct } = await req.json();
+  const body = await req.json();
+  const { symbol, changePct, price, watchlistName } = body as {
+    symbol: string;
+    changePct: number;
+    price?: number;
+    watchlistName?: string;
+  };
 
-  // TODO: later fetch news + run through LLM.
-  // For now, fake something based purely on the move size.
-  let explanation: string;
+  // Clean expired cache entries periodically
+  cleanExpiredExplanations();
 
-  if (Math.abs(changePct) < 1) {
-    explanation = `${symbol} is basically flat today. Most likely just normal intraday noise with no strong catalysts.`;
-  } else if (changePct > 0) {
-    explanation = `${symbol} is up ${changePct.toFixed(
-      2
-    )}%. That could be driven by positive news, an analyst upgrade, or strength in its sector.`;
-  } else {
-    explanation = `${symbol} is down ${changePct.toFixed(
-      2
-    )}%. Could be related to negative headlines, downgrades, or broader weakness in its sector.`;
+  // Check cache first
+  const cachedExplanation = getExplanationFromCache(symbol);
+  if (cachedExplanation) {
+    return NextResponse.json({
+      explanation: cachedExplanation,
+      cached: true,
+    });
   }
 
-  return NextResponse.json({ explanation });
+  const relatedNews = await getNewsForSymbol(symbol, 3);
+
+  const payload: ExplainPayload = {
+    symbol,
+    changePct,
+    price: typeof price === "number" ? price : null,
+    watchlistName: watchlistName ?? null,
+    relatedNews,
+  };
+
+  const systemPrompt = `
+You are an educational market explainer.
+No em dashes or en dashes. No semicolons.
+
+The user will send you a JSON object with:
+- A stock symbol
+- Today's percent change
+- Current price (if available)
+- An optional watchlist name
+- A list of recent news headlines about the stock (may be empty)
+- A list of macros (alert rules) the user has defined, and whether they triggered (may be empty)
+
+Rules:
+1. Output 2–4 very short, direct sentences. No filler, no rhetorical questions, no greetings.
+2. If relatedNews is non-empty, use those headlines as context:
+   - You may summarize them.
+   - Do NOT invent additional details beyond what the headlines/summary suggest.
+3. If relatedNews is empty, explain typical drivers for a move of this size
+   (earnings, macro data, sector moves, analyst actions, guidance, etc.), but clearly say these
+   are possibilities, not confirmed reasons.
+4. Do NOT give investment advice. Do not tell the user to buy, sell, or hold.
+5. Do NOT invent exact dates, numbers, or event names. Only use what's in the JSON.
+6. Keep it under 120 words, plain text, no bullet points.
+7. Avoid meta-disclaimers and hedging phrases like “not confirmed drivers”, “may not directly affect the stock”, or “these headlines may help explain the move”. Just describe the move and context in a neutral, factual tone.
+
+`.trim();
+
+  const explanation = await runMiniChat({
+    system: systemPrompt,
+    user: JSON.stringify(payload),
+  });
+
+  const finalExplanation =
+    explanation || "I'm not able to explain this move right now.";
+
+  // Cache the result
+  setExplanationInCache(symbol, finalExplanation);
+
+  return NextResponse.json({
+    explanation: finalExplanation,
+    cached: false,
+  });
 }

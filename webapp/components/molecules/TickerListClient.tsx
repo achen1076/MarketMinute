@@ -16,7 +16,6 @@ export function TickerListClient({ snapshots }: Props) {
   async function handleExplainToggle(s: TickerSnapshot) {
     const hasExplanation = !!explanations[s.symbol];
 
-    // If it's already open, just close it
     if (hasExplanation) {
       setExplanations((prev) => {
         const next = { ...prev };
@@ -26,13 +25,16 @@ export function TickerListClient({ snapshots }: Props) {
       return;
     }
 
-    // Otherwise fetch explanation
     setLoadingSymbol(s.symbol);
     try {
       const res = await fetch("/api/explain", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ symbol: s.symbol, changePct: s.changePct }),
+        body: JSON.stringify({
+          symbol: s.symbol,
+          changePct: s.changePct,
+          price: s.price, // NEW: give LLM more context
+        }),
       });
 
       if (!res.ok) return;
