@@ -22,7 +22,8 @@ model User {
   sessions         Session[]
 
   // Your app relations (watchlists, etc.)
-  watchlists       Watchlist[]
+  activeWatchlist  Watchlist?   @relation("ActiveWatchlist", fields: [activeWatchlistId], references: [id])
+  watchlists       Watchlist[]  @relation("UserWatchlists")
 
   @@map("users")
 }
@@ -74,7 +75,8 @@ model Watchlist {
   isFavorite Boolean         @default(false) @map("is_favorite")
   createdAt  DateTime        @default(now()) @map("created_at")
 
-  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User            @relation("UserWatchlists", fields: [userId], references: [id], onDelete: Cascade)
+  usersWithAsActive User[]   @relation("ActiveWatchlist")
   items      WatchlistItem[]
   macros     Macro[]
 

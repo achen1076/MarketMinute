@@ -18,7 +18,7 @@ const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const globalStyle =
-    "inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 border-2 border-gray-300";
+    "inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 border-2 border-gray-300 hover:cursor-pointer";
 
   const variantMap = {
     primary:

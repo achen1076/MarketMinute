@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Star } from "lucide-react";
 import Button from "@/components/atoms/button";
@@ -28,6 +29,7 @@ export default function DashboardClient({
   watchlists,
   activeWatchlist: initialActive,
 }: Props) {
+  const router = useRouter();
   const [activeWatchlist, setActiveWatchlist] = useState(initialActive);
   const [loading, setLoading] = useState(false);
 
@@ -49,6 +51,9 @@ export default function DashboardClient({
         ? watchlists.find((w) => w.id === watchlistId) ?? null
         : null;
       setActiveWatchlist(newActive);
+      
+      // Refresh the server component to fetch new data
+      router.refresh();
     } finally {
       setLoading(false);
     }
@@ -116,64 +121,6 @@ export default function DashboardClient({
         )}
       </Card>
 
-      {/* Active Watchlist Stats */}
-      {activeWatchlist && (
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card className="p-4">
-            <div className="text-sm text-slate-400">Watchlist</div>
-            <div className="mt-1 text-2xl font-semibold text-slate-100">
-              {activeWatchlist.name}
-            </div>
-            <div className="mt-1 text-xs text-slate-500">
-              {activeWatchlist.items.length} symbol
-              {activeWatchlist.items.length === 1 ? "" : "s"}
-            </div>
-          </Card>
-
-          <Card className="p-4">
-            <div className="text-sm text-slate-400">Symbols Tracked</div>
-            <div className="mt-1 text-2xl font-semibold text-slate-100">
-              {activeWatchlist.items.length}
-            </div>
-            <div className="mt-1 text-xs text-slate-500">Real-time</div>
-          </Card>
-
-          <Card className="p-4">
-            <div className="text-sm text-slate-400">Total Watchlists</div>
-            <div className="mt-1 text-2xl font-semibold text-emerald-500">
-              {watchlists.length}
-            </div>
-            <div className="mt-1 text-xs text-slate-500">Created</div>
-          </Card>
-        </div>
-      )}
-
-      {/* Watchlist Symbols */}
-      {activeWatchlist && activeWatchlist.items.length > 0 && (
-        <Card className="p-4">
-          <h2 className="mb-3 text-sm font-semibold text-slate-200">
-            Tracked Symbols
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {activeWatchlist.items.map((item) => (
-              <span
-                key={item.id}
-                className="rounded-full bg-slate-800 px-3 py-1 text-sm text-slate-100"
-              >
-                {item.symbol}
-              </span>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {!activeWatchlist && watchlists.length > 0 && (
-        <Card className="p-8 text-center">
-          <p className="text-slate-400">
-            Select a watchlist above to see your market minute.
-          </p>
-        </Card>
-      )}
     </div>
   );
 }
