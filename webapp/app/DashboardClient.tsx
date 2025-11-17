@@ -80,7 +80,7 @@ export default function DashboardClient({
       {/* Active Watchlist Selector */}
       <Card className="p-4">
         <h2 className="mb-3 text-sm font-semibold text-slate-200">
-          Active Watchlist
+          Your Watchlists
         </h2>
         {watchlists.length === 0 ? (
           <p className="text-sm text-slate-400">

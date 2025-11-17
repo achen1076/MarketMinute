@@ -56,11 +56,19 @@ function formatDate(dateString: string): string {
   const [year, month, day] = dateString.split("-").map(Number);
   const date = new Date(year, month - 1, day);
   const now = new Date();
-  
+
   // Reset time to midnight for accurate day comparison
-  const dateAtMidnight = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  const nowAtMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  
+  const dateAtMidnight = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate()
+  );
+  const nowAtMidnight = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  );
+
   const diffTime = dateAtMidnight.getTime() - nowAtMidnight.getTime();
   const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
@@ -195,11 +203,11 @@ export function EventsTimeline({ symbols }: Props) {
                     {formatDate(event.date)}
                   </div>
                 </div>
-                {event.category === "stock" && "symbol" in event && (
+                {/* {event.category === "stock" && "symbol" in event && (
                   <div className="mt-1 inline-block rounded bg-slate-800/50 px-1.5 py-0.5 text-xs font-medium text-slate-300">
                     {event.symbol}
                   </div>
-                )}
+                )} */}
               </div>
             </div>
           );

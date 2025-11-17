@@ -258,11 +258,17 @@ export function MarketMinuteSummary({ watchlistId }: Props) {
         </div>
         <div>
           <div className="text-xs text-slate-400">Best Performer</div>
-          <div className="mt-1 text-sm font-semibold text-emerald-400">
+          <div
+            className={`mt-1 text-sm font-semibold ${
+              summary.stats.best && summary.stats.best.changePct >= 0
+                ? "text-emerald-400"
+                : "text-rose-400"
+            }`}
+          >
             {summary.stats.best
-              ? `${
-                  summary.stats.best.symbol
-                } (+${summary.stats.best.changePct.toFixed(2)}%)`
+              ? `${summary.stats.best.symbol} (${
+                  summary.stats.best.changePct >= 0 ? "+" : ""
+                }${summary.stats.best.changePct.toFixed(2)}%)`
               : "N/A"}
           </div>
         </div>
