@@ -24,7 +24,7 @@ const Button: React.FC<ButtonProps> = ({
     primary:
       "bg-white text-black hover:bg-green-400 hover:text-white focus:ring-black min-w-[120px]",
     secondary:
-      "bg-gray-100 text-black hover:bg-blue-200 hover:text-white focus:ring-black min-w-[120px]",
+      "bg-gray-100 text-black hover:bg-slate-800 hover:text-white focus:ring-black min-w-[120px]",
   };
 
   const sizeMap = {
