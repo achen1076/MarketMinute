@@ -8,6 +8,7 @@ import Card from "@/components/atoms/card";
 import { TickerListClient } from "@/components/molecules/TickerListClient";
 import { MarketMinuteSummary } from "@/components/organisms/MarketMinuteSummary";
 import { AdminSettings } from "@/components/organisms/AdminSettings";
+import { EventsTimeline } from "@/components/organisms/EventsTimeline";
 import Link from "next/link";
 
 export default async function DashboardPage() {
@@ -42,38 +43,61 @@ export default async function DashboardPage() {
     (w: { id: string }) => w.id === activeWatchlistId
   );
 
-  // Phase 1: Get snapshots for active watchlist
   const symbols =
     activeWatchlist?.items.map((i: { symbol: string }) => i.symbol) ?? [];
   const snapshots =
     symbols.length > 0 ? await getSnapshotsForSymbols(symbols) : [];
 
   return (
-    <div className="space-y-6">
-      <DashboardClient
-        watchlists={user?.watchlists ?? []}
-        activeWatchlist={activeWatchlist ?? null}
-      />
+    <>
+      <div className="space-y-6">
+        {/* Watchlist Selector */}
+        <DashboardClient
+          watchlists={user?.watchlists ?? []}
+          activeWatchlist={activeWatchlist ?? null}
+        />
 
-      {/* Phase 2: MarketMinute Summary Card (Client-side with loading) */}
-      {activeWatchlistId && <MarketMinuteSummary watchlistId={activeWatchlistId} />}
+        {/* Market Summary + Ticker List */}
+        <div className="flex flex-col xl:flex-row gap-6">
+          {/* Main Content Area */}
+          <div className="flex-1 min-w-0 space-y-6">
+            {activeWatchlistId && (
+              <MarketMinuteSummary watchlistId={activeWatchlistId} />
+            )}
 
-      {user?.watchlists.length === 0 && (
-        <Card className="p-8 text-center">
-          <p className="text-slate-400 mb-3">
-            You don&apos;t have any watchlists yet.
-          </p>
-          <Link href="/watchlist" className="text-emerald-500 hover:underline">
-            Create your first watchlist
-          </Link>
-        </Card>
-      )}
+            {/* Upcoming Events */}
+            {snapshots.length > 0 && (
+              <EventsTimeline symbols={symbols} />
+            )}
 
-      {/* Phase 3: Ticker List with Explain */}
-      {snapshots.length > 0 && <TickerListClient snapshots={snapshots} />}
+            {user?.watchlists.length === 0 && (
+              <Card className="p-8 text-center">
+                <p className="text-slate-400 mb-3">
+                  You don&apos;t have any watchlists yet.
+                </p>
+                <Link
+                  href="/watchlist"
+                  className="text-emerald-500 hover:underline"
+                >
+                  Create your first watchlist
+                </Link>
+              </Card>
+            )}
+          </div>
 
-      {/* Admin Settings - Fixed position button */}
+          {/* Ticker List */}
+          {snapshots.length > 0 && (
+            <div className="w-full xl:w-96 shrink-0">
+              <div className="xl:sticky xl:top-6 xl:max-h-[calc(100vh-4rem)]">
+                <TickerListClient snapshots={snapshots} />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Admin Settings */}
       <AdminSettings />
-    </div>
+    </>
   );
 }

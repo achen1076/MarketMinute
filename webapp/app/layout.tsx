@@ -9,7 +9,11 @@ export const metadata = {
   description: "Your automated one-minute view of the markets.",
 };
 
-export default async function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const session = await auth();
 
   return (
@@ -23,9 +27,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           {/* 
             On desktop we need left padding (because sidebar is 64px wide),
             on mobile we need top padding (because of the fixed top bar).
-            Easiest Tailwind-only way:
           */}
-          <main className="mx-auto max-w-6xl px-4 py-6 pt-20 md:ml-64 md:pt-8 md:px-8">
+          <main className="mx-auto max-w-[1800px] px-4 py-6 pt-20 md:ml-64 md:pt-8 md:px-8">
             {children}
           </main>
         </div>

@@ -22,7 +22,7 @@ const Button: React.FC<ButtonProps> = ({
 
   const variantMap = {
     primary:
-      "bg-white text-black hover:bg-[#9739bf] hover:text-white focus:ring-black min-w-[120px]",
+      "bg-white text-black hover:bg-green-400 hover:text-white focus:ring-black min-w-[120px]",
     secondary:
       "bg-gray-100 text-black hover:bg-blue-200 hover:text-white focus:ring-black min-w-[120px]",
   };

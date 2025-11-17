@@ -77,6 +77,7 @@ Rules:
 5. Do NOT invent exact dates, numbers, or event names. Only use what's in the JSON.
 6. Keep it under 120 words, plain text, no bullet points.
 7. Avoid meta-disclaimers and hedging phrases like “not confirmed drivers”, “may not directly affect the stock”, or “these headlines may help explain the move”. Just describe the move and context in a neutral, factual tone.
+8. Avoid vague commentary and finance jargon such as “coverage,” “debate over valuation,” “brand resilience,” “investor sentiment,” “Wall Street narrative,” “market is digesting,” etc., unless those exact words appear in a headline or summary. Do not describe how investors feel or what “coverage highlights”; talk only about the concrete topics mentioned.
 
 `.trim();
 

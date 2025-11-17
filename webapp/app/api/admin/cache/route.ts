@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import {
-  clearExplanationCache,
   getExplanationCacheStats,
+  clearExplanationCache,
 } from "@/lib/explainCache";
 import {
-  clearSummaryCache,
   getSummaryCacheStats,
+  clearSummaryCache,
 } from "@/lib/summaryCache";
+import {
+  getEventsCacheStats,
+  clearEventsCache,
+} from "@/lib/eventsCache";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -20,13 +24,15 @@ export async function POST(req: Request) {
   if (action === "clear") {
     const explanationCount = clearExplanationCache();
     const summaryCount = clearSummaryCache();
-    const totalCleared = explanationCount + summaryCount;
+    const eventsCount = clearEventsCache();
+    const totalCleared = explanationCount + summaryCount + eventsCount;
 
     return NextResponse.json({
       message: "All caches cleared successfully",
       totalCleared,
       explanationCount,
       summaryCount,
+      eventsCount,
       timestamp: new Date().toISOString(),
     });
   }
@@ -42,10 +48,12 @@ export async function GET() {
 
   const explanationStats = getExplanationCacheStats();
   const summaryStats = getSummaryCacheStats();
+  const eventsStats = getEventsCacheStats();
 
   console.log("[Admin Cache] Stats requested:", {
     explanations: explanationStats.size,
     summaries: summaryStats.size,
+    events: eventsStats.size,
   });
 
   return NextResponse.json({
@@ -55,6 +63,10 @@ export async function GET() {
     },
     summaries: {
       size: summaryStats.size,
+      registered: true,
+    },
+    events: {
+      size: eventsStats.size,
       registered: true,
     },
   });

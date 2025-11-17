@@ -51,7 +51,7 @@ export default function DashboardClient({
         ? watchlists.find((w) => w.id === watchlistId) ?? null
         : null;
       setActiveWatchlist(newActive);
-      
+
       // Refresh the server component to fetch new data
       router.refresh();
     } finally {
@@ -71,7 +71,7 @@ export default function DashboardClient({
           </p>
         </div>
         <Link href="/watchlist">
-          <Button size="lg" className="rounded-xl hover:cursor-pointer">
+          <Button size="md" className="rounded-xl hover:cursor-pointer">
             Manage Watchlists
           </Button>
         </Link>
@@ -120,7 +120,6 @@ export default function DashboardClient({
           </div>
         )}
       </Card>
-
     </div>
   );
 }

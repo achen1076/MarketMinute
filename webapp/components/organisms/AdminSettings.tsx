@@ -7,6 +7,7 @@ import Card from "@/components/atoms/card";
 type CacheStats = {
   explanations: { size: number; registered: boolean };
   summaries: { size: number; registered: boolean };
+  events: { size: number; registered: boolean };
 };
 
 export function AdminSettings() {
@@ -129,10 +130,16 @@ export function AdminSettings() {
                     {stats.explanations.size} entries
                   </span>
                 </div>
-                <div className="flex justify-between">
+                <div className="mb-2 flex justify-between">
                   <span className="text-slate-400">Summary Cache:</span>
                   <span className="font-medium text-slate-200">
                     {stats.summaries.size} entries
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Events Cache:</span>
+                  <span className="font-medium text-slate-200">
+                    {stats.events.size} entries
                   </span>
                 </div>
               </div>
