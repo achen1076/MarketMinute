@@ -1,17 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { TickerSnapshot } from "@/lib/marketData";
-import Card from "@/components/atoms/card";
-import Button from "@/components/atoms/button";
+import Card from "@/components/atoms/Card";
+import Button from "@/components/atoms/Button";
+import { RefreshCw } from "lucide-react";
 
 type Props = {
   snapshots: TickerSnapshot[];
+  watchlistId?: string | null;
 };
 
-export function TickerListClient({ snapshots }: Props) {
+export function TickerListClient({
+  snapshots: initialSnapshots,
+  watchlistId,
+}: Props) {
+  const [snapshots, setSnapshots] = useState(initialSnapshots);
   const [loadingSymbol, setLoadingSymbol] = useState<string | null>(null);
   const [explanations, setExplanations] = useState<Record<string, string>>({});
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Update snapshots when initialSnapshots change (e.g., watchlist switch or page refresh)
+  useEffect(() => {
+    setSnapshots(initialSnapshots);
+  }, [initialSnapshots]);
+
+  const handleRefresh = async () => {
+    if (!watchlistId || isRefreshing) return;
+
+    setIsRefreshing(true);
+    try {
+      const res = await fetch(`/api/snapshots?watchlistId=${watchlistId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSnapshots(data.snapshots);
+      }
+    } catch (error) {
+      console.error("Failed to fetch snapshots:", error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   async function handleExplainToggle(s: TickerSnapshot) {
     const hasExplanation = !!explanations[s.symbol];
@@ -33,7 +62,7 @@ export function TickerListClient({ snapshots }: Props) {
         body: JSON.stringify({
           symbol: s.symbol,
           changePct: s.changePct,
-          price: s.price, // NEW: give LLM more context
+          price: s.price,
         }),
       });
 
@@ -51,9 +80,20 @@ export function TickerListClient({ snapshots }: Props) {
 
   return (
     <Card className="p-4 text-sm h-full overflow-hidden flex flex-col">
-      <h3 className="mb-3 text-sm font-semibold text-slate-200 shrink-0">
-        Your Symbols
-      </h3>
+      <div className="mb-3 flex items-center justify-between shrink-0">
+        <h3 className="text-sm font-semibold text-slate-200">Your Symbols</h3>
+        <button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="p-1.5 rounded-md transition-colors hover:bg-slate-800/50 disabled:opacity-50"
+          title="Refresh prices"
+        >
+          <RefreshCw
+            size={16}
+            className={`text-slate-400 ${isRefreshing ? "animate-spin" : ""}`}
+          />
+        </button>
+      </div>
       <div className="flex flex-col gap-3 overflow-y-auto pr-1">
         {snapshots.map((s) => {
           const hasExplanation = !!explanations[s.symbol];

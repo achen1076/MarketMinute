@@ -1,0 +1,113 @@
+name: CI - Quality Gates
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  quality-gates:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements_institutional.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install core dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov pytest-xdist
+        pip install great-expectations
+        pip install -r requirements_institutional.txt
+    
+    - name: Lint with flake8 (optional)
+      continue-on-error: true
+      run: |
+        pip install flake8
+        flake8 src/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 src/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    
+    - name: Run unit tests
+      run: |
+        pytest tests/ -v --cov=src --cov-report=xml --cov-report=term-missing
+    
+    - name: Run integration tests
+      run: |
+        python scripts/test_phase1_day1.py
+        python scripts/test_complete_system.py
+    
+    - name: Data quality checks (Great Expectations)
+      run: |
+        python tests/test_data_quality.py
+    
+    - name: Feature engineering tests
+      run: |
+        pytest tests/test_features.py -v
+    
+    - name: Model training smoke test
+      run: |
+        pytest tests/test_model_training.py -v
+    
+    - name: Upload coverage reports
+      if: matrix.python-version == '3.11'
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+    
+    - name: Check for breaking changes
+      run: |
+        python tests/check_schema_compatibility.py
+
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Run security scan
+      uses: pyupio/safety@2.3.5
+      with:
+        api-key: ${{ secrets.SAFETY_API_KEY }}
+        args: --file requirements_institutional.txt
+
+  performance-benchmarks:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements_institutional.txt
+        pip install pytest-benchmark
+    
+    - name: Run performance benchmarks
+      run: |
+        pytest tests/test_performance.py --benchmark-only

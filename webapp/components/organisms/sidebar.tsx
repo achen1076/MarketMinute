@@ -7,6 +7,9 @@ import NavLink from "../molecules/NavLink";
 import SignOutButton from "../atoms/SignOutButton";
 import UserInfo from "../molecules/UserInfo";
 import useWindowSize from "@/hooks/useWindowSize";
+import { COLORS } from "@/lib/colors";
+
+const SIDEBAR_BG_COLOR = COLORS.bg.elevated;
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: "default" | "secondary";
@@ -30,12 +33,25 @@ const Sidebar: React.FC<SidebarProps> = ({
   const isSmallScreen = isMobile || isTablet;
 
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
+  const closeMenu = () => setIsMenuOpen(false);
 
   return (
     <>
+      {/* Mobile overlay - click outside to close */}
+      {isSmallScreen && isMenuOpen && (
+        <div
+          className="fixed inset-0 z-20 bg-black/50 backdrop-blur-sm"
+          onClick={closeMenu}
+          aria-hidden="true"
+        />
+      )}
+
       {isSmallScreen && (
-        <header className="fixed top-0 left-0 z-40 flex h-14 w-full items-center justify-between bg-[#222222] px-4 text-white">
-          <Link href="/" className="text-lg font-bold">
+        <header
+          className="fixed top-0 left-0 z-40 flex h-14 w-full items-center justify-between px-4"
+          style={{ backgroundColor: SIDEBAR_BG_COLOR, color: COLORS.text.main }}
+        >
+          <Link href="/" className="text-lg font-bold" onClick={closeMenu}>
             MarketMinute
           </Link>
 
@@ -73,7 +89,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       <aside
         className={cn(
-          "fixed left-0 z-30 flex h-screen flex-col border-r border-slate-800 bg-[#222222] text-white transition-transform duration-300",
+          "fixed left-0 z-30 flex h-screen flex-col border-r transition-transform duration-300",
           isSmallScreen
             ? isMenuOpen
               ? "translate-x-0 w-64 pt-14"
@@ -81,6 +97,11 @@ const Sidebar: React.FC<SidebarProps> = ({
             : "w-64 translate-x-0 pt-4",
           className
         )}
+        style={{
+          backgroundColor: SIDEBAR_BG_COLOR,
+          borderColor: COLORS.border.subtle,
+          color: COLORS.text.main,
+        }}
         {...props}
       >
         {!isSmallScreen && (
@@ -90,25 +111,50 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         {user && (
-          <div className="mb-4 border-b border-slate-800 pb-4">
+          <div
+            className="mb-4 border-b pb-4"
+            style={{ borderColor: COLORS.border.subtle }}
+          >
             <UserInfo name={user.name} email={user.email} image={user.image} />
           </div>
         )}
 
         <nav className="mt-2 flex flex-1 flex-col gap-4 px-3 text-md">
-          <NavLink to="/">Home</NavLink>
-          <NavLink to="/watchlist">Watchlist</NavLink>
-          <NavLink to="/explore">Explore</NavLink>
-          <NavLink to="/settings">Settings</NavLink>
-        </nav>
+          <NavLink to="/" onClick={closeMenu}>
+            Home
+          </NavLink>
+          <NavLink to="/watchlist" onClick={closeMenu}>
+            Watchlist
+          </NavLink>
+          <NavLink to="/quant" onClick={closeMenu}>
+            Quant Lab
+          </NavLink>
 
+          {/* <NavLink to="/explore" onClick={closeMenu}>
+            Explore
+          </NavLink>
+          <NavLink to="/settings" onClick={closeMenu}>
+            Settings
+          </NavLink> */}
+          {user?.email === "achen1076@gmail.com" && (
+            <NavLink to="/admin" onClick={closeMenu}>
+              Admin
+            </NavLink>
+          )}
+        </nav>
         {user && (
-          <div className="border-t border-slate-800 px-3 py-3">
+          <div
+            className="border-t px-3 py-3"
+            style={{ borderColor: COLORS.border.subtle }}
+          >
             <SignOutButton />
           </div>
         )}
 
-        <div className="border-t border-slate-800 px-4 py-3 text-xs text-slate-400">
+        <div
+          className="border-t px-4 py-3 text-xs"
+          style={{ borderColor: COLORS.border.subtle, color: COLORS.text.soft }}
+        >
           Built for people who actually watch the market.
         </div>
       </aside>

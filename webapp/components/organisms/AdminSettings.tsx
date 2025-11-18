@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Button from "@/components/atoms/button";
-import Card from "@/components/atoms/card";
+import Button from "@/components/atoms/Button";
+import Card from "@/components/atoms/Card";
 
 type CacheStats = {
   explanations: { size: number; registered: boolean };
@@ -168,9 +168,7 @@ export function AdminSettings() {
             {message && (
               <p
                 className={`mt-3 text-sm ${
-                  message.startsWith("✓")
-                    ? "text-emerald-400"
-                    : "text-rose-400"
+                  message.startsWith("✓") ? "text-emerald-400" : "text-rose-400"
                 }`}
               >
                 {message}

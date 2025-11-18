@@ -108,3 +108,32 @@ model Macro {
 
   @@map("macros")
 }
+
+model UserVisitSnapshot {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  watchlistId String   @map("watchlist_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  data        String   @db.Text // JSON: { symbols: [{symbol, price, changePct}], summaryText?, avgChangePct? }
+
+  @@index([userId, watchlistId])
+  @@map("user_visit_snapshots")
+}
+
+model DailyWatchlistSummary {
+  id          String   @id @default(cuid())
+  watchlistId String   @map("watchlist_id")
+  date        DateTime @db.Date
+  avgChangePct Float   @map("avg_change_pct")
+  bestPerformer String? @map("best_performer")
+  bestChangePct Float?  @map("best_change_pct")
+  worstPerformer String? @map("worst_performer")
+  worstChangePct Float?  @map("worst_change_pct")
+  summaryText String   @map("summary_text")
+  fullSummary String?  @db.Text @map("full_summary") // Store complete summary JSON
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@unique([watchlistId, date])
+  @@index([watchlistId])
+  @@map("daily_watchlist_summaries")
+}

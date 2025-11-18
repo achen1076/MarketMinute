@@ -40,12 +40,12 @@ const NavLink = ({
 
   const commonClasses = cn(
     "px-2 py-1 font-semibold transition-all duration-300 ease-in-out inline-block",
-    isActive ? "text-green-400" : "text-gray-300 hover:text-white",
+    isActive ? "text-teal-500" : "text-gray-300 hover:text-cyan-400",
     className
   );
 
   const underlineClasses = cn(
-    "relative inline-block after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-green-500 after:transition-all after:duration-300 after:ease-in-out hover:after:w-full",
+    "relative inline-block after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-teal-500 after:transition-all after:duration-300 after:ease-in-out hover:after:w-full",
     isActive && "after:w-full"
   );
 

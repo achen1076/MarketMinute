@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Star } from "lucide-react";
-import Button from "@/components/atoms/button";
-import Card from "@/components/atoms/card";
+import Button from "@/components/atoms/Button";
+import Card from "@/components/atoms/Card";
 
 type WatchlistItem = {
   id: string;

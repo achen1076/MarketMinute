@@ -1,0 +1,470 @@
+# Institutional Quant ML System Specification
+# Version: 1.0.0
+# Last Updated: 2025-11-12
+
+system:
+  name: "QuantTrade-ML"
+  version: "1.0.0"
+  objective: "Intraday long/short US equities"
+
+objectives:
+  primary_kpi: "after_cost_sharpe"
+  targets:
+    sharpe_ratio: 1.2
+    max_drawdown_pct: 12
+    profit_factor: 1.5
+    annual_turnover: 20
+  universe:
+    tickers: [
+        # Mega-Cap Tech
+        "AAPL",
+        "MSFT",
+        "GOOGL",
+        "AMZN",
+        "META",
+        "NVDA",
+        "TSLA",
+        "AMD",
+        "INTC",
+        "CRM",
+        "ORCL",
+        "ADBE",
+        "CSCO",
+        "AVGO",
+        "QCOM",
+        "TXN",
+        "AMAT",
+        "LRCX",
+        "KLAC",
+        "SNPS",
+
+        # Communication & Entertainment
+        "NFLX",
+
+        "DIS",
+        "CMCSA",
+        "T",
+        "VZ",
+        "TMUS",
+        "CHTR",
+        "WBD",
+        "EA",
+        # E-Commerce & Consumer Discretionary
+        "AMZN",
+
+        "BABA",
+        "JD",
+        "SHOP",
+        "MELI",
+        "EBAY",
+        "ETSY",
+        "W",
+        "CHWY",
+        # Financial Services
+        "JPM",
+        "BAC",
+        "WFC",
+        "C",
+        "GS",
+        "MS",
+        "BLK",
+        "SCHW",
+        "AXP",
+        "USB",
+        "PNC",
+        "TFC",
+        "COF",
+        "BK",
+        "STT",
+        "V",
+        "MA",
+        "PYPL",
+        "COIN",
+
+        # Healthcare & Biotech
+        "UNH",
+        "JNJ",
+        "LLY",
+        "ABBV",
+        "MRK",
+        "PFE",
+        "TMO",
+        "ABT",
+        "DHR",
+        "BMY",
+        "AMGN",
+        "GILD",
+        "REGN",
+        "VRTX",
+        "ISRG",
+        "CVS",
+        "CI",
+        "HUM",
+        "ELV",
+        "MCK",
+
+        # Consumer Staples & Retail
+        "WMT",
+        "PG",
+        "KO",
+        "PEP",
+        "COST",
+        "MCD",
+        "NKE",
+        "SBUX",
+        "TGT",
+        "HD",
+        "LOW",
+        "TJX",
+        "DG",
+        "DLTR",
+        "KR",
+        "SYY",
+        "GIS",
+        "K",
+        "HSY",
+        "MNST",
+
+        # Industrial & Manufacturing
+        "BA",
+        "CAT",
+        "DE",
+        "GE",
+        "HON",
+        "UPS",
+        "UNP",
+        "MMM",
+        "LMT",
+        "RTX",
+        "NOC",
+        "GD",
+        "FDX",
+        "NSC",
+        "CSX",
+        "EMR",
+        "ITW",
+        "PH",
+        "ETN",
+        "CMI",
+
+        # Energy & Utilities
+        "XOM",
+        "CVX",
+        "COP",
+        "SLB",
+        "EOG",
+        "MPC",
+        "PSX",
+        "VLO",
+        "OXY",
+        "HAL",
+        "BKR",
+        "KMI",
+        "WMB",
+        "OKE",
+        "NEE",
+        "DUK",
+        "SO",
+        "D",
+        "AEP",
+        "EXC",
+
+        # Real Estate & REITs
+        "AMT",
+
+        "PLD",
+        "CCI",
+        "EQIX",
+        "PSA",
+        "WELL",
+        "SPG",
+        "O",
+        "DLR",
+        "AVB",
+        # Semiconductors (Additional)
+        "TSM",
+
+        "ASML",
+        "ADI",
+        "MCHP",
+        "NXPI",
+        "ON",
+        "MPWR",
+        # Autos & Transportation
+        "TSLA",
+
+        "F",
+        "GM",
+        "RIVN",
+        "LCID",
+        "NIO",
+        "UBER",
+        "LYFT",
+        "DAL",
+        "UAL",
+        # Materials & Chemicals
+        "LIN",
+
+        "APD",
+        "ECL",
+        "SHW",
+        "DD",
+        "NEM",
+        "FCX",
+        "NUE",
+        "VMC",
+        # Consumer Services
+        "BKNG",
+
+        "MAR",
+        "HLT",
+        "ABNB",
+        "MGM",
+        "WYNN",
+        "LVS",
+        "RCL",
+        "CCL",
+        # Pharmaceuticals (Additional)
+        "NVO",
+
+        "AZN",
+        "SNY",
+        "GSK",
+        "NVS",
+        "RHHBY",
+        "TAK",
+        "MRNA",
+        "BNTX",
+        # ETFs (Major Market Indices)
+        "SPY",
+        "QQQ",
+        "IWM",
+        "DIA",
+        "VOO",
+        "VTI",
+        "ARKK",
+        "TQQQ",
+        "SQQQ",
+        "UPRO",
+      ]
+    selection_rules: ""
+  capital:
+    max_leverage: 1.0
+    max_weight_per_name: 0.20
+    initial_capital: 100000
+
+data:
+  sources:
+    primary: "schwab_api"
+    bars: ["1m", "5m", "15m"]
+    optional: ["l1_spreads", "volume_imbalance"]
+  calendar:
+    trading_days: "NYSE"
+    market_hours: "09:30-16:00 ET"
+    timezone: "America/New_York"
+  bar_types:
+    time_bars: [1, 5, 15] # minutes
+    event_bars:
+      cusum_threshold: 0.0015 # 0.15% price move
+      dollar_bar_threshold: 1000000 # $1M
+      volume_bar_threshold: 100000 # 100K shares
+  windows:
+    train_months: 4 # Reduced from 6 to fit 6 months of data
+    test_months: 1
+    embargo_bars: 10
+    min_samples: 800
+  storage:
+    raw: "data/raw/{symbol}/{date}.parquet"
+    processed: "data/processed/{freq}/features_{symbol}_{month}.parquet"
+    models: "outputs/models/v{version}/{ticker}_{hash}.pkl"
+
+features:
+  schema_version: "v2"
+  groups:
+    returns:
+      - "log_ret_1"
+      - "log_ret_3"
+      - "log_ret_5"
+      - "log_ret_15"
+    volatility:
+      - "atr_14"
+      - "realized_vol_10"
+      - "bb_width_20"
+      - "vol_zscore"
+    momentum:
+      - "rsi_3"
+      - "rsi_7"
+      - "rsi_14"
+      - "macd_fast"
+      - "kama_slope"
+    price_location:
+      - "zscore_vs_vwap"
+      - "bb_position"
+      - "dist_from_vwap_pct"
+    time_context:
+      - "minute_sin"
+      - "minute_cos"
+      - "day_of_week_sin"
+      - "day_of_week_cos"
+      - "is_first_30min"
+      - "is_last_30min"
+    liquidity:
+      - "hl_range_pct"
+      - "volume_zscore"
+      - "spread_proxy"
+      - "dollar_volume_ma"
+    regime:
+      - "vol_regime" # GMM k=4 classification
+      - "trend_regime"
+      - "liquidity_regime"
+  engineering_rules:
+    no_lookahead: true
+    handle_missing: "forward_fill"
+    outlier_clip: 5.0 # standard deviations
+
+labels:
+  method: "triple_barrier"
+  parameters:
+    tp_atr_mult: 1.5
+    sl_atr_mult: 1.0
+    timeout_bars: 15
+  classes: ["up", "down", "neutral"]
+  binary_mode: false # 3-class
+  meta_labeling:
+    enabled: true
+    features: ["base_confidence", "regime", "spread_proxy"]
+
+models:
+  base:
+    lgbm:
+      objective: "multiclass"
+      num_class: 3
+      num_leaves: 31
+      learning_rate: 0.03
+      max_depth: 6
+      min_child_samples: 50
+      lambda_l1: 0.1
+      lambda_l2: 0.1
+      feature_fraction: 0.8
+      bagging_fraction: 0.8
+      early_stopping_rounds: 50
+    logistic:
+      penalty: "l2"
+      C: 1.0
+      solver: "lbfgs"
+      max_iter: 1000
+    tcn:
+      filters: 64
+      kernel_size: 3
+      dilations: [1, 2, 4, 8, 16]
+      dropout: 0.2
+      sequence_length: 128
+  ensemble:
+    method: "stacking"
+    meta_model: "lgbm"
+    calibration: "isotonic"
+    cv_folds: 5
+
+validation:
+  scheme: "walk_forward"
+  walk_config:
+    train_months: 6
+    test_months: 1
+    step_months: 1
+  purged_kfold:
+    n_splits: 5
+    embargo_bars: 10
+  selection_metric: "sharpe_after_costs"
+  secondary_metrics:
+    - "max_drawdown"
+    - "profit_factor"
+    - "turnover"
+    - "avg_trade_pnl"
+  threshold_sweep: [0.55, 0.60, 0.65, 0.70, 0.75]
+
+execution:
+  entry:
+    long_threshold: 0.64
+    short_threshold: 0.64
+    require_meta_approval: true
+    no_trade_windows:
+      - "09:30-09:45" # Market open volatility
+      - "15:45-16:00" # Market close
+  exit:
+    methods: ["tp", "sl", "timeout", "eod"]
+    eod_flat_time: "15:58"
+    min_hold_bars: 3
+    cooldown_bars: 2
+  position_sizing:
+    method: "volatility_scaled"
+    target_risk_pct: 0.25 # 0.25% per trade
+    max_position_pct: 10 # 10% of capital
+    scale_by: "atr_14"
+  daily_limits:
+    max_loss_multiple: 1.5 # × daily σ
+    max_trades_per_symbol: 10
+    max_trades_total: 30
+
+portfolio:
+  construction:
+    method: "risk_parity" # or "mean_variance"
+    lookback_bars: 60
+    turnover_penalty: 0.5
+  constraints:
+    max_gross_leverage: 1.0
+    max_sector_exposure: 0.30
+    max_single_name: 0.20
+  rebalance_frequency: "bar" # Every bar
+
+costs:
+  transaction:
+    commission_pct: 0.001 # 0.1%
+    fixed_per_trade: 0
+  slippage:
+    base_bps: 2.0
+    vol_multiplier: 0.3
+    participation_multiplier: 0.1
+    model: "half_spread_proxy"
+  spread_model:
+    method: "hl_range_pct"
+    cap_bps: 10.0
+
+monitoring:
+  live_kpis:
+    - "pnl_ytd"
+    - "sharpe_rolling_30d"
+    - "hit_rate"
+    - "avg_slippage"
+    - "turnover"
+    - "current_exposure"
+    - "max_drawdown"
+  drift_detection:
+    feature_psi_threshold: 0.25
+    score_calibration_ks_threshold: 0.10
+    data_freshness_minutes: 5
+  alerts:
+    - type: "max_drawdown"
+      threshold_pct: 10
+    - type: "daily_loss"
+      threshold_pct: 2
+    - type: "model_drift"
+      threshold: 0.25
+
+deployment:
+  canary:
+    enabled: true
+    allocation_pct: 10
+    duration_days: 7
+  versioning:
+    track:
+      - "data_window"
+      - "feature_schema_hash"
+      - "model_hash"
+      - "scaler_hash"
+      - "config_path"
+    log_path: "outputs/versions/{timestamp}.json"
+  rollback:
+    enabled: true
+    criteria:
+      - "sharpe_degradation_pct: 30"
+      - "max_drawdown_breach_pct: 15"

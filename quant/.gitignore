@@ -1,0 +1,74 @@
+# Environment variables (contains API keys)
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Data files
+data/raw/*.csv
+data/processed/*.csv
+
+# Model outputs
+outputs/checkpoints/*.pt
+outputs/logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Schwab token
+schwab_token.json
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# MacOS
+.DS_Store
+
+# Archive
+archive
+
+# Data
+/data
+
+# Dashboards
+/dashboards
+
+# Paper Trading
+/paper_trading
+
+# Backtesting
+/backtest
+
+# Model outputs
+/outputs
+
+# Logs
+/logs
+

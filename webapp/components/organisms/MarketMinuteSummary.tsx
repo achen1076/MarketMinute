@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Card from "@/components/atoms/card";
+import { useEffect, useState, useRef } from "react";
+import Card from "@/components/atoms/Card";
+import { Volume2, VolumeX, Loader2 } from "lucide-react";
+import { TICKER_TO_COMPANY } from "@/lib/tickerMappings";
 
 type TickerPerformance = {
   symbol: string;
@@ -26,44 +28,6 @@ type Props = {
   watchlistId: string | null;
 };
 
-// Common ticker to company name mappings
-const TICKER_TO_COMPANY: Record<string, string[]> = {
-  AAPL: ["Apple"],
-  MSFT: ["Microsoft"],
-  GOOGL: ["Google", "Alphabet"],
-  GOOG: ["Google", "Alphabet"],
-  AMZN: ["Amazon"],
-  NVDA: ["Nvidia"],
-  TSLA: ["Tesla"],
-  META: ["Meta", "Facebook"],
-  NFLX: ["Netflix"],
-  AMD: ["AMD"],
-  INTC: ["Intel"],
-  ORCL: ["Oracle"],
-  CRM: ["Salesforce"],
-  ADBE: ["Adobe"],
-  PYPL: ["PayPal"],
-  DIS: ["Disney"],
-  BA: ["Boeing"],
-  GE: ["General Electric"],
-  JPM: ["JPMorgan", "JP Morgan"],
-  BAC: ["Bank of America"],
-  WMT: ["Walmart"],
-  V: ["Visa"],
-  MA: ["Mastercard"],
-  PFE: ["Pfizer"],
-  JNJ: ["Johnson & Johnson"],
-  KO: ["Coca-Cola", "Coca Cola"],
-  PEP: ["PepsiCo", "Pepsi"],
-  NKE: ["Nike"],
-  MCD: ["McDonald's", "McDonalds"],
-  SBUX: ["Starbucks"],
-  T: ["AT&T"],
-  VZ: ["Verizon"],
-  CMCSA: ["Comcast"],
-};
-
-// Helper function to highlight tickers in text
 function highlightTickers(
   text: string,
   tickerPerformance: TickerPerformance[]
@@ -72,12 +36,10 @@ function highlightTickers(
     return [<span key="text">{text}</span>];
   }
 
-  // Create a map for quick lookup: symbol -> changePct
   const perfMap = new Map(
     tickerPerformance.map((t) => [t.symbol.toUpperCase(), t.changePct])
   );
 
-  // Build patterns to match: both ticker symbols and company names
   const patterns: Array<{
     pattern: string;
     ticker: string;
@@ -88,10 +50,8 @@ function highlightTickers(
     const changePct = ticker.changePct;
     const symbol = ticker.symbol.toUpperCase();
 
-    // Add the ticker symbol itself
     patterns.push({ pattern: symbol, ticker: symbol, changePct });
 
-    // Add company names if available
     const companyNames = TICKER_TO_COMPANY[symbol];
     if (companyNames) {
       for (const name of companyNames) {
@@ -100,14 +60,12 @@ function highlightTickers(
     }
   }
 
-  // Sort by length (longest first) to match longer names before shorter ones
   patterns.sort((a, b) => b.pattern.length - a.pattern.length);
 
-  // Build a regex that matches any of the patterns (case-insensitive)
   const patternStrings = patterns.map((p) =>
     p.pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
   );
-  const combinedRegex = new RegExp(`\\b(${patternStrings.join("|")})\\b`, "gi");
+  const combinedRegex = new RegExp(`\\b(${patternStrings.join("|")})\\b`, "g");
 
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
@@ -117,12 +75,9 @@ function highlightTickers(
     const matchedText = match[0];
     const matchedUpper = matchedText.toUpperCase();
 
-    // Find the matching pattern
     const matchingPattern = patterns.find(
       (p) => p.pattern.toUpperCase() === matchedUpper
     );
-
-    // Add text before the match
     if (match.index > lastIndex) {
       parts.push(
         <span key={`text-${lastIndex}`}>
@@ -131,7 +86,6 @@ function highlightTickers(
       );
     }
 
-    // Add the highlighted text
     if (matchingPattern) {
       const color =
         matchingPattern.changePct > 0
@@ -154,7 +108,6 @@ function highlightTickers(
     lastIndex = match.index + matchedText.length;
   }
 
-  // Add remaining text
   if (lastIndex < text.length) {
     parts.push(<span key={`text-${lastIndex}`}>{text.slice(lastIndex)}</span>);
   }
@@ -166,6 +119,9 @@ export function MarketMinuteSummary({ watchlistId }: Props) {
   const [summary, setSummary] = useState<SummaryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isTTSLoading, setIsTTSLoading] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (!watchlistId) {
@@ -193,6 +149,67 @@ export function MarketMinuteSummary({ watchlistId }: Props) {
         setLoading(false);
       });
   }, [watchlistId]);
+
+  const handleTextToSpeech = async () => {
+    if (!summary) return;
+
+    if (isPlaying && audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setIsPlaying(false);
+      return;
+    }
+
+    try {
+      setIsTTSLoading(true);
+
+      const textToRead = `${summary.headline}. ${summary.body}`;
+
+      const response = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: textToRead }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate speech");
+      }
+
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+
+      audio.onplay = () => setIsPlaying(true);
+      audio.onended = () => {
+        setIsPlaying(false);
+        URL.revokeObjectURL(audioUrl);
+      };
+      audio.onerror = () => {
+        setIsPlaying(false);
+        setError("Failed to play audio");
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      await audio.play();
+    } catch (err) {
+      console.error("TTS Error:", err);
+      setError("Unable to play audio");
+    } finally {
+      setIsTTSLoading(false);
+    }
+  };
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
 
   if (!watchlistId) {
     return null;
@@ -233,7 +250,26 @@ export function MarketMinuteSummary({ watchlistId }: Props) {
         <h2 className="text-2xl font-bold text-slate-100">
           {summary.headline}
         </h2>
-        <span className="text-xs text-slate-500">MarketMinute</span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleTextToSpeech}
+            disabled={isTTSLoading}
+            className="flex items-center gap-2 rounded-lg bg-slate-800/50 px-3 py-2 text-sm text-slate-300 transition-all hover:bg-teal-500/10 hover:text-teal-400 hover:border-teal-500/30 border border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+            title={isPlaying ? "Stop reading" : "Read summary aloud"}
+          >
+            {isTTSLoading ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : isPlaying ? (
+              <VolumeX size={16} />
+            ) : (
+              <Volume2 size={16} />
+            )}
+            <span className="hidden sm:inline">
+              {isPlaying ? "Stop" : "Listen"}
+            </span>
+          </button>
+          <span className="text-xs text-slate-500">MarketMinute</span>
+        </div>
       </div>
 
       {/* Stats Grid */}

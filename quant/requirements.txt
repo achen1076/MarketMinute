@@ -1,0 +1,139 @@
+# Institutional Quant ML System - Requirements
+# Python 3.10+
+
+# ========================================
+# CORE DEPENDENCIES (Required)
+# ========================================
+pandas>=2.0.0
+numpy>=1.24.0
+pyarrow>=12.0.0
+python-dateutil>=2.8.2
+pyyaml>=6.0
+
+# ========================================
+# ML FRAMEWORKS (Required)
+# ========================================
+scikit-learn>=1.3.0
+scipy>=1.11.0
+lightgbm>=4.0.0
+xgboost>=2.0.0
+imbalanced-learn>=0.11.0  # Class balancing (SMOTE, ADASYN)
+optuna>=3.0.0  # Hyperparameter optimization
+
+# ========================================
+# DATA SOURCES (Required)
+# ========================================
+schwab-py>=0.5.0
+pandas-market-calendars>=4.1.0
+pytz>=2023.3
+
+# ========================================
+# VALIDATION (Required for CI)
+# ========================================
+great-expectations>=0.17.0  # Data quality gates
+pytest>=7.4.0               # Testing framework
+pytest-cov>=4.1.0          # Coverage reports
+hypothesis>=6.82.0  # Property-based testing
+
+# ========================================
+# UTILITIES (Required)
+# ========================================
+joblib>=1.3.0             # Model serialization
+tqdm>=4.65.0              # Progress bars
+python-dotenv>=1.0.0      # Environment variables
+
+# ========================================
+# DEEP LEARNING (Required for advanced models)
+# Install with: pip install -r requirements_institutional.txt
+# ========================================
+tensorflow>=2.13.0          # Deep learning framework
+torch>=2.0.0                # PyTorch for neural networks
+pytorch-lightning>=2.0.0    # High-level PyTorch wrapper
+torchvision>=0.15.0         # Computer vision utilities
+keras>=2.13.0               # High-level neural networks API
+transformers>=4.30.0        # State-of-the-art NLP & time series models
+skorch>=0.15.0              # Scikit-learn wrapper for PyTorch
+
+# ========================================
+# ADVANCED OPTIMIZATION (Required)
+# For hyperparameter tuning and portfolio optimization
+# ========================================
+# optuna>=3.0.0            # Already included in ML FRAMEWORKS section
+# scipy>=1.11.0             # Already included in ML FRAMEWORKS section
+hyperopt>=0.2.7             # Alternative Bayesian optimizer
+cvxpy>=1.3.0                # Convex optimization for portfolio
+ray[tune]>=2.7.0            # Distributed hyperparameter tuning
+bayesian-optimization>=1.4.0  # Gaussian process optimization
+
+# ========================================
+# MLOps & MONITORING (Required for production)
+# Essential for experiment tracking and deployment
+# ========================================
+mlflow>=2.7.0               # Experiment tracking & model registry
+wandb>=0.15.0               # Weights & Biases experiment tracking
+tensorboard>=2.13.0         # TensorFlow visualization
+psutil>=5.9.5               # System monitoring
+pynvml>=11.5.0              # NVIDIA GPU monitoring
+dvc>=3.0.0                  # Data version control
+evidently>=0.4.0            # ML model monitoring
+alibi-detect>=0.11.0        # Outlier & drift detection
+shap>=0.42.0                # Model explainability
+# prometheus-client>=0.17.0  # Metrics export (commented - Windows incompatibility)
+
+# ========================================
+# OPTIONAL: Performance Acceleration
+# Install if you need speed improvements
+# Note: numba works best on Linux/Mac
+# ========================================
+# numba>=0.57.0           # JIT compilation (commented - platform-specific)
+# bottleneck>=1.3.7       # Fast NumPy routines
+
+# ========================================
+# OPTIONAL: Technical Analysis
+# Note: Requires TA-Lib C library installation first
+# See: https://github.com/mrjbq7/ta-lib
+# ========================================
+# ta-lib>=0.4.28          # Advanced TA indicators (commented - C dependency)
+
+# ========================================
+# OPTIONAL: Statistics
+# ========================================
+# statsmodels>=0.14.0     # Statistical models
+
+# ========================================
+# VISUALIZATION (Required for dashboard)
+# ========================================
+streamlit>=1.28.0       # Dashboard UI
+plotly>=5.17.0          # Interactive charts
+
+# ========================================
+# OPTIONAL: Additional Visualization
+# Install for custom analysis
+# ========================================
+# matplotlib>=3.7.0       # Static plots
+# seaborn>=0.12.0         # Statistical visualization
+
+# ========================================
+# OPTIONAL: Jupyter Notebooks
+# Install for interactive development
+# ========================================
+# jupyter>=1.0.0          # Notebook server
+# ipywidgets>=8.1.0       # Interactive widgets
+
+# ========================================
+# OPTIONAL: Code Quality Tools
+# Install for development only
+# ========================================
+# black>=23.0.0           # Code formatter
+# flake8>=6.1.0           # Linter
+# mypy>=1.5.0             # Type checker
+# isort>=5.12.0           # Import sorter
+# pytest-xdist>=3.3.0     # Parallel testing
+
+# ========================================
+# OPTIONAL: Documentation
+# Install when building docs
+# ========================================
+# sphinx>=7.2.0           # Doc generator
+# sphinx-rtd-theme>=1.3.0 # ReadTheDocs theme
+

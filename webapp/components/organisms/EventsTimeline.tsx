@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Card from "@/components/atoms/card";
+import Card from "@/components/atoms/Card";
 import { Calendar, TrendingUp, Building2, DollarSign } from "lucide-react";
 
 type StockEvent = {

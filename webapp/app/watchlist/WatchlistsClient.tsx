@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { Star } from "lucide-react";
-import Button from "@/components/atoms/button";
-import Card from "@/components/atoms/card";
+import Button from "@/components/atoms/Button";
+import Card from "@/components/atoms/Card";
 import TickerSearch from "@/components/molecules/TickerSearch";
 
 type WatchlistItem = {
@@ -378,7 +378,9 @@ export default function WatchlistsClient({
                         />
                         <button
                           onClick={() => handleUpdateName(w.id)}
-                          disabled={loading || !editName.trim() || editName === w.name}
+                          disabled={
+                            loading || !editName.trim() || editName === w.name
+                          }
                           className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Save
