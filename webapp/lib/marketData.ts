@@ -74,13 +74,13 @@ export async function getSnapshotsForSymbols(
     // Extract 52-week high/low from various possible fields
     const high52w =
       quote.fiftyTwoWeekHigh ??
-      quote['52WeekHigh'] ??
+      quote["52WeekHigh"] ??
       fundamental.high52 ??
       regular.fiftyTwoWeekHigh;
 
     const low52w =
       quote.fiftyTwoWeekLow ??
-      quote['52WeekLow'] ??
+      quote["52WeekLow"] ??
       fundamental.low52 ??
       regular.fiftyTwoWeekLow;
 

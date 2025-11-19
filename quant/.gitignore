@@ -67,7 +67,8 @@ archive
 /backtest
 
 # Model outputs
-/outputs
+/outputs/models
+/outputs/backtests
 /models
 
 # Logs
