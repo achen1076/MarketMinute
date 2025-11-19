@@ -50,10 +50,8 @@ schwab_token.json
 # Archive
 archive
 
-# Data
-data/
-data/raw/
-data/processed/
+# Data files (root level only, not src/data source code)
+/data/
 
 
 # Dashboards
