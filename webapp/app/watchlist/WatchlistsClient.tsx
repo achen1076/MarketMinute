@@ -1,10 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import { Star } from "lucide-react";
+import { Star, GripVertical } from "lucide-react";
 import Button from "@/components/atoms/Button";
 import Card from "@/components/atoms/Card";
+import Dialog from "@/components/atoms/Dialog";
 import TickerSearch from "@/components/molecules/TickerSearch";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 type WatchlistItem = {
   id: string;
@@ -24,6 +42,69 @@ type Props = {
   userName: string;
 };
 
+type SortableItemProps = {
+  item: WatchlistItem;
+  onRemove: () => void;
+  disabled: boolean;
+};
+
+function SortableItem({ item, onRemove, disabled }: SortableItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <span
+      ref={setNodeRef}
+      style={style}
+      className={`group flex items-center gap-1.5 rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-100 pr-2 ${
+        isDragging ? "z-50 shadow-lg" : ""
+      }`}
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing touch-none"
+        disabled={disabled}
+      >
+        <GripVertical className="h-3 w-3 text-slate-500" />
+      </button>
+      {item.symbol}
+      <button
+        onClick={onRemove}
+        disabled={disabled}
+        className="rounded-full p-0.5 transition-colors hover:cursor-pointer hover:bg-red-900/50 disabled:opacity-50"
+        title="Remove symbol"
+      >
+        <svg
+          className="h-3 w-3 text-red-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </span>
+  );
+}
+
 export default function WatchlistsClient({
   initialWatchlists,
   userName,
@@ -37,6 +118,20 @@ export default function WatchlistsClient({
   );
   const [editSymbols, setEditSymbols] = useState<string[]>([]);
   const [editName, setEditName] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [watchlistToDelete, setWatchlistToDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [draggedItems, setDraggedItems] = useState<Record<string, WatchlistItem[]>>({});
+  const [pendingReorder, setPendingReorder] = useState<Record<string, boolean>>({});
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const handleCreate = async () => {
     if (!name.trim() || selectedSymbols.length === 0) return;
@@ -63,12 +158,12 @@ export default function WatchlistsClient({
     }
   };
 
-  const handleDelete = async (watchlistId: string) => {
-    if (!confirm("Are you sure you want to delete this watchlist?")) return;
+  const handleDelete = async () => {
+    if (!watchlistToDelete) return;
 
     setLoading(true);
     try {
-      const res = await fetch(`/api/watchlist?id=${watchlistId}`, {
+      const res = await fetch(`/api/watchlist?id=${watchlistToDelete.id}`, {
         method: "DELETE",
       });
 
@@ -77,10 +172,171 @@ export default function WatchlistsClient({
         return;
       }
 
-      setWatchlists((prev) => prev.filter((w) => w.id !== watchlistId));
+      setWatchlists((prev) => prev.filter((w) => w.id !== watchlistToDelete.id));
+      setDeleteDialogOpen(false);
+      setWatchlistToDelete(null);
     } finally {
       setLoading(false);
     }
+  };
+
+  const openDeleteDialog = (watchlistId: string, watchlistName: string) => {
+    setWatchlistToDelete({ id: watchlistId, name: watchlistName });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDragEnd = (event: DragEndEvent, watchlistId: string) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const currentItems = draggedItems[watchlistId] || watchlists.find((w) => w.id === watchlistId)?.items || [];
+    const oldIndex = currentItems.findIndex((item) => item.id === active.id);
+    const newIndex = currentItems.findIndex((item) => item.id === over.id);
+
+    const newItems = arrayMove(currentItems, oldIndex, newIndex);
+    setDraggedItems((prev) => ({ ...prev, [watchlistId]: newItems }));
+    setPendingReorder((prev) => ({ ...prev, [watchlistId]: true }));
+  };
+
+  const handleSaveOrder = async (watchlistId: string) => {
+    const newItems = draggedItems[watchlistId];
+    if (!newItems) return;
+
+    setLoading(true);
+    try {
+      const itemOrders = newItems.map((item, index) => ({
+        id: item.id,
+        order: index,
+      }));
+
+      const res = await fetch("/api/watchlist/items", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ watchlistId, itemOrders }),
+      });
+
+      if (!res.ok) {
+        console.error("Failed to update order");
+        return;
+      }
+
+      const updated = (await res.json()) as Watchlist;
+      setWatchlists((prev) =>
+        prev.map((w) => (w.id === watchlistId ? updated : w))
+      );
+      // Clear dragged state and pending flag after successful update
+      setDraggedItems((prev) => {
+        const updated = { ...prev };
+        delete updated[watchlistId];
+        return updated;
+      });
+      setPendingReorder((prev) => {
+        const updated = { ...prev };
+        delete updated[watchlistId];
+        return updated;
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveAllChanges = async (watchlistId: string) => {
+    const watchlist = watchlists.find((w) => w.id === watchlistId);
+    if (!watchlist) return;
+
+    setLoading(true);
+    try {
+      // 1. Update name if changed
+      if (editName.trim() && editName !== watchlist.name) {
+        const res = await fetch("/api/watchlist", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            watchlistId,
+            name: editName,
+          }),
+        });
+
+        if (!res.ok) {
+          console.error("Failed to update name");
+          return;
+        }
+
+        const updated = (await res.json()) as Watchlist;
+        setWatchlists((prev) =>
+          prev.map((w) => (w.id === watchlistId ? updated : w))
+        );
+      }
+
+      // 2. Save order if changed
+      if (pendingReorder[watchlistId] && draggedItems[watchlistId]) {
+        const newItems = draggedItems[watchlistId];
+        const itemOrders = newItems.map((item, index) => ({
+          id: item.id,
+          order: index,
+        }));
+
+        const res = await fetch("/api/watchlist/items", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ watchlistId, itemOrders }),
+        });
+
+        if (!res.ok) {
+          console.error("Failed to update order");
+          return;
+        }
+
+        const updated = (await res.json()) as Watchlist;
+        setWatchlists((prev) =>
+          prev.map((w) => (w.id === watchlistId ? updated : w))
+        );
+      }
+
+      // 3. Add new symbols
+      if (editSymbols.length > 0) {
+        const res = await fetch("/api/watchlist/items", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            watchlistId,
+            symbols: editSymbols,
+          }),
+        });
+
+        if (!res.ok) {
+          console.error("Failed to add symbols");
+          return;
+        }
+
+        const updated = (await res.json()) as Watchlist;
+        setWatchlists((prev) =>
+          prev.map((w) => (w.id === watchlistId ? updated : w))
+        );
+      }
+
+      // Clear all edit states
+      setEditSymbols([]);
+      setDraggedItems((prev) => {
+        const updated = { ...prev };
+        delete updated[watchlistId];
+        return updated;
+      });
+      setPendingReorder((prev) => {
+        const updated = { ...prev };
+        delete updated[watchlistId];
+        return updated;
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getWatchlistItems = (watchlistId: string) => {
+    return draggedItems[watchlistId] || watchlists.find((w) => w.id === watchlistId)?.items || [];
   };
 
   const handleToggleFavorite = async (
@@ -306,7 +562,7 @@ export default function WatchlistsClient({
                       </button>
                     )}
                     <button
-                      onClick={() => handleDelete(w.id)}
+                      onClick={() => openDeleteDialog(w.id, w.name)}
                       disabled={loading}
                       className="rounded-md bg-red-900/30 px-2 py-1 text-xs font-medium text-red-400 transition-colors hover:bg-red-900/50 hover:text-red-300 disabled:opacity-50 hover:cursor-pointer"
                     >
@@ -323,38 +579,36 @@ export default function WatchlistsClient({
                   <p className="text-xs text-slate-500">
                     {isEditing ? "Add symbols below" : "No symbols yet."}
                   </p>
+                ) : isEditing ? (
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={(event) => handleDragEnd(event, w.id)}
+                  >
+                    <SortableContext
+                      items={getWatchlistItems(w.id).map((item) => item.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="flex flex-wrap gap-2">
+                        {getWatchlistItems(w.id).map((item) => (
+                          <SortableItem
+                            key={item.id}
+                            item={item}
+                            onRemove={() => handleRemoveItem(w.id, item.id)}
+                            disabled={loading}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
                 ) : (
                   <div className="flex flex-wrap gap-2">
                     {w.items.map((item) => (
                       <span
                         key={item.id}
-                        className={`group flex items-center gap-1.5 rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-100 ${
-                          isEditing ? "pr-2" : ""
-                        }`}
+                        className="group flex items-center gap-1.5 rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-100"
                       >
                         {item.symbol}
-                        {isEditing && (
-                          <button
-                            onClick={() => handleRemoveItem(w.id, item.id)}
-                            disabled={loading}
-                            className="rounded-full p-0.5 transition-colors hover:cursor-pointer hover:bg-red-900/50 disabled:opacity-50"
-                            title="Remove symbol"
-                          >
-                            <svg
-                              className="h-3 w-3 text-red-400"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M6 18L18 6M6 6l12 12"
-                              />
-                            </svg>
-                          </button>
-                        )}
                       </span>
                     ))}
                   </div>
@@ -367,25 +621,14 @@ export default function WatchlistsClient({
                       <label className="mb-2 block text-xs font-medium text-slate-300">
                         Watchlist Name
                       </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={editName}
-                          onChange={(e) => setEditName(e.target.value)}
-                          disabled={loading}
-                          className="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none transition-colors focus:border-emerald-500 disabled:opacity-50"
-                          placeholder="Watchlist name"
-                        />
-                        <button
-                          onClick={() => handleUpdateName(w.id)}
-                          disabled={
-                            loading || !editName.trim() || editName === w.name
-                          }
-                          className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          Save
-                        </button>
-                      </div>
+                      <input
+                        type="text"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        disabled={loading}
+                        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none transition-colors focus:border-emerald-500 disabled:opacity-50"
+                        placeholder="Watchlist name"
+                      />
                     </div>
 
                     <div>
@@ -404,6 +647,17 @@ export default function WatchlistsClient({
                           setEditingWatchlistId(null);
                           setEditSymbols([]);
                           setEditName("");
+                          // Clear pending reorder state when canceling
+                          setDraggedItems((prev) => {
+                            const updated = { ...prev };
+                            delete updated[w.id];
+                            return updated;
+                          });
+                          setPendingReorder((prev) => {
+                            const updated = { ...prev };
+                            delete updated[w.id];
+                            return updated;
+                          });
                         }}
                         disabled={loading}
                         className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-400 transition-colors hover:bg-slate-800 disabled:opacity-50 hover:cursor-pointer"
@@ -411,15 +665,26 @@ export default function WatchlistsClient({
                         Cancel
                       </button>
                       <Button
-                        onClick={() => handleAddSymbols(w.id)}
-                        disabled={loading || editSymbols.length === 0}
+                        onClick={() => handleSaveAllChanges(w.id)}
+                        disabled={
+                          loading ||
+                          (
+                            editSymbols.length === 0 &&
+                            !pendingReorder[w.id] &&
+                            (editName === w.name || !editName.trim())
+                          )
+                        }
                         size="sm"
                         className="px-4 text-xs hover:cursor-pointer"
                       >
                         {loading
-                          ? "Adding..."
-                          : `Add ${editSymbols.length} symbol${
-                              editSymbols.length === 1 ? "" : "s"
+                          ? "Saving..."
+                          : `Save Changes${
+                              editSymbols.length > 0
+                                ? ` (${editSymbols.length} symbol${
+                                    editSymbols.length === 1 ? "" : "s"
+                                  })`
+                                : ""
                             }`}
                       </Button>
                     </div>
@@ -430,6 +695,22 @@ export default function WatchlistsClient({
           })}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        isOpen={deleteDialogOpen}
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setWatchlistToDelete(null);
+        }}
+        title="Delete Watchlist"
+        description={`Are you sure you want to delete "${watchlistToDelete?.name}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        onConfirm={handleDelete}
+        variant="danger"
+        loading={loading}
+      />
     </div>
   );
 }

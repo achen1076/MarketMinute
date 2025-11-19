@@ -132,7 +132,9 @@ const Sidebar: React.FC<SidebarProps> = ({
           <NavLink to="/forecasts" onClick={closeMenu}>
             Market Forecasts
           </NavLink>
-
+          <NavLink to="/history" onClick={closeMenu}>
+            History
+          </NavLink>
           {/* <NavLink to="/explore" onClick={closeMenu}>
             Explore
           </NavLink>

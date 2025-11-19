@@ -88,6 +88,7 @@ model WatchlistItem {
   watchlistId String     @map("watchlist_id")
   symbol      String
   notes       String?
+  order       Int        @default(0)
   createdAt   DateTime   @default(now()) @map("created_at")
 
   watchlist   Watchlist  @relation(fields: [watchlistId], references: [id], onDelete: Cascade)

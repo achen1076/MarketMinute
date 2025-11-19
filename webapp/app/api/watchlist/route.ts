@@ -13,7 +13,11 @@ export async function GET() {
     where: { email: session.user.email },
     include: {
       watchlists: {
-        include: { items: true },
+        include: {
+          items: {
+            orderBy: { order: "asc" },
+          },
+        },
         orderBy: [
           { isFavorite: "desc" },
           { createdAt: "asc" },
@@ -48,10 +52,14 @@ export async function POST(req: Request) {
       name,
       userId: user.id,
       items: {
-        create: symbols.map((symbol) => ({ symbol })),
+        create: symbols.map((symbol, index) => ({ symbol, order: index })),
       },
     },
-    include: { items: true },
+    include: {
+      items: {
+        orderBy: { order: "asc" },
+      },
+    },
   });
 
   // If this is the user's first watchlist, set it as active
@@ -102,7 +110,11 @@ export async function PATCH(req: Request) {
   const updated = await prisma.watchlist.update({
     where: { id: watchlistId },
     data: { name: name.trim() },
-    include: { items: true },
+    include: {
+      items: {
+        orderBy: { order: "asc" },
+      },
+    },
   });
 
   return NextResponse.json(updated);

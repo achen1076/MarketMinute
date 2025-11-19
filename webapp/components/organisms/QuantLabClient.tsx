@@ -389,8 +389,7 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
               <strong className="text-slate-200">Quant Score:</strong> A single
               number combining multiple factors: directional edge (difference
               between up/down probabilities), model confidence, and expected
-              volatility. Scores above 35 with sufficient edge are considered
-              tradeable.
+              volatility.
             </div>
             <div>
               <strong className="text-slate-200">Regime Classification:</strong>{" "}

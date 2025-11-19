@@ -1,10 +1,15 @@
-// app/history/page.tsx
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Card from "@/components/atoms/Card";
 import { SinceLastVisit } from "@/components/organisms/SinceLastVisit";
 import { WatchlistTimeline } from "@/components/organisms/WatchlistTimeline";
+
+export const metadata = {
+  title: "MarketMinute - History",
+  description:
+    "Track changes since your last visit and view your watchlist timeline.",
+};
 
 export default async function HistoryPage() {
   const session = await auth();
