@@ -1,0 +1,58 @@
+{
+  "MSFT": {
+    "ticker": "MSFT",
+    "signal": "BUY",
+    "entry_price": 506.645,
+    "entry_date": "2025-11-14T10:57:39.616762",
+    "shares": 19.737686151052515,
+    "cost_basis": 10000.0,
+    "stop_loss": 489.20809999999994,
+    "take_profit": 535.7065,
+    "current_price": 510.4,
+    "current_value": 10074.115011497202,
+    "pnl": 74.11501149720243,
+    "pnl_pct": 0.7411501149720243
+  },
+  "NVDA": {
+    "ticker": "NVDA",
+    "signal": "BUY",
+    "entry_price": 188.89,
+    "entry_date": "2025-11-14T10:57:39.618638",
+    "shares": 47.64677854836148,
+    "cost_basis": 9000.0,
+    "stop_loss": 175.5762357142857,
+    "take_profit": 211.07960714285713,
+    "current_price": 185.2052,
+    "current_value": 8824.431150404998,
+    "pnl": -175.56884959500167,
+    "pnl_pct": -1.9507649955000186
+  },
+  "VOO": {
+    "ticker": "VOO",
+    "signal": "BUY",
+    "entry_price": 618.0156,
+    "entry_date": "2025-11-14T10:57:39.619048",
+    "shares": 13.106465273692121,
+    "cost_basis": 8100.0,
+    "stop_loss": 607.5198857142857,
+    "take_profit": 635.5084571428571,
+    "current_price": 612.13,
+    "current_value": 8022.860587985158,
+    "pnl": -77.13941201484158,
+    "pnl_pct": -0.9523384199363158
+  },
+  "BA": {
+    "ticker": "BA",
+    "signal": "BUY",
+    "entry_price": 191.41,
+    "entry_date": "2025-11-17T14:19:44.757793",
+    "shares": 38.0857844417742,
+    "cost_basis": 7290.0,
+    "stop_loss": 183.47775357142856,
+    "take_profit": 204.63041071428572,
+    "current_price": 191.41,
+    "current_value": 7290.0,
+    "pnl": 0.0,
+    "pnl_pct": 0.0
+  }
+}
