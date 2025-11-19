@@ -1,20 +1,3 @@
-"""
-Three-class labels for quant models.
-
-Labels:
-    -1 = strong down
-     0 = neutral
-     1 = strong up
-
-Supports:
-    • Fixed threshold
-    • Volatility-adjusted dynamic threshold
-    • Density control (limit strong-move ratio)
-
-Safe for 20 years of daily data.
-"""
-
-import numpy as np
 import pandas as pd
 
 

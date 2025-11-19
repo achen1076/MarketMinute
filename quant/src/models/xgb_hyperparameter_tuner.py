@@ -15,9 +15,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# -----------------------------------------------------
-# Hybrid Balance (Mode A – soft oversampling)
-# -----------------------------------------------------
 def hybrid_balance(X, y, multiplier=1.4):
     df = X.copy()
     df["label"] = y
@@ -40,9 +37,7 @@ def hybrid_balance(X, y, multiplier=1.4):
     return df_bal.drop(columns=["label"]), df_bal["label"].values
 
 
-# -----------------------------------------------------
 # Class Weights for XGB
-# -----------------------------------------------------
 def compute_class_weights(y):
     counts = Counter(y)
     total = sum(counts.values())
@@ -50,18 +45,12 @@ def compute_class_weights(y):
     return {c: total / (n_class * counts[c]) for c in counts}
 
 
-# -----------------------------------------------------
-# Tuner
-# -----------------------------------------------------
 class XGBHyperparameterTuner:
     def __init__(self, n_trials=40, use_gpu=False):
         self.n_trials = n_trials
         self.use_gpu = use_gpu
         self.study = None
 
-    # ---------------------------------------------
-    # OBJECTIVE
-    # ---------------------------------------------
     def objective(self, trial, X_train, y_train, X_val, y_val):
         # Hybrid balancing
         Xb, yb = hybrid_balance(X_train, y_train)
@@ -122,9 +111,6 @@ class XGBHyperparameterTuner:
 
         return score
 
-    # ---------------------------------------------
-    # RUN TUNING
-    # ---------------------------------------------
     def tune(self, X_train, y_train, X_val, y_val):
         def _objective(trial):
             return self.objective(trial, X_train, y_train, X_val, y_val)

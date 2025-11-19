@@ -16,9 +16,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# -----------------------------------------------------
-# Hybrid Balance (Mode A – Soft Oversampling)
-# -----------------------------------------------------
 def hybrid_balance(X, y, multiplier=1.4):
     df = X.copy()
     df["label"] = y
@@ -41,9 +38,7 @@ def hybrid_balance(X, y, multiplier=1.4):
     return df_bal.drop(columns=["label"]), df_bal["label"].values
 
 
-# -----------------------------------------------------
 # Class Weights
-# -----------------------------------------------------
 def compute_class_weights(y):
     """
     Compute proportional class weights: total_samples / (num_classes * count_class)
@@ -54,18 +49,14 @@ def compute_class_weights(y):
     return {cls: total / (n_class * cnt) for cls, cnt in counts.items()}
 
 
-# -----------------------------------------------------
 # LightGBM Hyperparameter Tuner
-# -----------------------------------------------------
 class LightGBMHyperparameterTuner:
     def __init__(self, n_trials=40, use_gpu=False):
         self.n_trials = n_trials
         self.use_gpu = use_gpu
         self.study = None
 
-    # -------------------------------------------------
     # Optimizable Objective
-    # -------------------------------------------------
     def objective(self, trial, X_train, y_train, X_val, y_val):
 
         # Hybrid balance
@@ -83,7 +74,7 @@ class LightGBMHyperparameterTuner:
         params = {
             "objective": "multiclass",
             "num_class": 3,
-            "metric": "multi_logloss",  # for early stopping only
+            "metric": "multi_logloss",
             "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.15),
             "num_leaves": trial.suggest_int("num_leaves", 16, 128),
             "max_depth": trial.suggest_int("max_depth", 3, 9),
@@ -128,9 +119,6 @@ class LightGBMHyperparameterTuner:
 
         return score
 
-    # -------------------------------------------------
-    # Run optimization
-    # -------------------------------------------------
     def tune(self, X_train, y_train, X_val, y_val):
         def _objective(trial):
             return self.objective(trial, X_train, y_train, X_val, y_val)

@@ -11,7 +11,7 @@ MarketMinute is a full-stack financial intelligence platform that combines real-
 MarketMinute consists of two integrated systems:
 
 **Web Application** - Modern Next.js dashboard for market monitoring and AI insights
-**Quantitative Lab System** - ML-powered engine with movements predictions and forcasts
+**Quant Lab System** - ML-powered engine with movements predictions and forcasts
 
 ---
 
@@ -274,9 +274,18 @@ Key models:
 - **User** - User accounts with OAuth integration
 - **Watchlist** - Custom watchlists with favorites
 - **WatchlistItem** - Individual stocks with ordering
-- **Macro** - Custom alert rules with parameters
+- **Session** - Session Auth
 - **DailyWatchlistSummary** - Historical performance snapshots
-- **UserVisitSnapshot** - User activity tracking
+
+```
+User
+ ├── Watchlists (1-to-many)
+ │     ├── WatchlistItems (1-to-many)
+ │     └── Macros (1-to-many)
+ ├── Accounts (OAuth providers)
+ ├── Sessions (Auth)
+ └── DailyWatchlistSummaries (through watchlist)
+```
 
 Run migrations:
 
@@ -290,10 +299,10 @@ npx prisma migrate dev
 
 **2024 YTD Backtest Results:**
 
-- **Return:** +129% (portfolio)
-- **Win Rate:** 54.3%
-- **Sharpe Ratio:** 3.40
-- **Max Drawdown:** -17.9%
+- Directional accuracy: 54–59% depending on symbol
+- Model stability (Sharpe-like metric): 3.40
+- Largest downward deviation: -17.9% equivalent simulated drawdown
+- Scenario frequency: ~10–12% strong-signal days
 
 **Key Parameters:**
 
@@ -302,6 +311,125 @@ npx prisma migrate dev
 - Stop loss: 1.5x ATR
 - Take profit: 2.5x ATR
 - Risk/Reward: ~1.67:1
+
+---
+
+## 🤖 Model Information
+
+### Machine Learning Models
+
+MarketMinute's Quant Lab employs four specialized models for market prediction:
+
+#### 1. **LightGBM Classifier**
+- **Type:** Gradient Boosting Decision Trees
+- **Framework:** Microsoft LightGBM
+- **Architecture:** Multiclass classifier (3 classes)
+- **Tuner:** Optuna hyperparameter optimization (40 trials)
+- **Key Features:**
+  - Fast training with histogram-based learning
+  - Leaf-wise tree growth strategy
+  - Built-in categorical feature support
+  - GPU acceleration support
+- **Tuned Parameters:**
+  - Learning rate: 0.01–0.15
+  - Num leaves: 16–128
+  - Max depth: 3–9
+  - Feature/bagging fractions
+  - L1/L2 regularization
+
+#### 2. **XGBoost Classifier**
+- **Type:** Gradient Boosting Decision Trees
+- **Framework:** XGBoost
+- **Architecture:** Multiclass classifier (3 classes)
+- **Tuner:** Optuna hyperparameter optimization (40 trials)
+- **Key Features:**
+  - Depth-wise tree growth
+  - Advanced regularization techniques
+  - Parallel tree construction
+  - GPU acceleration support
+- **Tuned Parameters:**
+  - Learning rate: 0.01–0.15
+  - Max depth: 3–7
+  - Min child weight: 1.0–10.0
+  - Gamma, subsample, colsample
+  - Alpha/lambda regularization
+
+#### 3. **LSTM Classifier**
+- **Type:** Bidirectional Long Short-Term Memory Neural Network
+- **Framework:** PyTorch
+- **Architecture:** 2-layer bidirectional LSTM with attention
+- **Tuner:** Built-in training with early stopping
+- **Key Features:**
+  - Bidirectional processing for temporal context
+  - Multi-head attention mechanism
+  - Batch normalization and dropout
+  - Sequence modeling for time series
+- **Network Architecture:**
+  - Input → Bidirectional LSTM (128 hidden units)
+  - Multi-head attention layer
+  - Fully connected layers with dropout (0.3)
+  - Softmax output (3 classes)
+
+#### 4. **Transformer Classifier**
+- **Type:** Transformer Neural Network
+- **Framework:** PyTorch
+- **Architecture:** 4-layer transformer encoder with positional encoding
+- **Tuner:** Built-in training with early stopping
+- **Key Features:**
+  - Positional encoding for sequence information
+  - Self-attention across all time steps
+  - Layer normalization
+  - Captures long-range dependencies
+- **Network Architecture:**
+  - Input embedding (d_model=128)
+  - Positional encoding
+  - 4 transformer encoder layers (8 attention heads)
+  - Feed-forward network (512 dimensions)
+  - Softmax output (3 classes)
+
+### Labeling Strategy
+
+**Multiclass Triple-Barrier Method:**
+
+- **Classes:**
+  - `-1` = Strong Down (sell signal)
+  - `0` = Neutral (hold/no trade)
+  - `1` = Strong Up (buy signal)
+
+- **Forward-Looking Period:** 5 days (default)
+
+- **Dynamic Volatility Adjustment:**
+  - Rolling volatility window: 30 days
+  - Neutral threshold: 0.8× rolling volatility
+  - Strong threshold: 2.0× rolling volatility
+  - Adapts to market conditions automatically
+
+- **Density Control:**
+  - Maximum strong-move ratio: 12%
+  - Prevents label imbalance
+  - Randomly samples strong moves if threshold exceeded
+
+- **Class Balancing:**
+  - Hybrid soft oversampling (1.4× multiplier)
+  - Proportional class weights
+  - Prevents model collapse to majority class
+
+### Optimization Metrics
+
+- **Primary:** Macro-F1 Score (balanced across all classes)
+- **Secondary:** Multi-class log loss (for early stopping)
+- **Validation:** Walk-forward cross-validation
+- **Ensemble:** Weighted averaging by macro-F1 performance
+
+### Model Training Pipeline
+
+1. **Data Preparation:** Feature engineering (50+ indicators)
+2. **Labeling:** Dynamic volatility-adjusted labels
+3. **Balancing:** Hybrid oversampling + class weights
+4. **Hyperparameter Tuning:** Optuna optimization (40 trials)
+5. **Training:** Walk-forward cross-validation
+6. **Ensemble:** Weighted combination of all models
+7. **Validation:** Out-of-sample testing
 
 ---
 

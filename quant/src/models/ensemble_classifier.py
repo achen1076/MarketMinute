@@ -46,9 +46,6 @@ class EnsembleClassifier:
                 "[Ensemble] Using equal weights until validation weighting occurs.")
             self.weights = [1.0 / len(models)] * len(models)
 
-    # ---------------------------------------------------
-    # Compute weights using macro-F1 (fixed imbalance issue)
-    # ---------------------------------------------------
     def compute_weights(self, X_val, y_val, power=2.0):
         preds = []
         scores = []
@@ -78,13 +75,8 @@ class EnsembleClassifier:
             f"[Ensemble] Weights (macro-F1, power={power}): {self.weights}")
         logger.info(f"[Ensemble] Raw scores: {scores}")
 
-    # ---------------------------------------------------
     # Stacking meta learner
-    # ---------------------------------------------------
     def fit_meta_model(self, X_train, y_train, X_val=None, y_val=None):
-        """
-        Train a LightGBM stacking meta model using probabilities from each base model.
-        """
         from .base.lgbm_classifier import LGBMClassifier
 
         train_probs = [m.predict_proba(X_train) for m in self.models]
@@ -110,9 +102,7 @@ class EnsembleClassifier:
 
         logger.info("[Ensemble] Meta-model trained for stacking.")
 
-    # ---------------------------------------------------
     # Probability Prediction
-    # ---------------------------------------------------
     def predict_proba(self, X):
         all_probs = [m.predict_proba(X) for m in self.models]
 
@@ -139,7 +129,7 @@ class EnsembleClassifier:
             raise ValueError(f"Unknown ensemble strategy: {self.strategy}")
 
     # ---------------------------------------------------
-    # Class Prediction
+    # Class predictions
     # ---------------------------------------------------
     def predict(self, X):
         probas = self.predict_proba(X)
@@ -179,12 +169,12 @@ class EnsembleClassifier:
         return results
 
 
-# -------------------------------------------------------
-# QuantModel Wrapper
-# -------------------------------------------------------
 class QuantModel:
     """
-    Wrapper that combines pretrained LightGBM/XGB/Deep models into a usable ensemble.
+    Wrapper that combines pretrained LightGBM/XGB into a usable ensemble.
+
+    Deep Learning not included yet :)
+    Only LGBM and XGBoost for now.
     """
 
     def __init__(
@@ -211,9 +201,6 @@ class QuantModel:
         self.transformer_model = None
         self.ensemble = None
 
-    # ---------------------------------------------------
-    # FIT
-    # ---------------------------------------------------
     def fit(self, X_train, y_train, X_val=None, y_val=None):
         from .base.lgbm_classifier import LGBMClassifier
         from .base.xgb_classifier import XGBClassifier
@@ -237,7 +224,6 @@ class QuantModel:
             models.append(self.xgb_model)
             idx += 1
 
-        # (User disabled deep models - we skip them)
         if self.use_lstm:
             logger.warning(
                 "[QuantModel] LSTM disabled — not included in this rewrite.")
@@ -245,12 +231,10 @@ class QuantModel:
         # Build ensemble
         self.ensemble = EnsembleClassifier(models, strategy=self.strategy)
 
-        # Compute weights for weighted ensemble
         if self.strategy == "weighted" and X_val is not None:
             self.ensemble.compute_weights(
                 X_val, y_val, power=self.weight_power)
 
-        # Stacking
         if self.strategy == "stacking":
             self.ensemble.fit_meta_model(X_train, y_train, X_val, y_val)
 
