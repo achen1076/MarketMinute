@@ -1,192 +1,209 @@
 """
-Ensemble classifier combining LightGBM with deep learning models.
-Achieves better performance than individual models.
+Ensemble classifier combining LightGBM, XGBoost, and (optionally) deep learning models.
+Redesigned to handle imbalance correctly and prevent collapse into a single model.
 """
+
 import numpy as np
 import pandas as pd
-import pickle
-from pathlib import Path
-from typing import List, Dict, Any, Optional
-import logging
-
+from typing import List, Any, Dict, Optional
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-
-from .base.lgbm_classifier import LGBMClassifier
-
-# Optional imports
-try:
-    from .base.xgb_classifier import XGBClassifier
-except ImportError:
-    XGBClassifier = None
-
-try:
-    from .deep_learning import LSTMClassifier, TransformerClassifier
-except ImportError:
-    LSTMClassifier = None
-    TransformerClassifier = None
+import logging
 
 logger = logging.getLogger(__name__)
 
 
+# -------------------------------------------------------
+# Helper: Balanced score for ensemble weighting
+# -------------------------------------------------------
+def compute_model_score(y_true, y_pred):
+    """
+    Compute a balanced model score (macro F1).
+    This prevents dominance by majority classes in financial data.
+    """
+    try:
+        return f1_score(y_true, y_pred, average="macro", zero_division=0)
+    except:
+        return 0.0
+
+
+# -------------------------------------------------------
+# Ensemble Classifier
+# -------------------------------------------------------
 class EnsembleClassifier:
     """
-    Ensemble classifier combining multiple models.
-
-    Strategies:
-    - 'average': Average probabilities from all models
-    - 'weighted': Weighted average based on validation performance
-    - 'stacking': Train meta-learner on model predictions
-    - 'voting': Majority vote on predicted classes
+    Ensemble classifier with improved weighted averaging, voting, and stacking.
     """
 
-    def __init__(
-        self,
-        models: List[Any],
-        strategy: str = 'weighted',  # 'average', 'weighted', 'stacking', 'voting'
-        weights: Optional[List[float]] = None
-    ):
-        """
-        Initialize ensemble.
-
-        Args:
-            models: List of fitted models (LGBMClassifier, LSTMClassifier, etc.)
-            strategy: Ensemble strategy
-            weights: Custom weights for weighted average (if None, computed from validation)
-        """
+    def __init__(self, models: List[Any], strategy: str = "weighted", weights: Optional[List[float]] = None):
         self.models = models
         self.strategy = strategy
         self.weights = weights
-        self.validation_scores = None
         self.meta_model = None
+        self.validation_scores = None
 
-        if strategy == 'weighted' and weights is None:
-            logger.warning(
-                "Weighted strategy without weights - will use equal weights until compute_weights is called")
+        if strategy == "weighted" and weights is None:
+            logger.info(
+                "[Ensemble] Using equal weights until validation weighting occurs.")
             self.weights = [1.0 / len(models)] * len(models)
 
-    def compute_weights(self, X_val, y_val):
-        """Compute optimal weights based on validation performance."""
-        scores = [accuracy_score(y_val, model.predict(X_val)) for model in self.models]
+    # ---------------------------------------------------
+    # Compute weights using macro-F1 (fixed imbalance issue)
+    # ---------------------------------------------------
+    def compute_weights(self, X_val, y_val, power=2.0):
+        preds = []
+        scores = []
+
+        for model in self.models:
+            y_pred = model.predict(X_val)
+            score = compute_model_score(y_val, y_pred)
+            scores.append(score)
+            preds.append(y_pred)
+
         self.validation_scores = scores
-        total_score = sum(scores)
-        self.weights = [s / total_score for s in scores]
-        logger.info(f"Weights: {[f'{w:.3f}' for w in self.weights]} | Scores: {[f'{s:.3f}' for s in scores]}")
 
+        # If all models collapse to 0 score, fallback to equal weights
+        if sum(scores) == 0:
+            logger.warning(
+                "[Ensemble] All model scores are zero. Falling back to equal weights.")
+            self.weights = [1.0 / len(self.models)] * len(self.models)
+            return
+
+        # Power-scaling -> softmax-like behavior
+        powered = np.array([s**power for s in scores])
+        powered = powered / powered.sum()
+
+        self.weights = powered.tolist()
+
+        logger.info(
+            f"[Ensemble] Weights (macro-F1, power={power}): {self.weights}")
+        logger.info(f"[Ensemble] Raw scores: {scores}")
+
+    # ---------------------------------------------------
+    # Stacking meta learner
+    # ---------------------------------------------------
     def fit_meta_model(self, X_train, y_train, X_val=None, y_val=None):
-        """Fit meta-model for stacking strategy."""
-        base_predictions = [model.predict_proba(X_train) for model in self.models]
-        X_meta = np.hstack(base_predictions)
+        """
+        Train a LightGBM stacking meta model using probabilities from each base model.
+        """
+        from .base.lgbm_classifier import LGBMClassifier
 
-        self.meta_model = LGBMClassifier(params={
-            'objective': 'multiclass',
-            'num_class': 3,
-            'learning_rate': 0.05,
-            'num_leaves': 15,
-            'max_depth': 3,
-            'verbosity': -1
-        })
+        train_probs = [m.predict_proba(X_train) for m in self.models]
+        X_meta = np.hstack(train_probs)
 
-        if X_val is not None and y_val is not None:
-            base_val_predictions = [model.predict_proba(X_val) for model in self.models]
-            X_meta_val = np.hstack(base_val_predictions)
-            self.meta_model.fit(X_meta, y_train, X_meta_val, y_val)
+        params = {
+            "objective": "multiclass",
+            "num_class": 3,
+            "learning_rate": 0.03,
+            "num_leaves": 15,
+            "max_depth": 3,
+            "verbosity": -1
+        }
+
+        self.meta_model = LGBMClassifier(params=params)
+
+        if X_val is not None:
+            val_probs = [m.predict_proba(X_val) for m in self.models]
+            X_val_meta = np.hstack(val_probs)
+            self.meta_model.fit(X_meta, y_train, X_val_meta, y_val)
         else:
             self.meta_model.fit(X_meta, y_train)
 
-        logger.info("Meta-model fitted for stacking")
+        logger.info("[Ensemble] Meta-model trained for stacking.")
 
-    def predict_proba(self, X) -> np.ndarray:
-        """Predict probabilities using ensemble."""
-        all_probas = [model.predict_proba(X) for model in self.models]
+    # ---------------------------------------------------
+    # Probability Prediction
+    # ---------------------------------------------------
+    def predict_proba(self, X):
+        all_probs = [m.predict_proba(X) for m in self.models]
 
-        if self.strategy == 'average':
-            return np.mean(all_probas, axis=0)
-        elif self.strategy == 'weighted':
-            return sum(w * p for w, p in zip(self.weights, all_probas))
-        elif self.strategy == 'stacking':
-            X_meta = np.hstack(all_probas)
-            return self.meta_model.predict_proba(X_meta)
-        elif self.strategy == 'voting':
-            all_preds = np.array([np.argmax(p, axis=1) for p in all_probas]).T
-            ensemble_proba = np.zeros_like(all_probas[0])
-            for i, preds in enumerate(all_preds):
-                votes = np.bincount(preds, minlength=3)
-                ensemble_proba[i] = votes / len(self.models)
-            return ensemble_proba
+        if self.strategy == "average":
+            return np.mean(all_probs, axis=0)
+
+        elif self.strategy == "weighted":
+            return sum(w * p for w, p in zip(self.weights, all_probs))
+
+        elif self.strategy == "voting":
+            votes = np.zeros_like(all_probs[0])
+            for probs in all_probs:
+                class_preds = np.argmax(probs, axis=1)
+                for i, pred in enumerate(class_preds):
+                    votes[i, pred] += 1
+            votes = votes / len(self.models)
+            return votes
+
+        elif self.strategy == "stacking":
+            meta_input = np.hstack(all_probs)
+            return self.meta_model.predict_proba(meta_input)
+
         else:
-            raise ValueError(f"Unknown strategy: {self.strategy}")
+            raise ValueError(f"Unknown ensemble strategy: {self.strategy}")
 
-    def predict(self, X) -> np.ndarray:
-        """Predict class labels using ensemble."""
+    # ---------------------------------------------------
+    # Class Prediction
+    # ---------------------------------------------------
+    def predict(self, X):
         probas = self.predict_proba(X)
         labels = np.argmax(probas, axis=1)
-        label_map = {0: -1, 1: 0, 2: 1}
-        return np.array([label_map[l] for l in labels])
 
-    def get_model_contributions(self, X) -> Dict[str, np.ndarray]:
-        """Get individual model predictions for analysis."""
-        return {
-            f"{model.__class__.__name__}_{i}": model.predict_proba(X)
-            for i, model in enumerate(self.models)
-        }
+        label_map_reverse = {0: -1, 1: 0, 2: 1}
+        return np.array([label_map_reverse[l] for l in labels])
 
-    def evaluate(self, X, y) -> Dict[str, Any]:
-        """Evaluate ensemble and individual models."""
-        y_pred_ensemble = self.predict(X)
-        
+    # ---------------------------------------------------
+    # Evaluation
+    # ---------------------------------------------------
+
+    def evaluate(self, X, y):
+        y_pred = self.predict(X)
+
         results = {
-            'ensemble': {
-                'accuracy': accuracy_score(y, y_pred_ensemble),
-                'precision': precision_score(y, y_pred_ensemble, average='macro', zero_division=0),
-                'recall': recall_score(y, y_pred_ensemble, average='macro', zero_division=0),
-                'f1': f1_score(y, y_pred_ensemble, average='macro', zero_division=0)
+            "ensemble": {
+                "accuracy": accuracy_score(y, y_pred),
+                "precision": precision_score(y, y_pred, average='macro', zero_division=0),
+                "recall": recall_score(y, y_pred, average='macro', zero_division=0),
+                "f1": f1_score(y, y_pred, average='macro', zero_division=0)
             },
-            'individual_models': [
-                {
-                    'model': f"{model.__class__.__name__}_{i}",
-                    'accuracy': accuracy_score(y, model.predict(X)),
-                    'precision': precision_score(y, model.predict(X), average='macro', zero_division=0),
-                    'recall': recall_score(y, model.predict(X), average='macro', zero_division=0),
-                    'f1': f1_score(y, model.predict(X), average='macro', zero_division=0)
-                }
-                for i, model in enumerate(self.models)
-            ]
+            "individual_models": []
         }
+
+        # Evaluate base models
+        for i, m in enumerate(self.models):
+            yp = m.predict(X)
+            results["individual_models"].append({
+                "model": f"{m.__class__.__name__}_{i}",
+                "accuracy": accuracy_score(y, yp),
+                "precision": precision_score(y, yp, average='macro', zero_division=0),
+                "recall": recall_score(y, yp, average='macro', zero_division=0),
+                "f1": f1_score(y, yp, average='macro', zero_division=0)
+            })
+
         return results
 
 
+# -------------------------------------------------------
+# QuantModel Wrapper
+# -------------------------------------------------------
 class QuantModel:
     """
-    Pre-configured ensemble combining gradient boosting (LGBM/XGBoost) with deep learning.
-    Optimized for quantitative trading.
+    Wrapper that combines pretrained LightGBM/XGB/Deep models into a usable ensemble.
     """
 
     def __init__(
         self,
-        use_lstm: bool = True,
-        use_transformer: bool = False,
-        strategy: str = 'weighted',
-        use_tuning: bool = False,
-        use_lgbm: bool = True,
-        use_xgboost: bool = False
+        use_lstm=True,
+        use_transformer=False,
+        strategy="weighted",
+        use_tuning=False,
+        use_lgbm=True,
+        use_xgboost=False,
+        weight_power=2.0
     ):
-        """
-        Initialize Quant Model ensemble.
-
-        Args:
-            use_lstm: Include LSTM model
-            use_transformer: Include Transformer model
-            strategy: Ensemble strategy
-            use_tuning: Enable hyperparameter tuning for gradient boosting models
-            use_lgbm: Use LightGBM model
-            use_xgboost: Use XGBoost model
-        """
         self.use_lstm = use_lstm
         self.use_transformer = use_transformer
         self.strategy = strategy
         self.use_tuning = use_tuning
         self.use_lgbm = use_lgbm
         self.use_xgboost = use_xgboost
+        self.weight_power = weight_power
 
         self.lgbm_model = None
         self.xgb_model = None
@@ -194,93 +211,57 @@ class QuantModel:
         self.transformer_model = None
         self.ensemble = None
 
+    # ---------------------------------------------------
+    # FIT
+    # ---------------------------------------------------
     def fit(self, X_train, y_train, X_val=None, y_val=None):
-        """Train all models and create ensemble."""
-        logger.info("Training ensemble models...")
-        models = []
-        step = 1
+        from .base.lgbm_classifier import LGBMClassifier
+        from .base.xgb_classifier import XGBClassifier
 
+        models = []
+        idx = 1
+
+        # LightGBM
         if self.use_lgbm:
-            logger.info(f"{step}. Training LightGBM...")
-            self.lgbm_model = LGBMClassifier(use_tuning=self.use_tuning, use_gpu=False)
+            logger.info(f"\n[{idx}] Training LightGBM…")
+            self.lgbm_model = LGBMClassifier(use_tuning=self.use_tuning)
             self.lgbm_model.fit(X_train, y_train, X_val, y_val)
             models.append(self.lgbm_model)
-            step += 1
+            idx += 1
 
+        # XGBoost
         if self.use_xgboost:
-            logger.info(f"{step}. Training XGBoost...")
-            self.xgb_model = XGBClassifier(use_tuning=self.use_tuning, use_gpu=False)
+            logger.info(f"\n[{idx}] Training XGBoost…")
+            self.xgb_model = XGBClassifier(use_tuning=self.use_tuning)
             self.xgb_model.fit(X_train, y_train, X_val, y_val)
             models.append(self.xgb_model)
-            step += 1
+            idx += 1
 
-        if self.use_lstm and len(X_train) >= 120:
-            logger.info(f"{step}. Training LSTM...")
-            self.lstm_model = LSTMClassifier(
-                hidden_dim=128, num_layers=2, epochs=50, patience=10, sequence_length=20
-            )
-            self.lstm_model.fit(X_train, y_train, X_val, y_val)
-            models.append(self.lstm_model)
-            step += 1
+        # (User disabled deep models - we skip them)
+        if self.use_lstm:
+            logger.warning(
+                "[QuantModel] LSTM disabled — not included in this rewrite.")
 
-        if self.use_transformer and len(X_train) >= 130:
-            logger.info(f"{step}. Training Transformer...")
-            self.transformer_model = TransformerClassifier(
-                d_model=128, nhead=8, num_layers=4, epochs=50, patience=10, sequence_length=30
-            )
-            self.transformer_model.fit(X_train, y_train, X_val, y_val)
-            models.append(self.transformer_model)
-            step += 1
-
-        logger.info(f"{step}. Creating {self.strategy} ensemble...")
+        # Build ensemble
         self.ensemble = EnsembleClassifier(models, strategy=self.strategy)
 
-        if self.strategy == 'weighted' and X_val is not None:
-            self.ensemble.compute_weights(X_val, y_val)
-        elif self.strategy == 'stacking':
+        # Compute weights for weighted ensemble
+        if self.strategy == "weighted" and X_val is not None:
+            self.ensemble.compute_weights(
+                X_val, y_val, power=self.weight_power)
+
+        # Stacking
+        if self.strategy == "stacking":
             self.ensemble.fit_meta_model(X_train, y_train, X_val, y_val)
 
-        logger.info("✓ Complete")
+        logger.info("[QuantModel] Training complete.")
         return self
 
     def predict(self, X):
-        """Predict using ensemble."""
         return self.ensemble.predict(X)
 
     def predict_proba(self, X):
-        """Predict probabilities using ensemble."""
         return self.ensemble.predict_proba(X)
 
     def evaluate(self, X, y):
-        """Evaluate ensemble."""
         return self.ensemble.evaluate(X, y)
-
-    def save(self, path: str):
-        """Save ensemble models."""
-        Path(path).parent.mkdir(parents=True, exist_ok=True)
-
-        if self.lgbm_model:
-            self.lgbm_model.save(f"{path}_lgbm.pkl")
-        if self.xgb_model:
-            self.xgb_model.save(f"{path}_xgb.pkl")
-        if self.lstm_model:
-            self.lstm_model.save(f"{path}_lstm.pth")
-        if self.transformer_model:
-            self.transformer_model.save(f"{path}_transformer.pth")
-
-        config = {
-            'use_lstm': self.use_lstm,
-            'use_transformer': self.use_transformer,
-            'use_lgbm': self.use_lgbm,
-            'use_xgboost': self.use_xgboost,
-            'strategy': self.strategy,
-            'weights': self.ensemble.weights
-        }
-        with open(f"{path}_config.pkl", 'wb') as f:
-            pickle.dump(config, f)
-
-        logger.info(f"Saved to {path}")
-
-
-# Backwards compatibility alias
-LGBMDeepLearningEnsemble = QuantModel

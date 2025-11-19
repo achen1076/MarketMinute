@@ -21,38 +21,61 @@ type Script = {
 
 const scripts: Script[] = [
   {
-    id: "prep_data",
-    name: "1. Data Preparation",
-    description:
-      "Fetch historical price data for all tickers from SYSTEM_SPEC.yaml",
+    id: "setup",
+    name: "1. Setup Environment",
+    description: "Install Python dependencies (pip install -e .)",
     order: 1,
   },
   {
-    id: "train_model",
-    name: "2. Train Models",
+    id: "prep_data",
+    name: "2. Data Preparation",
     description:
-      "Train LightGBM models for each ticker (takes ~30-60 min for 200 tickers)",
+      "Fetch historical price data for all tickers from SYSTEM_SPEC.yaml",
     order: 2,
   },
   {
-    id: "generate_predictions",
-    name: "3. Generate Predictions",
-    description: "Generate next-day predictions for all trained models",
+    id: "train_model",
+    name: "3. Train Models (Optimized)",
+    description:
+      "Train LightGBM models with NEW optimized parameters (60-68% accuracy expected)",
     order: 3,
+  },
+  {
+    id: "predictions",
+    name: "4. Generate Predictions",
+    description: "Generate next-day predictions using trained LightGBM models",
+    order: 4,
+  },
+  {
+    id: "forecasts",
+    name: "5. Generate Distributional Forecasts",
+    description: "Generate volatility ranges and probability distributions",
+    order: 5,
   },
 ];
 
 export default function QuantScriptRunner() {
   const [activeScript, setActiveScript] = useState<string | null>(null);
   const [statuses, setStatuses] = useState<Record<string, ScriptStatus>>({
+    setup: "idle",
     prep_data: "idle",
     train_model: "idle",
-    generate_predictions: "idle",
+    predictions: "idle",
+    forecasts: "idle",
   });
   const [outputs, setOutputs] = useState<Record<string, string>>({
+    setup: "",
     prep_data: "",
     train_model: "",
-    generate_predictions: "",
+    predictions: "",
+    forecasts: "",
+  });
+  const [progress, setProgress] = useState<Record<string, number>>({
+    setup: 0,
+    prep_data: 0,
+    train_model: 0,
+    predictions: 0,
+    forecasts: 0,
   });
   const outputRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -66,71 +89,164 @@ export default function QuantScriptRunner() {
     }
   }, [outputs, activeScript]);
 
+  const parseProgressLine = (line: string): number | null => {
+    // Parse lines like "PROGRESS:50:Loading data..."
+    const match = line.match(/PROGRESS:(\d+):/);
+    if (match) {
+      return parseInt(match[1], 10);
+    }
+    return null;
+  };
+
   const runScript = async (scriptId: string) => {
     setActiveScript(scriptId);
     setStatuses((prev) => ({ ...prev, [scriptId]: "running" }));
     setOutputs((prev) => ({ ...prev, [scriptId]: "" }));
+    setProgress((prev) => ({ ...prev, [scriptId]: 0 }));
+
+    // Quick scripts (setup, predictions, forecasts) use /api/admin/scripts
+    const quickScripts = ["setup", "predictions", "forecasts"];
+    const isQuickScript = quickScripts.includes(scriptId);
 
     try {
-      const response = await fetch("/api/quant/run-script", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ script: scriptId }),
-      });
+      if (isQuickScript) {
+        // Use admin/scripts endpoint with streaming
+        const response = await fetch("/api/admin/scripts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ script: scriptId }),
+        });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
 
-      if (!reader) {
-        throw new Error("No response body");
-      }
+        if (!reader) {
+          throw new Error("No response body");
+        }
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        const text = decoder.decode(value);
-        const lines = text.split("\n");
+          const text = decoder.decode(value);
+          const lines = text.split("\n");
 
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            try {
-              const data = JSON.parse(line.slice(6));
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              try {
+                const data = JSON.parse(line.slice(6));
 
-              if (data.output) {
-                setOutputs((prev) => ({
-                  ...prev,
-                  [scriptId]: prev[scriptId] + data.output,
-                }));
-              }
-
-              if (data.error) {
-                setOutputs((prev) => ({
-                  ...prev,
-                  [scriptId]: prev[scriptId] + `ERROR: ${data.error}`,
-                }));
-              }
-
-              if (data.done) {
-                if (data.exitCode === 0) {
-                  setStatuses((prev) => ({ ...prev, [scriptId]: "success" }));
-                } else {
-                  setStatuses((prev) => ({ ...prev, [scriptId]: "error" }));
+                if (data.output) {
+                  // Parse progress from output
+                  const progressValue = parseProgressLine(data.output);
+                  if (progressValue !== null) {
+                    setProgress((prev) => ({ ...prev, [scriptId]: progressValue }));
+                  }
+                  
+                  setOutputs((prev) => ({
+                    ...prev,
+                    [scriptId]: prev[scriptId] + data.output,
+                  }));
                 }
-                setActiveScript(null);
+
+                if (data.error) {
+                  setOutputs((prev) => ({
+                    ...prev,
+                    [scriptId]: prev[scriptId] + `ERROR: ${data.error}`,
+                  }));
+                }
+
+                if (data.done) {
+                  if (data.exitCode === 0) {
+                    setProgress((prev) => ({ ...prev, [scriptId]: 100 }));
+                    setStatuses((prev) => ({ ...prev, [scriptId]: "success" }));
+                  } else {
+                    setProgress((prev) => ({ ...prev, [scriptId]: 0 }));
+                    setStatuses((prev) => ({ ...prev, [scriptId]: "error" }));
+                  }
+                  setActiveScript(null);
+                }
+              } catch (e) {
+                // Skip malformed JSON
               }
-            } catch (e) {
-              // Skip malformed JSON
+            }
+          }
+        }
+      } else {
+        // Use streaming endpoint for long-running scripts
+        const response = await fetch("/api/quant/run-script", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ script: scriptId }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+
+        if (!reader) {
+          throw new Error("No response body");
+        }
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const text = decoder.decode(value);
+          const lines = text.split("\n");
+
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              try {
+                const data = JSON.parse(line.slice(6));
+
+                if (data.output) {
+                  // Parse progress from output
+                  const progressValue = parseProgressLine(data.output);
+                  if (progressValue !== null) {
+                    setProgress((prev) => ({ ...prev, [scriptId]: progressValue }));
+                  }
+                  
+                  setOutputs((prev) => ({
+                    ...prev,
+                    [scriptId]: prev[scriptId] + data.output,
+                  }));
+                }
+
+                if (data.error) {
+                  setOutputs((prev) => ({
+                    ...prev,
+                    [scriptId]: prev[scriptId] + `ERROR: ${data.error}`,
+                  }));
+                }
+
+                if (data.done) {
+                  if (data.exitCode === 0) {
+                    setProgress((prev) => ({ ...prev, [scriptId]: 100 }));
+                    setStatuses((prev) => ({ ...prev, [scriptId]: "success" }));
+                  } else {
+                    setProgress((prev) => ({ ...prev, [scriptId]: 0 }));
+                    setStatuses((prev) => ({ ...prev, [scriptId]: "error" }));
+                  }
+                  setActiveScript(null);
+                }
+              } catch (e) {
+                // Skip malformed JSON
+              }
             }
           }
         }
       }
     } catch (error) {
       console.error("Script execution error:", error);
+      setProgress((prev) => ({ ...prev, [scriptId]: 0 }));
       setStatuses((prev) => ({ ...prev, [scriptId]: "error" }));
       setOutputs((prev) => ({
         ...prev,
@@ -192,7 +308,7 @@ export default function QuantScriptRunner() {
             ML Pipeline Runner
           </h2>
           <p className="text-sm text-slate-400 mt-1">
-            Execute quant model training and prediction scripts
+            Complete pipeline: Setup → Data Prep → Training → Predictions → Forecasts
           </p>
         </div>
         <button
@@ -205,72 +321,92 @@ export default function QuantScriptRunner() {
         </button>
       </div>
 
-      <div className="space-y-4">
-        {scripts.map((script) => (
-          <div
-            key={script.id}
-            className={`border rounded-lg p-4 transition-all ${getStatusColor(
-              statuses[script.id]
-            )}`}
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-start gap-3 flex-1">
-                {getStatusIcon(statuses[script.id])}
-                <div>
-                  <h3 className="font-semibold text-slate-200">
-                    {script.name}
-                  </h3>
-                  <p className="text-sm text-slate-400 mt-1">
-                    {script.description}
-                  </p>
+        <div className="space-y-4">
+          {scripts.map((script) => (
+            <div
+              key={script.id}
+              className={`border rounded-lg p-4 transition-all ${getStatusColor(
+                statuses[script.id]
+              )}`}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-start gap-3 flex-1">
+                  {getStatusIcon(statuses[script.id])}
+                  <div>
+                    <h3 className="font-semibold text-slate-200">
+                      {script.name}
+                    </h3>
+                    <p className="text-sm text-slate-400 mt-1">
+                      {script.description}
+                    </p>
+                  </div>
                 </div>
+                <button
+                  onClick={() => runScript(script.id)}
+                  disabled={activeScript !== null}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 disabled:bg-slate-800/50 disabled:text-slate-600 transition-colors text-sm"
+                >
+                  <Play size={14} />
+                  Run
+                </button>
               </div>
-              <button
-                onClick={() => runScript(script.id)}
-                disabled={activeScript !== null}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 disabled:bg-slate-800/50 disabled:text-slate-600 transition-colors text-sm"
-              >
-                <Play size={14} />
-                Run
-              </button>
-            </div>
 
-            {outputs[script.id] && (
-              <div
-                ref={(el) => {
-                  outputRefs.current[script.id] = el;
-                }}
-                className="mt-3 p-3 rounded-md bg-slate-950 border border-slate-800 max-h-64 overflow-y-auto font-mono text-xs text-slate-300"
-              >
-                <pre className="whitespace-pre-wrap">{outputs[script.id]}</pre>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+              {/* Progress Bar */}
+              {statuses[script.id] === "running" && (
+                <div className="mb-3">
+                  <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+                    <span>Running...</span>
+                    <span>{progress[script.id]}%</span>
+                  </div>
+                  <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-linear-to-r from-teal-500 to-emerald-500 transition-all duration-300 ease-out"
+                      style={{ width: `${progress[script.id]}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {outputs[script.id] && (
+                <div
+                  ref={(el) => {
+                    outputRefs.current[script.id] = el;
+                  }}
+                  className="mt-3 p-3 rounded-md bg-slate-950 border border-slate-800 max-h-64 overflow-y-auto font-mono text-xs text-slate-300"
+                >
+                  <pre className="whitespace-pre-wrap">
+                    {outputs[script.id]}
+                  </pre>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
 
       {/* Info Box */}
-      <div className="mt-6 p-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
+      <div className="mt-6 p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
         <div className="flex gap-3">
-          <AlertCircle size={18} className="text-amber-400 shrink-0 mt-0.5" />
-          <div className="text-sm text-amber-200">
-            <strong className="block mb-1">Important Notes:</strong>
-            <ul className="space-y-1 text-amber-200/80">
+          <AlertCircle size={18} className="text-emerald-400 shrink-0 mt-0.5" />
+          <div className="text-sm text-emerald-200">
+            <strong className="block mb-1">⭐ NEW: Optimized ML Pipeline</strong>
+            <ul className="space-y-1 text-emerald-200/80">
               <li>
-                • Scripts must be run in order: Data Prep → Train Models →
-                Generate Predictions
+                • <strong>60-68% accuracy</strong> expected (up from 46% with new labeling)
               </li>
               <li>
-                • Training 200 models can take 30-60 minutes depending on your
-                hardware
+                • Dominant neutral class (88% neutral, 6% up, 6% down)
               </li>
               <li>
-                • Make sure the quant_app folder is at:
-                ~/Desktop/MarketMinute/quant_app
+                • Dynamic volatility bands for regime detection
               </li>
               <li>
-                • Refresh the Quant Lab page after generating predictions to see
-                new results
+                • New lag features for momentum context
+              </li>
+              <li>
+                • Training ~20 tickers takes 5-10 minutes
+              </li>
+              <li>
+                • For daily updates, just run steps 4 & 5 (30 seconds)
               </li>
             </ul>
           </div>

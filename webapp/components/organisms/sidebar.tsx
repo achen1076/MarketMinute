@@ -129,6 +129,9 @@ const Sidebar: React.FC<SidebarProps> = ({
           <NavLink to="/quant" onClick={closeMenu}>
             Quant Lab
           </NavLink>
+          <NavLink to="/forecasts" onClick={closeMenu}>
+            Market Forecasts
+          </NavLink>
 
           {/* <NavLink to="/explore" onClick={closeMenu}>
             Explore

@@ -10,6 +10,7 @@ import {
   type StockEvent,
   type MacroEvent,
 } from "@/lib/eventsCache";
+import { detectEventsFromNews } from "@/lib/eventDetector";
 
 type UpcomingEventsResponse = {
   stockEvents: StockEvent[];
@@ -19,10 +20,18 @@ type UpcomingEventsResponse = {
 
 /**
  * Fetch upcoming stock events (earnings, dividends) for a SINGLE ticker
- * using Financial Modeling Prep "stable" APIs
+ * Combines FMP API data with news-detected events
  */
 async function fetchTickerEvents(symbol: string): Promise<StockEvent[]> {
   const events: StockEvent[] = [];
+
+  // Detect events from news headlines (product launches, FDA, etc.)
+  // try {
+  //   const newsEvents = await detectEventsFromNews(symbol);
+  //   events.push(...newsEvents);
+  // } catch (error) {
+  //   console.error(`[Events] News detection failed for ${symbol}:`, error);
+  // }
   const apiKey = process.env.FMP_API_KEY;
 
   if (!apiKey) {
@@ -110,6 +119,7 @@ async function fetchTickerEvents(symbol: string): Promise<StockEvent[]> {
           title: `${upper} Earnings Report`,
           date: item.date,
           description: descParts.length ? descParts.join(" | ") : undefined,
+          source: "api",
         });
       }
     }
@@ -151,6 +161,7 @@ async function fetchTickerEvents(symbol: string): Promise<StockEvent[]> {
           title: `${upper} Dividend`,
           date: item.date,
           description: descParts.length ? descParts.join(" | ") : undefined,
+          source: "api",
         });
       }
     }
@@ -162,11 +173,12 @@ async function fetchTickerEvents(symbol: string): Promise<StockEvent[]> {
 }
 
 /**
- * Fetch macro events from config
+ * Fetch macro events - combines config with dynamic calculation
+ * TODO: Replace with real economic calendar API
  */
 async function fetchMacroEvents(): Promise<MacroEvent[]> {
   const today = new Date();
-  const lookaheadDays = 30;
+  const lookaheadDays = 45;
   const to = new Date(today.getTime() + lookaheadDays * 24 * 60 * 60 * 1000);
 
   // Use local date instead of UTC to avoid timezone issues
@@ -178,28 +190,120 @@ async function fetchMacroEvents(): Promise<MacroEvent[]> {
     "0"
   )}-${String(to.getDate()).padStart(2, "0")}`;
 
+  // Generate upcoming FOMC meetings (typically 8 per year)
+  const fomcDates = generateFOMCDates();
+
+  // Generate CPI release dates (typically 2nd week of each month)
+  const cpiDates = generateCPIDates();
+
+  // Generate Jobs Report dates (first Friday of each month)
+  const jobsDates = generateJobsReportDates();
+
   const config: MacroEvent[] = [
-    {
-      type: "fomc",
+    // FOMC Meetings
+    ...fomcDates.map((date) => ({
+      type: "fomc" as const,
       title: "FOMC Meeting",
-      date: "2025-12-17",
-      description: "Federal Reserve interest rate decision",
-    },
-    {
-      type: "cpi",
+      date,
+      description:
+        "Federal Reserve interest rate decision and economic projections",
+    })),
+
+    // CPI Reports
+    ...cpiDates.map((date) => ({
+      type: "cpi" as const,
       title: "CPI Report",
-      date: "2025-12-12",
-      description: "Consumer Price Index data release",
+      date,
+      description: "Consumer Price Index - key inflation indicator",
+    })),
+
+    // Jobs Reports
+    ...jobsDates.map((date) => ({
+      type: "jobs" as const,
+      title: "Non-Farm Payrolls",
+      date,
+      description: "Monthly employment report from Bureau of Labor Statistics",
+    })),
+
+    // Other key events (manually updated)
+    {
+      type: "gdp",
+      title: "GDP Report Q4 2024",
+      date: "2025-01-30",
+      description: "Quarterly GDP growth rate",
     },
     {
-      type: "jobs",
-      title: "Jobs Report",
-      date: "2025-12-05",
-      description: "Non-farm payrolls data",
+      type: "other",
+      title: "Treasury Quarterly Refunding",
+      date: "2025-02-05",
+      description: "Treasury debt issuance announcement",
     },
   ];
 
   return config.filter((e) => e.date >= todayStr && e.date <= toStr);
+}
+
+/**
+ * Generate FOMC meeting dates (approximately every 6 weeks)
+ */
+function generateFOMCDates(): string[] {
+  // 2025 FOMC schedule (from Fed website)
+  return [
+    "2025-01-29", // Jan 28-29
+    "2025-03-19", // Mar 18-19
+    "2025-05-07", // May 6-7
+    "2025-06-18", // Jun 17-18
+    "2025-07-30", // Jul 29-30
+    "2025-09-17", // Sep 16-17
+    "2025-11-05", // Nov 4-5
+    "2025-12-17", // Dec 16-17
+  ];
+}
+
+/**
+ * Generate CPI release dates (typically mid-month)
+ */
+function generateCPIDates(): string[] {
+  const dates: string[] = [];
+  const currentDate = new Date();
+
+  // Generate for next 3 months
+  for (let i = 0; i < 3; i++) {
+    const month = currentDate.getMonth() + i;
+    const year = currentDate.getFullYear() + Math.floor(month / 12);
+    const adjustedMonth = month % 12;
+
+    // CPI typically released around 13th-15th of month
+    const cpiDate = new Date(year, adjustedMonth, 13);
+    dates.push(cpiDate.toISOString().split("T")[0]);
+  }
+
+  return dates;
+}
+
+/**
+ * Generate Jobs Report dates (first Friday of each month)
+ */
+function generateJobsReportDates(): string[] {
+  const dates: string[] = [];
+  const currentDate = new Date();
+
+  // Generate for next 3 months
+  for (let i = 0; i < 3; i++) {
+    const month = currentDate.getMonth() + i;
+    const year = currentDate.getFullYear() + Math.floor(month / 12);
+    const adjustedMonth = month % 12;
+
+    // Find first Friday of the month
+    const firstDay = new Date(year, adjustedMonth, 1);
+    const dayOfWeek = firstDay.getDay();
+    const daysUntilFriday = dayOfWeek <= 5 ? 5 - dayOfWeek : 12 - dayOfWeek;
+    const firstFriday = new Date(year, adjustedMonth, 1 + daysUntilFriday);
+
+    dates.push(firstFriday.toISOString().split("T")[0]);
+  }
+
+  return dates;
 }
 
 export async function GET(request: Request) {
@@ -226,7 +330,6 @@ export async function GET(request: Request) {
 
     cleanExpiredEvents();
 
-    // Fetch stock events (check cache per ticker)
     const stockEvents: StockEvent[] = [];
     const symbolsToFetch: string[] = [];
 

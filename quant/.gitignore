@@ -68,6 +68,7 @@ archive
 
 # Model outputs
 /outputs
+/models
 
 # Logs
 /logs

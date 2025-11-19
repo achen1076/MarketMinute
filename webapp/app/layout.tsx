@@ -25,15 +25,9 @@ export default async function RootLayout({
 
         {/* Main content area */}
         <div className="min-h-screen">
-          {/* Market Ticker at the top */}
           <div className="md:ml-64">
             <MarketTicker />
           </div>
-          
-          {/* 
-            On desktop we need left padding (because sidebar is 64px wide),
-            on mobile we need top padding (because of the fixed top bar + market ticker).
-          */}
           <main className="mx-auto max-w-[1800px] px-4 py-6 pt-20 md:ml-64 md:pt-8 md:px-8">
             {children}
           </main>

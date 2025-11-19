@@ -2,7 +2,15 @@
 
 import { useEffect, useState } from "react";
 import Card from "@/components/atoms/Card";
-import { Calendar, TrendingUp, Building2, DollarSign } from "lucide-react";
+import {
+  Calendar,
+  TrendingUp,
+  Building2,
+  DollarSign,
+  Rocket,
+  Pill,
+  UserRound,
+} from "lucide-react";
 
 type StockEvent = {
   symbol: string;
@@ -10,6 +18,7 @@ type StockEvent = {
   title: string;
   date: string;
   description?: string;
+  source?: "api" | "news";
 };
 
 type MacroEvent = {
@@ -38,6 +47,54 @@ const EVENT_TYPE_ICONS = {
   cpi: TrendingUp,
   jobs: TrendingUp,
   gdp: TrendingUp,
+};
+
+// Enhanced icons for news-detected events
+const getEventIcon = (type: string, title: string) => {
+  // Check title for specific event types
+  const lowerTitle = title.toLowerCase();
+
+  if (lowerTitle.includes("product launch") || lowerTitle.includes("launch")) {
+    return Rocket;
+  }
+  if (
+    lowerTitle.includes("fda") ||
+    lowerTitle.includes("regulatory") ||
+    lowerTitle.includes("approval")
+  ) {
+    return Pill;
+  }
+  if (
+    lowerTitle.includes("investor day") ||
+    lowerTitle.includes("analyst day") ||
+    lowerTitle.includes("conference")
+  ) {
+    return UserRound;
+  }
+
+  return EVENT_TYPE_ICONS[type as keyof typeof EVENT_TYPE_ICONS] || Calendar;
+};
+
+const getEventColor = (type: string, title: string) => {
+  const lowerTitle = title.toLowerCase();
+
+  if (lowerTitle.includes("product launch") || lowerTitle.includes("launch")) {
+    return "text-blue-400";
+  }
+  if (lowerTitle.includes("fda") || lowerTitle.includes("regulatory")) {
+    return "text-green-400";
+  }
+  if (
+    lowerTitle.includes("investor day") ||
+    lowerTitle.includes("analyst day")
+  ) {
+    return "text-orange-400";
+  }
+
+  return (
+    EVENT_TYPE_COLORS[type as keyof typeof EVENT_TYPE_COLORS] ||
+    "text-slate-400"
+  );
 };
 
 const EVENT_TYPE_COLORS = {
@@ -172,17 +229,13 @@ export function EventsTimeline({ symbols }: Props) {
 
       <div className="space-y-3">
         {allEvents.map((event, idx) => {
-          const Icon =
-            EVENT_TYPE_ICONS[event.type as keyof typeof EVENT_TYPE_ICONS] ||
-            Calendar;
-          const color =
-            EVENT_TYPE_COLORS[event.type as keyof typeof EVENT_TYPE_COLORS] ||
-            "text-slate-400";
+          const Icon = getEventIcon(event.type, event.title);
+          const color = getEventColor(event.type, event.title);
 
           return (
             <div
               key={`${event.date}-${idx}`}
-              className="flex gap-3 rounded-lg bg-slate-900/60 p-3 transition-colors hover:bg-slate-900/80"
+              className="flex gap-3 rounded-lg p-3 transition-colors hover:bg-slate-900/80 bg-slate-900/60"
             >
               <div className={`shrink-0 ${color}`}>
                 <Icon size={18} />
@@ -190,8 +243,10 @@ export function EventsTimeline({ symbols }: Props) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-slate-100 text-sm">
-                      {event.title}
+                    <div className="flex items-center gap-2">
+                      <div className="font-medium text-slate-100 text-sm">
+                        {event.title}
+                      </div>
                     </div>
                     {event.description && (
                       <div className="mt-1 text-xs text-slate-400">

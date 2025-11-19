@@ -1,191 +1,146 @@
 """
-Hyperparameter tuning for LightGBM using Optuna.
-Binary classification with AUC optimization and time-series CV.
-Conservative parameter ranges for financial data.
+LightGBM Hyperparameter Tuner (Multiclass Financial Time-Series)
+Uses macro-F1 (not logloss) to optimize for imbalanced 3-class quant datasets.
+Applies the same hybrid balancing (soft oversampling + class weights)
+used in the main classifier.
 """
+
 import optuna
-import lightgbm as lgb
 import numpy as np
-from sklearn.model_selection import TimeSeriesSplit
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import roc_auc_score
+import pandas as pd
+from sklearn.metrics import f1_score
+from collections import Counter
+import lightgbm as lgb
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-def suggest_lgbm_params_binary(trial, use_gpu: bool = False):
-    """
-    Conservative LightGBM search space for binary classification on daily bars.
-    Optimized for financial time series with class imbalance handling.
-    
-    Args:
-        trial: Optuna trial object
-        use_gpu: Whether to use GPU acceleration
-        
-    Returns:
-        dict: Parameter suggestions for this trial
-    """
-    params = {
-        "objective": "binary",
-        "metric": "auc",
-        "boosting_type": "gbdt",
-        "verbosity": -1,
-        
-        # Learning
-        "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.1, log=True),
-        
-        # Tree structure (conservative for financial data)
-        "num_leaves": trial.suggest_int("num_leaves", 8, 64),
-        "max_depth": trial.suggest_int("max_depth", 3, 8),
-        "min_data_in_leaf": trial.suggest_int("min_data_in_leaf", 30, 300),
-        
-        # Sampling (regularization)
-        "feature_fraction": trial.suggest_float("feature_fraction", 0.6, 1.0),
-        "bagging_fraction": trial.suggest_float("bagging_fraction", 0.6, 1.0),
-        "bagging_freq": trial.suggest_int("bagging_freq", 1, 10),
-        
-        # L1/L2 regularization
-        "lambda_l1": trial.suggest_float("lambda_l1", 1e-3, 10.0, log=True),
-        "lambda_l2": trial.suggest_float("lambda_l2", 1e-3, 10.0, log=True),
-        "min_gain_to_split": trial.suggest_float("min_gain_to_split", 0.0, 5.0),
-        
-        # Class imbalance handling
-        "scale_pos_weight": trial.suggest_float("scale_pos_weight", 0.5, 5.0),
-    }
-    
-    if use_gpu:
-        params["device_type"] = "gpu"
-    
-    return params
+# -----------------------------------------------------
+# Hybrid Balance (Mode A – Soft Oversampling)
+# -----------------------------------------------------
+def hybrid_balance(X, y, multiplier=1.4):
+    df = X.copy()
+    df["label"] = y
+
+    counts = df["label"].value_counts().to_dict()
+    max_count = max(counts.values())
+
+    combined = []
+    for cls, cnt in counts.items():
+        subset = df[df["label"] == cls]
+
+        if cnt < max_count:
+            repeat_factor = max(1, int((max_count / cnt - 1) * multiplier))
+            oversampled = pd.concat([subset] * repeat_factor, axis=0)
+            combined.append(oversampled)
+
+        combined.append(subset)
+
+    df_bal = pd.concat(combined, axis=0).sample(frac=1, random_state=42)
+    return df_bal.drop(columns=["label"]), df_bal["label"].values
 
 
-class LGBMHyperparameterTuner:
-    """Bayesian hyperparameter optimization for LightGBM."""
-    
-    def __init__(self, n_trials=30, cv_folds=5, random_state=42, use_gpu='auto'):
-        """
-        Initialize tuner.
-        
-        Args:
-            n_trials: Number of optimization trials (reduced to 30 for speed)
-            cv_folds: Number of cross-validation folds (5 for time-series)
-            random_state: Random seed
-            use_gpu: GPU mode - 'auto' (detect), True (force), False (disable)
-        """
+# -----------------------------------------------------
+# Class Weights
+# -----------------------------------------------------
+def compute_class_weights(y):
+    """
+    Compute proportional class weights: total_samples / (num_classes * count_class)
+    """
+    counts = Counter(y)
+    total = sum(counts.values())
+    n_class = len(counts)
+    return {cls: total / (n_class * cnt) for cls, cnt in counts.items()}
+
+
+# -----------------------------------------------------
+# LightGBM Hyperparameter Tuner
+# -----------------------------------------------------
+class LightGBMHyperparameterTuner:
+    def __init__(self, n_trials=40, use_gpu=False):
         self.n_trials = n_trials
-        self.cv_folds = cv_folds
-        self.random_state = random_state
-        
-        if use_gpu == 'auto':
-            from .base.lgbm_classifier import check_gpu_available
-            self.use_gpu = check_gpu_available()
-        else:
-            self.use_gpu = use_gpu
-            
-        self.best_params = None
+        self.use_gpu = use_gpu
         self.study = None
-    
-    def objective(self, trial, X, y):
-        """
-        Objective function for Optuna using TimeSeriesSplit and AUC.
-        
-        Args:
-            trial: Optuna trial object
-            X: Training features
-            y: Training labels (mapped to 0/1)
-            
-        Returns:
-            Negative mean AUC (we minimize, so negate to maximize AUC)
-        """
-        # Get conservative binary classification parameters
-        params = suggest_lgbm_params_binary(trial, use_gpu=self.use_gpu)
-        
-        # Handle pandas or numpy
-        X_values = X.values if hasattr(X, "values") else X
-        y_values = y.values if hasattr(y, "values") else y
-        
-        # Time series cross-validation (no shuffle!)
-        tscv = TimeSeriesSplit(n_splits=self.cv_folds)
-        auc_scores = []
-        
-        for train_idx, valid_idx in tscv.split(X_values):
-            X_train, X_valid = X_values[train_idx], X_values[valid_idx]
-            y_train, y_valid = y_values[train_idx], y_values[valid_idx]
-            
-            # Create datasets
-            train_set = lgb.Dataset(X_train, label=y_train)
-            valid_set = lgb.Dataset(X_valid, label=y_valid)
-            
-            # Train with early stopping
-            model = lgb.train(
-                params,
-                train_set,
-                num_boost_round=1000,
-                valid_sets=[valid_set],
-                valid_names=["valid"],
-                callbacks=[lgb.early_stopping(50), lgb.log_evaluation(0)]
-            )
-            
-            # Get AUC score
-            auc_scores.append(model.best_score["valid"]["auc"])
-        
-        # Return negative mean AUC (minimize negative = maximize AUC)
-        return -float(np.mean(auc_scores))
-    
-    def tune(self, X, y):
-        """
-        Run hyperparameter optimization for binary classification.
-        
-        Args:
-            X: Training features
-            y: Training labels (already mapped to 0, 1 for binary)
-            
-        Returns:
-            dict: Best hyperparameters found
-        """
-        logger.info(f"Starting Bayesian optimization ({self.n_trials} trials, {self.cv_folds}-fold TimeSeriesCV)...")
-        logger.info(f"Optimizing for AUC on binary classification...")
-        
-        # Create study (minimize negative AUC = maximize AUC)
-        self.study = optuna.create_study(
-            direction='minimize',
-            sampler=optuna.samplers.TPESampler(seed=self.random_state)
+
+    # -------------------------------------------------
+    # Optimizable Objective
+    # -------------------------------------------------
+    def objective(self, trial, X_train, y_train, X_val, y_val):
+
+        # Hybrid balance
+        Xb, yb = hybrid_balance(X_train, y_train)
+        class_weights = compute_class_weights(yb)
+
+        # Per-sample weights
+        weight_array = np.array([class_weights[c] for c in yb])
+
+        # Additional class penalty (tunable)
+        penalty = trial.suggest_float("class_penalty", 0.8, 4.0)
+        weight_array = weight_array * penalty
+
+        # Parameter search space for LGBM
+        params = {
+            "objective": "multiclass",
+            "num_class": 3,
+            "metric": "multi_logloss",  # for early stopping only
+            "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.15),
+            "num_leaves": trial.suggest_int("num_leaves", 16, 128),
+            "max_depth": trial.suggest_int("max_depth", 3, 9),
+            "min_data_in_leaf": trial.suggest_int("min_data_in_leaf", 50, 600),
+            "feature_fraction": trial.suggest_float("feature_fraction", 0.6, 1.0),
+            "bagging_fraction": trial.suggest_float("bagging_fraction", 0.6, 1.0),
+            "bagging_freq": trial.suggest_int("bagging_freq", 1, 8),
+            "lambda_l1": trial.suggest_float("lambda_l1", 0.0, 5.0),
+            "lambda_l2": trial.suggest_float("lambda_l2", 0.0, 5.0),
+            "min_gain_to_split": trial.suggest_float("min_gain_to_split", 0.0, 3.0),
+            "verbosity": -1,
+            "force_col_wise": True,
+            "deterministic": True,
+            "num_threads": -1,
+        }
+
+        if self.use_gpu:
+            params["device_type"] = "gpu"
+        else:
+            params["device_type"] = "cpu"
+
+        # Dataset
+        train_data = lgb.Dataset(Xb, label=yb, weight=weight_array)
+        val_data = lgb.Dataset(X_val, label=y_val, reference=train_data)
+
+        # Train
+        model = lgb.train(
+            params,
+            train_data,
+            valid_sets=[train_data, val_data],
+            num_boost_round=800,
+            early_stopping_rounds=50,
+            verbose_eval=False,
         )
-        
-        # Optimize
+
+        # Predict
+        preds = model.predict(X_val)
+        y_pred = np.argmax(preds, axis=1)
+
+        # Macro-F1 for imbalanced 3-class
+        score = f1_score(y_val, y_pred, average="macro", zero_division=0)
+
+        return score
+
+    # -------------------------------------------------
+    # Run optimization
+    # -------------------------------------------------
+    def tune(self, X_train, y_train, X_val, y_val):
+        def _objective(trial):
+            return self.objective(trial, X_train, y_train, X_val, y_val)
+
+        self.study = optuna.create_study(direction="maximize")
         self.study.optimize(
-            lambda trial: self.objective(trial, X, y),
-            n_trials=self.n_trials,
-            show_progress_bar=True
-        )
-        
-        # Get best parameters
-        self.best_params = self.study.best_params
-        
-        # Add fixed parameters for binary classification
-        self.best_params.update({
-            'objective': 'binary',
-            'metric': 'auc',
-            'boosting_type': 'gbdt',
-            'verbosity': -1,
-            'random_state': self.random_state,
-        })
-        
-        # Log results (remember we negated AUC, so negate back)
-        best_auc = -self.study.best_value
-        logger.info(f"Best validation AUC: {best_auc:.4f}")
-        logger.info(f"Best parameters: {self.best_params}")
-        
-        return self.best_params
-    
-    def get_feature_importance(self):
-        """Get parameter importance from optimization history."""
-        if self.study is None:
-            return None
-        
-        try:
-            importance = optuna.importance.get_param_importances(self.study)
-            return importance
-        except:
-            return None
+            _objective, n_trials=self.n_trials, show_progress_bar=True)
+
+        logger.info(f"[LGBM Tuner] Best Trial: {self.study.best_trial.number}")
+        logger.info(f"[LGBM Tuner] Best Macro-F1: {self.study.best_value:.4f}")
+        logger.info(f"[LGBM Tuner] Params: {self.study.best_trial.params}")
+
+        return self.study.best_trial.params

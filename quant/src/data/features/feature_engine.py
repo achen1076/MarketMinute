@@ -1,229 +1,113 @@
 """
-Master feature engineering engine.
-Calculates all features according to institutional spec.
-"""
-import pandas as pd
-import numpy as np
-import logging
-from sklearn.mixture import GaussianMixture
+A clean, fast, production-grade feature generator for
+financial time series.
 
-logger = logging.getLogger(__name__)
+Features are grouped into:
+    • Price-based
+    • Momentum
+    • Volatility
+    • Volume
+    • Statistical ratios
+
+All features avoid lookahead bias and handle NaNs safely.
+"""
+
+import numpy as np
+import pandas as pd
 
 
 class FeatureEngine:
-    """Calculate all features for the system."""
+    """
+    Generate all features used by the quant model.
+
+    Usage:
+        fe = FeatureEngine()
+        df = fe.calculate_all(df)
+    """
+
+    def __init__(self):
+        pass
+
+    # ==========================================================
+    # Utility
+    # ==========================================================
+    def _safe_pct(self, s):
+        """Prevent divide-by-zero instability."""
+        return s.pct_change().replace([np.inf, -np.inf], np.nan)
+
+    def _roll(self, s, window, func="mean"):
+        """Safe rolling window helper."""
+        if func == "mean":
+            return s.rolling(window).mean()
+        if func == "std":
+            return s.rolling(window).std()
+        if func == "min":
+            return s.rolling(window).min()
+        if func == "max":
+            return s.rolling(window).max()
+
+    def _price_features(self, df):
+        df["return_1d"] = self._safe_pct(df["close"])
+        df["high_low_spread"] = (df["high"] - df["low"]) / df["close"]
+        df["close_open_spread"] = (df["close"] - df["open"]) / df["open"]
+        return df
     
-    def __init__(self, schema_version: str = "v2"):
-        """Initialize feature engine."""
-        self.schema_version = schema_version
-    
+    def _lag_features(self, df):
+        df["prev_close_return"] = df["close"].pct_change().shift(1)
+        df["prev_body"] = ((df["close"] - df["open"]) / df["open"]).shift(1)
+        df["prev_range"] = ((df["high"] - df["low"]) / df["open"]).shift(1)
+        df["prev_volume_chg"] = df["volume"].pct_change().shift(1)
+        prev_hl_range = df["high"].shift(1) - df["low"].shift(1)
+        df["prev_close_position"] = (
+            (df["close"].shift(1) - df["low"].shift(1)) / prev_hl_range
+        ).replace([np.inf, -np.inf], np.nan)
+        return df
+
+    def _momentum_features(self, df):
+        for w in [3, 5, 10, 20]:
+            df[f"mom_{w}"] = df["close"].pct_change(w)
+            df[f"roc_{w}"] = df["close"] / df["close"].shift(w) - 1
+            df[f"ema_ratio_{w}"] = df["close"] / \
+                df["close"].ewm(span=w).mean() - 1
+        return df
+
+    def _volatility_features(self, df):
+        for w in [5, 10, 20]:
+            df[f"vol_{w}"] = df["return_1d"].rolling(w).std()
+            df[f"range_vol_{w}"] = (df["high"] - df["low"]).rolling(w).std()
+        return df
+
+    def _volume_features(self, df):
+        df["volume_z"] = (
+            df["volume"] - df["volume"].rolling(20).mean()) / df["volume"].rolling(20).std()
+        df["vol_chg"] = df["volume"].pct_change()
+        for w in [5, 20]:
+            df[f"vol_sma_ratio_{w}"] = df["volume"] / \
+                df["volume"].rolling(w).mean() - 1
+        return df
+
+    def _stat_features(self, df):
+        for w in [5, 10, 20]:
+            df[f"zscore_{w}"] = (
+                df["close"] - df["close"].rolling(w).mean()) / df["close"].rolling(w).std()
+            df[f"minmax_{w}"] = (df["close"] - df["close"].rolling(w).min()) / (
+                df["close"].rolling(w).max() - df["close"].rolling(w).min()
+            )
+        return df
+
     def calculate_all(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Calculate all features in one pass.
-        
-        Args:
-            df: DataFrame with OHLCV data
-            
-        Returns:
-            DataFrame with all features added
-        """
-        logger.info("Calculating all features...")
         df = df.copy()
-        
-        # Returns
-        df = self._add_returns(df)
-        
-        # Volatility
-        df = self._add_volatility(df)
-        
-        # Momentum
-        df = self._add_momentum(df)
-        
-        # Price location
-        df = self._add_price_location(df)
-        
-        # Time context
-        df = self._add_time_context(df)
-        
-        # Liquidity
-        df = self._add_liquidity(df)
-        
-        # Regime classification
-        df = self._add_regime(df)
-        
-        logger.info(f"Feature engineering complete: {len(df.columns)} total columns")
+        df = df.sort_values("timestamp")
+
+        df = self._price_features(df)
+        df = self._lag_features(df)
+        df = self._momentum_features(df)
+        df = self._volatility_features(df)
+        df = self._volume_features(df)
+        df = self._stat_features(df)
+
+        df = df.dropna(axis=1, how="all")
+        df = df.replace([np.inf, -np.inf], np.nan)
+        df = df.dropna().reset_index(drop=True)
+
         return df
-    
-    def _add_returns(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Add return features."""
-        for period in [1, 3, 5, 15]:
-            # Clip ratio to avoid log(0) or log(negative)
-            price_ratio = df['close'] / df['close'].shift(period)
-            price_ratio = price_ratio.clip(lower=1e-10)  # Prevent log(0) or log(negative)
-            df[f'log_ret_{period}'] = np.log(price_ratio)
-        return df
-    
-    def _add_volatility(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Add volatility features."""
-        # ATR
-        high_low = df['high'] - df['low']
-        high_close = np.abs(df['high'] - df['close'].shift())
-        low_close = np.abs(df['low'] - df['close'].shift())
-        ranges = pd.concat([high_low, high_close, low_close], axis=1)
-        true_range = ranges.max(axis=1)
-        df['atr_14'] = true_range.rolling(14).mean()
-        
-        # Realized volatility
-        df['realized_vol_10'] = df['log_ret_1'].rolling(10).std()
-        
-        # Bollinger Bands
-        df['bb_middle'] = df['close'].rolling(20).mean()
-        df['bb_std'] = df['close'].rolling(20).std()
-        df['bb_upper'] = df['bb_middle'] + (2 * df['bb_std'])
-        df['bb_lower'] = df['bb_middle'] - (2 * df['bb_std'])
-        df['bb_width_20'] = (df['bb_upper'] - df['bb_lower']) / df['bb_middle']
-        
-        # Vol z-score
-        vol_mean = df['realized_vol_10'].rolling(50).mean()
-        vol_std = df['realized_vol_10'].rolling(50).std()
-        df['vol_zscore'] = (df['realized_vol_10'] - vol_mean) / vol_std
-        
-        return df
-    
-    def _add_momentum(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Add momentum features."""
-        # RSI
-        for period in [3, 7, 14]:
-            delta = df['close'].diff()
-            gain = (delta.where(delta > 0, 0)).rolling(period).mean()
-            loss = (-delta.where(delta < 0, 0)).rolling(period).mean()
-            rs = gain / loss
-            df[f'rsi_{period}'] = 100 - (100 / (1 + rs))
-        
-        # MACD
-        ema_12 = df['close'].ewm(span=12).mean()
-        ema_26 = df['close'].ewm(span=26).mean()
-        df['macd_fast'] = ema_12 - ema_26
-        df['macd_signal'] = df['macd_fast'].ewm(span=9).mean()
-        
-        # KAMA slope
-        df['kama'] = self._calculate_kama(df['close'], 10)
-        df['kama_slope'] = df['kama'].diff()
-        
-        # Momentum slopes
-        df['mom_slope_5'] = df['close'].diff(5) / 5
-        df['mom_slope_10'] = df['close'].diff(10) / 10
-        
-        return df
-    
-    def _add_price_location(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Add price location features."""
-        # VWAP
-        df['vwap'] = (df['close'] * df['volume']).cumsum() / df['volume'].cumsum()
-        vwap_mean = df['vwap'].rolling(20).mean()
-        vwap_std = df['vwap'].rolling(20).std()
-        df['zscore_vs_vwap'] = (df['close'] - df['vwap']) / vwap_std
-        df['dist_from_vwap_pct'] = (df['close'] - df['vwap']) / df['vwap']
-        
-        # BB position
-        df['bb_position'] = (df['close'] - df['bb_lower']) / (df['bb_upper'] - df['bb_lower'])
-        
-        # Distance from SMA
-        df['sma_20'] = df['close'].rolling(20).mean()
-        df['dist_sma20'] = (df['close'] - df['sma_20']) / df['sma_20']
-        
-        return df
-    
-    def _add_time_context(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Add time-of-day features."""
-        if 'timestamp' in df.columns:
-            ts = pd.to_datetime(df['timestamp'])
-        else:
-            ts = pd.to_datetime(df.index)
-        
-        # Cyclical encoding
-        minute_of_day = ts.dt.hour * 60 + ts.dt.minute
-        df['minute_sin'] = np.sin(2 * np.pi * minute_of_day / (24 * 60))
-        df['minute_cos'] = np.cos(2 * np.pi * minute_of_day / (24 * 60))
-        
-        day_of_week = ts.dt.dayofweek
-        df['day_sin'] = np.sin(2 * np.pi * day_of_week / 7)
-        df['day_cos'] = np.cos(2 * np.pi * day_of_week / 7)
-        
-        # Session indicators
-        hour = ts.dt.hour
-        minute = ts.dt.minute
-        df['is_first_30min'] = ((hour == 9) & (minute < 60)).astype(int)
-        df['is_last_30min'] = ((hour == 15) & (minute >= 30)).astype(int)
-        df['is_open'] = ((hour == 9) & (minute >= 30) & (minute < 45)).astype(int)
-        df['is_close'] = ((hour == 15) & (minute >= 45)).astype(int)
-        
-        return df
-    
-    def _add_liquidity(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Add liquidity proxy features."""
-        # Range
-        df['hl_range_pct'] = (df['high'] - df['low']) / df['close']
-        
-        # Volume z-score
-        vol_mean = df['volume'].rolling(20).mean()
-        vol_std = df['volume'].rolling(20).std()
-        df['volume_zscore'] = (df['volume'] - vol_mean) / vol_std
-        
-        # Spread proxy
-        df['spread_proxy'] = df['hl_range_pct']
-        
-        # Dollar volume
-        df['dollar_volume'] = df['close'] * df['volume']
-        df['dollar_volume_ma'] = df['dollar_volume'].rolling(20).mean()
-        
-        # Volume ratio
-        df['volume_ma'] = df['volume'].rolling(20).mean()
-        df['volume_ratio'] = df['volume'] / df['volume_ma']
-        
-        return df
-    
-    def _add_regime(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Add regime classification (GMM k=4)."""
-        # Use volatility, trend, liquidity for clustering
-        features_for_clustering = df[['realized_vol_10', 'mom_slope_10', 'volume_zscore']].dropna()
-        
-        if len(features_for_clustering) > 100:
-            gmm = GaussianMixture(n_components=4, random_state=42)
-            
-            # Fit and predict
-            regime_labels = gmm.fit_predict(features_for_clustering)
-            
-            # Map back to full DataFrame
-            df['vol_regime'] = 0
-            df['trend_regime'] = 0
-            df['liquidity_regime'] = 0
-            
-            df.loc[features_for_clustering.index, 'vol_regime'] = regime_labels
-            df.loc[features_for_clustering.index, 'trend_regime'] = regime_labels
-            df.loc[features_for_clustering.index, 'liquidity_regime'] = regime_labels
-        else:
-            df['vol_regime'] = 0
-            df['trend_regime'] = 0
-            df['liquidity_regime'] = 0
-        
-        return df
-    
-    @staticmethod
-    def _calculate_kama(series: pd.Series, period: int = 10) -> pd.Series:
-        """Calculate Kaufman Adaptive Moving Average."""
-        change = abs(series.diff(period))
-        volatility = series.diff().abs().rolling(period).sum()
-        er = change / volatility  # Efficiency ratio
-        
-        fastest = 2 / (2 + 1)
-        slowest = 2 / (30 + 1)
-        sc = (er * (fastest - slowest) + slowest) ** 2  # Smoothing constant
-        
-        kama = pd.Series(index=series.index, dtype=float)
-        kama.iloc[period] = series.iloc[period]
-        
-        for i in range(period + 1, len(series)):
-            kama.iloc[i] = kama.iloc[i-1] + sc.iloc[i] * (series.iloc[i] - kama.iloc[i-1])
-        
-        return kama

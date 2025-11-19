@@ -2,7 +2,7 @@
 Models module with traditional ML and deep learning models.
 """
 from .base.lgbm_classifier import LGBMClassifier
-from .hyperparameter_tuner import LGBMHyperparameterTuner
+from .hyperparameter_tuner import LightGBMHyperparameterTuner
 
 # XGBoost (optional import)
 try:
@@ -44,7 +44,7 @@ except ImportError:
 __all__ = [
     'LGBMClassifier',
     'XGBClassifier',
-    'LGBMHyperparameterTuner',
+    'LightGBMHyperparameterTuner',
     'XGBHyperparameterTuner',
     'LSTMClassifier',
     'TransformerClassifier',

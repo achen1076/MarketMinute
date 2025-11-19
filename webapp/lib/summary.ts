@@ -1,6 +1,7 @@
 import "server-only";
 import type { TickerSnapshot } from "./marketData";
 import { getNewsForSymbol, type NewsItem } from "./news";
+import { getMacroNews } from "./macroNews";
 import { runMiniChat } from "./openai";
 import {
   getSummaryFromCache,
@@ -65,12 +66,41 @@ export async function buildSummary(
   const avgChange =
     snapshots.reduce((sum, s) => sum + s.changePct, 0) / snapshots.length;
 
-  // Fetch news for all symbols in parallel (top 2-3 headlines per symbol)
-  const newsPromises = snapshots.map((s) => getNewsForSymbol(s.symbol, 2));
+  // Fetch news for all symbols in parallel (top 5 headlines per symbol)
+  const newsPromises = snapshots.map((s) => getNewsForSymbol(s.symbol, 5));
   const allNewsArrays = await Promise.all(newsPromises);
-  const allNews = allNewsArrays.flat();
 
-  // Build context for LLM
+  // Fetch macro economic news (top 5 items)
+  const macroNews = await getMacroNews(5);
+
+  // Group news by ticker symbol instead of flattening
+  const symbolsWithNews: Record<
+    string,
+    {
+      changePct: number;
+      price: number;
+      news: Array<{
+        title: string;
+        summary: string;
+        publishedAt: string;
+      }>;
+    }
+  > = {};
+
+  snapshots.forEach((snapshot, index) => {
+    const newsForSymbol = allNewsArrays[index] || [];
+    symbolsWithNews[snapshot.symbol] = {
+      changePct: Number(snapshot.changePct.toFixed(2)),
+      price: snapshot.price,
+      news: newsForSymbol.map((n) => ({
+        title: n.title,
+        summary: n.summary,
+        publishedAt: n.publishedAt,
+      })),
+    };
+  });
+
+  // Build context for LLM with ticker-grouped structure
   const contextPayload = {
     watchlistName: listName,
     totalSymbols: snapshots.length,
@@ -87,18 +117,15 @@ export async function buildSummary(
       changePct: Number(worst.changePct.toFixed(2)),
       price: worst.price,
     },
-    allSymbols: snapshots.map((s) => ({
-      symbol: s.symbol,
-      changePct: Number(s.changePct.toFixed(2)),
-      price: s.price,
-    })),
-    recentNews: allNews.map((n) => ({
-      symbol: n.symbol,
-      title: n.title,
-      summary: n.summary,
-      source: n.source,
-      publishedAt: n.publishedAt,
-    })),
+    symbols: symbolsWithNews,
+    macroContext: {
+      news: macroNews.map((n) => ({
+        title: n.title,
+        category: n.category,
+        impact: n.impact,
+        publishedAt: n.publishedAt,
+      })),
+    },
   };
 
   const systemPrompt = `
@@ -107,35 +134,39 @@ export async function buildSummary(
         The user will send you a JSON object with:
         - Watchlist name and basic statistics (number of symbols, up/down counts, average % move)
         - Best and worst performers with prices and % changes
-        - All symbols with performance data
-        - Recent news headlines (last 1–2 days) for these stocks
-        - Optional market and macro data:
-          - Overall index or ETF moves for the day (for example: S&P 500, Nasdaq, sector ETFs)
-          - Macro headlines (for example: rate expectations, Fed commentary, jobs/CPI data, shutdowns)
-          - Upcoming macro events (for example: FOMC meeting, CPI, jobs report, GDP release)
+        - A "symbols" object where each ticker is a key, containing:
+          - changePct: the stock's % change
+          - price: current price
+          - news: array of recent headlines (last 1–2 days) specific to that ticker
+        - macroContext: object containing macro economic news with:
+          - news: array of macro headlines with category (rates, inflation, employment, gdp, policy, geopolitical) and impact level (high, medium, low)
+          - Use this to explain broader market moves and provide context for individual stock movements
+
+        Important: News is grouped BY TICKER. Each symbol has its own news array. Do not mix news between tickers.
+        Important: Use macroContext news to explain market-wide trends. High-impact macro news (Fed decisions, CPI, jobs) often drives all stocks in a direction.
 
         Your task is to write a market recap for this watchlist.
 
         Key Movers & News (1–2 short paragraphs)
-        - Focus ONLY on stocks that have both a noticeable move and at least one recent headline.
-        - For each stock you mention, clearly link the move to the specific headline(s) in simple language.
-          Example style: “Nvidia rose 1.8% after headlines about [X]. Apple slipped 0.2% on reports of [Y].”
-        - Do not talk about “these headlines” or “this coverage” in the abstract. Talk directly about the companies and what the news says.
-        - Do not include news sources in the summary.
+        - Focus ONLY on stocks that have both a noticeable move and at least one recent headline in their news array.
+          Example style: "Nvidia rose 1.8% after headlines about [X]. Apple slipped 0.2% on reports of [Y]."
+        - Do not talk about "these headlines" or "this coverage" in the abstract. Talk directly about the companies and what the news says.
+        - Do not include news sources in the summary like SeekingAlpha or any other sources.
+        - Only connect news to the ticker it belongs to. If NVDA's news array has 2 items, only use those for NVDA.
 
-        Catalysts & Context (1–2 short paragraphs)
-        - Mention upcoming events ONLY if they appear in the headlines or event data (earnings dates, product launches, regulatory decisions, etc.).
-        - If there are no explicit future dates or events in the data, write 1–2 sentences that briefly say what investors are likely watching next for these companies (for example, “the next earnings report” or “product updates”), but keep it clearly generic and short.
+        Market Context & Catalysts (1–2 short paragraphs)
+        - ALWAYS check macroContext.news first to explain broader market trends
+        - If high-impact macro news exists (category: rates, inflation, employment), start with that context
+          Example: "Markets moved lower today as the Fed signaled higher rates for longer" or "Stocks rallied after CPI came in below expectations"
+        - Link individual stock moves to macro context when relevant
+          Example: "Tech stocks like Nvidia and Apple fell alongside the broader market on Fed concerns"
+        - Mention upcoming events from individual ticker news (earnings, product launches, FDA decisions)
+        - Keep generic forward-looking statements brief if no specific events are mentioned
 
-        Market / Sector Move (1 short paragraph)
-        - Use this section to explain the broader market move.
-        - If there are no explicit market moves in the data, write 1–2 sentences that briefly say what investors are likely watching next for these companies (for example, “the next earnings report” or “product updates”), but keep it clearly generic and short.
-        - Mention and explain Dow, S&P, Nasdaq, and any relevant sector ETFs if they are relevant to the watchlist or moved a lot.
-
+        
         Style guidelines:
         - Clear, professional, and conversational. Aim for plain English, not Wall Street jargon.
         - Avoid phrases like “these items,” “this coverage,” “themes,” “sentiment,” “narrative,” or “shape sentiment.”
-        - Do NOT introduce complex terms like “gamma,” “options positioning,” or “valuation debate” unless they appear directly in the headlines or macro fields.
         - Every sentence should refer to specific companies, indexes, prices, moves, or events from the JSON, not vague commentary.
         - Short paragraphs (3-4 sentences each), no bullet points.
         - Never give buy/sell/hold advice.
@@ -144,6 +175,8 @@ export async function buildSummary(
         - Do NOT include an overall tone section or restate the watchlist performance. Start directly with the key movers.
         - All company names should be capitalized properly.
         - No em dash or en dash.
+        - Do not use meta-commentary about the headlines or news (no "these items", "these news items", "this coverage", etc.). Always talk directly about the company and events.
+
         Return ONLY the narrative text, no JSON, no preamble.
 
 `.trim();

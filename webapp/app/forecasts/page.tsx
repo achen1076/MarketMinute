@@ -1,21 +1,21 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { QuantLabClient } from "@/components/organisms/QuantLabClient";
+import { MarketForecastsClient } from "@/components/organisms/MarketForecastsClient";
 
 export const metadata = {
-  title: "MarketMinute - Quant Lab",
-  description: "Quantitative model predictions and research tools",
+  title: "MarketMinute - Market Forecasts",
+  description:
+    "Distributional forecasts showing expected price ranges and probabilities",
 };
 
-export default async function QuantLabPage() {
+export default async function ForecastsPage() {
   const session = await auth();
 
   if (!session?.user?.email) {
     redirect("/api/auth/signin");
   }
 
-  // Get user's active watchlist
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
     include: {
@@ -40,27 +40,27 @@ export default async function QuantLabPage() {
 
   return (
     <div className="space-y-6">
-      {/* Disclaimer Header */}
-      <div className="rounded-lg border-2 border-amber-500/30 bg-amber-500/5 p-6">
+      <div className="rounded-lg border-2 border-teal-500/30 bg-teal-500/5 p-6">
         <div className="flex items-start gap-3">
-          <div className="text-amber-500 text-2xl">⚠️</div>
+          <div className="text-teal-500 text-2xl">📊</div>
           <div>
-            <h2 className="text-lg font-bold text-amber-500 mb-2">
-              Quant Lab – Educational & Research Tool
+            <h2 className="text-lg font-bold text-teal-500 mb-2">
+              Market Forecasts – Probabilistic Analysis
             </h2>
             <p className="text-sm text-slate-300 leading-relaxed">
-              <strong>Not Financial Advice:</strong> All model outputs are
-              hypothetical probabilities based on historical patterns. Past
-              performance does not guarantee future results. These tools are for
-              research and educational purposes only. Do not use this as your
-              sole basis for investment decisions.
+              <strong>Educational Tool:</strong> These forecasts show expected
+              price ranges and probability distributions based on historical
+              volatility and model predictions. Use as one of many inputs for
+              research and learning, not as trading advice.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Quant Lab Content */}
-      <QuantLabClient symbols={symbols} watchlistName={activeWatchlist?.name} />
+      <MarketForecastsClient
+        symbols={symbols}
+        watchlistName={activeWatchlist?.name}
+      />
     </div>
   );
 }

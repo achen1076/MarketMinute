@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       start(controller) {
-        const pythonProcess = spawn("python3", [scriptPath], {
+        const pythonProcess = spawn("python3", ["-u", scriptPath], {
           cwd: quantAppPath,
           env: { ...process.env },
         });

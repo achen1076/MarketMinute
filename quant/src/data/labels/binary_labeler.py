@@ -1,87 +1,65 @@
 """
-Binary labeling for clearer signal detection.
-Focus on strong directional moves only.
-"""
-import pandas as pd
-import numpy as np
-import logging
+Binary directional labels for strong up / strong down moves.
 
-logger = logging.getLogger(__name__)
+Labels:
+    1  = strong_up
+    -1 = strong_down
+
+Neutral (0) days are REMOVED entirely.
+This creates a balanced dataset suitable for binary classification.
+"""
+
+import numpy as np
+import pandas as pd
 
 
 class BinaryLabeler:
-    """Binary classification with configurable thresholds."""
-    
     def __init__(
         self,
-        forward_periods: int = 10,
-        threshold_pct: float = 0.02,  # 2% move threshold
-        mode: str = 'strong_moves'  # 'strong_moves' or 'directional'
+        forward_periods=5,
+        threshold_pct=0.015,
+        dynamic_vol=False,
+        vol_window=20,
+        vol_scale=1.5,
+        mode='strong_moves',
     ):
-        """
-        Initialize binary labeler.
-        
-        Args:
-            forward_periods: How many periods ahead to look
-            threshold_pct: Minimum move percentage to classify (e.g., 0.02 = 2%)
-            mode: 'strong_moves' (only label strong signals) or 'directional' (label all)
-        """
         self.forward_periods = forward_periods
         self.threshold_pct = threshold_pct
+        self.dynamic_vol = dynamic_vol
+        self.vol_window = vol_window
+        self.vol_scale = vol_scale
         self.mode = mode
-    
+
+    # -------------------------------------------------
+    # Label generator
+    # -------------------------------------------------
     def fit_transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Apply binary labeling.
-        
-        Args:
-            df: DataFrame with OHLCV data
-            
-        Returns:
-            DataFrame with label column added
-        """
-        logger.info(f"Applying binary labels (mode={self.mode}, threshold={self.threshold_pct*100}%, forward={self.forward_periods})")
-        
         df = df.copy()
+
+        # Forward returns
+        df["forward_ret"] = df["close"].shift(
+            -self.forward_periods) / df["close"] - 1
         
-        # Calculate forward returns
-        df['forward_ret'] = df['close'].shift(-self.forward_periods) / df['close'] - 1
-        
-        if self.mode == 'strong_moves':
-            # Only label strong moves, ignore weak moves
-            # UP (1) if return > +threshold
-            # DOWN (-1) if return < -threshold
-            # No label (NaN) if |return| < threshold
-            df['label'] = np.nan
-            df.loc[df['forward_ret'] > self.threshold_pct, 'label'] = 1.0
-            df.loc[df['forward_ret'] < -self.threshold_pct, 'label'] = -1.0
-            
-        elif self.mode == 'directional':
-            # Label everything as UP or DOWN based on direction
-            # UP (1) if return > 0
-            # DOWN (-1) if return <= 0
-            df['label'] = np.where(df['forward_ret'] > 0, 1.0, -1.0)
-        
+        # Also store as return_at_label for compatibility
+        df["return_at_label"] = df["forward_ret"]
+
+        # Volatility-based dynamic threshold
+        if self.dynamic_vol:
+            df["rolling_vol"] = df["close"].pct_change().rolling(
+                self.vol_window).std()
+            df["dyn_thresh"] = df["rolling_vol"] * self.vol_scale
+
+            thresh = df["dyn_thresh"]
         else:
-            raise ValueError(f"Unknown mode: {self.mode}")
-        
-        # Store actual return for analysis
-        df['return_at_label'] = df['forward_ret']
-        
-        # Mark last N rows as NaN (no forward data)
-        df.loc[df.index[-self.forward_periods:], 'label'] = np.nan
-        df.loc[df.index[-self.forward_periods:], 'return_at_label'] = np.nan
-        
-        # Summary
-        label_counts = df['label'].value_counts().sort_index()
-        total_labeled = label_counts.sum()
-        total_samples = len(df) - self.forward_periods
-        
-        logger.info(f"Labels: DOWN={label_counts.get(-1.0, 0)}, UP={label_counts.get(1.0, 0)}")
-        logger.info(f"Labeled: {total_labeled}/{total_samples} ({total_labeled/total_samples*100:.1f}%)")
-        
-        # Log return statistics for labeled samples
-        labeled_returns = df[df['label'].notna()]['forward_ret']
-        logger.info(f"Forward return stats: mean={labeled_returns.mean():.4f}, std={labeled_returns.std():.4f}")
-        
+            thresh = self.threshold_pct
+
+        # Labels
+        df["label"] = 0
+        df.loc[df["forward_ret"] >= thresh, "label"] = 1
+        df.loc[df["forward_ret"] <= -thresh, "label"] = -1
+
+        # Remove neutral class entirely
+        df = df[df["label"] != 0]
+
+        df = df.dropna().reset_index(drop=True)
         return df

@@ -6,6 +6,7 @@ export type StockEvent = {
   title: string;
   date: string; // ISO date string
   description?: string;
+  source?: "api" | "news"; // Track where event came from
 };
 
 export type MacroEvent = {

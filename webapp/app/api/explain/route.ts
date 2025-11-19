@@ -16,7 +16,11 @@ type ExplainPayload = {
   changePct: number;
   price: number | null;
   watchlistName: string | null;
-  relatedNews: NewsItem[];
+  news: Array<{
+    title: string;
+    summary: string;
+    publishedAt: string;
+  }>;
   smartAlerts: SmartAlert[];
 };
 
@@ -46,7 +50,8 @@ export async function POST(req: Request) {
     });
   }
 
-  const relatedNews = await getNewsForSymbol(symbol, 3);
+  // Fetch news for this symbol (top 5 headlines)
+  const newsItems = await getNewsForSymbol(symbol, 5);
 
   // Get full snapshot data for smart alerts
   const snapshots = await getSnapshotsForSymbols([symbol]);
@@ -62,12 +67,17 @@ export async function POST(req: Request) {
     snapshot?.earningsDate
   );
 
+  // Structure data with ticker-specific news (no cross-ticker noise)
   const payload: ExplainPayload = {
     symbol,
-    changePct,
+    changePct: Number(changePct.toFixed(2)),
     price: typeof price === "number" ? price : null,
     watchlistName: watchlistName ?? null,
-    relatedNews,
+    news: newsItems.map((n) => ({
+      title: n.title,
+      summary: n.summary,
+      publishedAt: n.publishedAt,
+    })),
     smartAlerts: alertFlags.alerts,
   };
 
@@ -76,11 +86,13 @@ export async function POST(req: Request) {
       No em dashes or en dashes. No semicolons.
 
       The user will send you a JSON object with:
-      - A stock symbol
-      - Today's percent change (IMPORTANT: "changePct" is already a percentage. For example, -0.03 means -0.03%, NOT -3%) round it to 2 decimal places
-      - Current price (if available)
-      - A list of recent news headlines about the stock (may be empty)
-      - A list of smartAlerts with contextual information (e.g., "near 52-week high", "earnings in 3 days", "hit ±3% move")
+      - symbol: the stock ticker
+      - changePct: today's percent change (already a percentage, e.g., -0.03 means -0.03%, NOT -3%)
+      - price: current price (if available)
+      - news: array of recent headlines specific to this symbol only
+      - smartAlerts: array with contextual information (e.g., "near 52-week high", "earnings in 3 days", "hit ±3% move")
+
+      Important: The "news" array contains ONLY headlines for this specific symbol. Do not reference or invent news from other stocks.
 
       Rules:
       1. Output 3–4 very short, direct sentences. No filler, no rhetorical questions, no greetings.
@@ -91,10 +103,11 @@ export async function POST(req: Request) {
          - Order of priority: price_move (critical severity first) > near_52w_high > near_52w_low > earnings_soon
          - Weave alert details naturally into your explanation
          
-      3. After alerts, use relatedNews if available:
-         - Summarize key points from headlines
+      3. After alerts, use news array if available:
+         - Summarize key points from the headlines provided for this symbol
          - Do NOT invent details beyond what headlines/summaries state
          - Connect news to the price move when relevant
+         - Only use news from the provided array - do not reference other stocks
          
       4. Do NOT give investment advice. Do not tell the user to buy, sell, or hold.
       

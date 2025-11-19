@@ -1,12 +1,13 @@
 """
-LightGBM classifier with calibration.
-Institutional-grade model with proper hyperparameters.
+LightGBM classifier with hybrid balancing (class weights + safe oversampling).
+Optimized for imbalanced 3-class quant classification.
 """
+
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-from sklearn.calibration import CalibratedClassifierCV
+from collections import Counter
 import logging
 import pickle
 import subprocess
@@ -14,15 +15,16 @@ import subprocess
 logger = logging.getLogger(__name__)
 
 
+# -----------------------------------------------------
+# GPU Detector
+# -----------------------------------------------------
 def check_gpu_available():
     """Check if GPU is available for LightGBM."""
     try:
-        # Try to create a simple GPU dataset
         result = subprocess.run(
             ['nvidia-smi'], capture_output=True, text=True, timeout=2)
         if result.returncode == 0:
-            logger.info(
-                "[GPU] NVIDIA GPU detected - GPU acceleration will be used")
+            logger.info("[GPU] NVIDIA GPU detected - using GPU")
             return True
     except:
         pass
@@ -31,22 +33,79 @@ def check_gpu_available():
     return False
 
 
+# -----------------------------------------------------
+# Hybrid Balancer (Mode A - soft oversampling)
+# -----------------------------------------------------
+def hybrid_balance(X, y, multiplier=1.4):
+    """
+    Soft oversampling:
+        - duplicates minority samples (no synthetic data)
+        - preserves time-series ordering
+
+    Args:
+        X: training features (DataFrame or ndarray)
+        y: labels
+        multiplier: duplication factor for minority classes
+
+    Returns:
+        X_balanced, y_balanced
+    """
+    df = X.copy()
+    df["label"] = y
+
+    counts = df["label"].value_counts().to_dict()
+    max_class = max(counts.values())
+
+    combined = []
+
+    for cls, count in counts.items():
+        subset = df[df["label"] == cls]
+
+        if count < max_class:
+            repeat_factor = int((max_class / count - 1) * multiplier)
+            repeat_factor = max(1, repeat_factor)
+
+            oversampled = pd.concat([subset] * repeat_factor, axis=0)
+            combined.append(oversampled)
+
+        combined.append(subset)
+
+    df_bal = pd.concat(combined, axis=0).sample(frac=1, random_state=42)
+
+    y_bal = df_bal["label"].values
+    X_bal = df_bal.drop(columns=["label"])
+
+    logger.info(
+        f"[BALANCE] Before={dict(counts)}, After={dict(Counter(y_bal))}")
+    return X_bal, y_bal
+
+
+# -----------------------------------------------------
+# Class Weight Calculator
+# -----------------------------------------------------
+def compute_class_weights(y):
+    """
+    Compute balanced class weights for LightGBM.
+    y must be mapped 0,1,2
+    """
+    counts = Counter(y)
+    total = sum(counts.values())
+    n_classes = len(counts)
+
+    weights = {c: total / (n_classes * counts[c]) for c in counts}
+    return weights
+
+
+# -----------------------------------------------------
+# LightGBM Wrapper
+# -----------------------------------------------------
 class LGBMClassifier:
-    """LightGBM classifier wrapper."""
+    """LightGBM classifier with hybrid imbalance handling."""
 
     def __init__(self, params=None, use_tuning=False, use_gpu='auto'):
-        """
-        Initialize LightGBM classifier.
-
-        Args:
-            params: LightGBM parameters (if None and use_tuning=False, uses defaults)
-            use_tuning: Whether to use hyperparameter tuning (set params=None if True)
-            use_gpu: GPU mode - 'auto' (detect), True (force), False (disable)
-        """
         self.use_tuning = use_tuning
 
-        # Auto-detect GPU if set to 'auto'
-        if use_gpu == 'auto':
+        if use_gpu == "auto":
             self.use_gpu = check_gpu_available()
         else:
             self.use_gpu = use_gpu
@@ -55,153 +114,140 @@ class LGBMClassifier:
             'objective': 'multiclass',
             'num_class': 3,
             'metric': 'multi_logloss',
-            'learning_rate': 0.05,
-            'num_leaves': 31,
+            'learning_rate': 0.03,
+            'num_leaves': 63,
             'max_depth': -1,
-            'min_child_samples': 20,
-            'subsample': 0.8,
-            'colsample_bytree': 0.8,
-            'reg_alpha': 0.1,
-            'reg_lambda': 0.1,
+            'min_child_samples': 30,
+            'subsample': 0.85,
+            'colsample_bytree': 0.85,
+            'reg_alpha': 0.2,
+            'reg_lambda': 0.2,
             'random_state': 42,
             'n_jobs': -1,
             'verbosity': -1
         }
-        
-        # Add GPU parameters if enabled
-        if use_gpu:
-            default_params['device'] = 'gpu'
-            default_params['gpu_platform_id'] = 0
-            default_params['gpu_device_id'] = 0
-            logger.info("GPU acceleration enabled")
+
+        if self.use_gpu:
+            default_params["device"] = "gpu"
+            default_params["gpu_platform_id"] = 0
+            default_params["gpu_device_id"] = 0
 
         self.params = params or default_params
-
         self.model = None
         self.scaler = StandardScaler()
-        self.calibrated_model = None
         self.feature_names = None
-        self.tuning_study = None
 
-    def fit(self, X, y, X_val=None, y_val=None, calibrate=True):
+    # -------------------------------------------------
+    # FIT
+    # -------------------------------------------------
+    def fit(self, X, y, X_val=None, y_val=None, calibrate=False):
         """
-        Train model.
-
-        Args:
-            X: Training features
-            y: Training labels
-            X_val: Validation features
-            y_val: Validation labels
-            calibrate: Whether to calibrate probabilities
+        Train the model with hybrid balancing.
         """
-        logger.info(f"Training LightGBM on {len(X)} samples...")
 
-        # Convert labels to 0, 1, 2
+        # Map labels to 0,1,2
         label_map = {-1: 0, 0: 1, 1: 2}
-        y_mapped = y.map(label_map) if isinstance(y, pd.Series) else np.array([label_map.get(yi, yi) for yi in y])
+        y_mapped = np.array([label_map[a] for a in y])
 
-        if X_val is not None and y_val is not None:
-            y_val_mapped = y_val.map(label_map) if isinstance(y_val, pd.Series) else np.array([label_map.get(yi, yi) for yi in y_val])
+        if X_val is not None:
+            y_val_mapped = np.array([label_map[a] for a in y_val])
 
-        # Scale features
-        X_scaled = self.scaler.fit_transform(X)
-
-        # Store feature names
+        # Store feature names if DataFrame
         if isinstance(X, pd.DataFrame):
             self.feature_names = list(X.columns)
 
-        # Create datasets
-        train_data = lgb.Dataset(X_scaled, label=y_mapped)
+        # --------- Hybrid balancing ----------
+        Xb, yb = hybrid_balance(X, y_mapped)
+        class_weights = compute_class_weights(yb)
+        logger.info(f"[CLASS WEIGHTS] {class_weights}")
+        
+        # Convert class weights to per-sample weights
+        weight_array = np.array([class_weights[c] for c in yb])
+
+        # --------- Scaling ----------
+        Xb_scaled = self.scaler.fit_transform(Xb)
+
+        train_data = lgb.Dataset(Xb_scaled, label=yb, weight=weight_array)
+
+        valid_sets = [train_data]
+        valid_names = ["train"]
 
         if X_val is not None:
             X_val_scaled = self.scaler.transform(X_val)
-            val_data = lgb.Dataset(
-                X_val_scaled, label=y_val_mapped, reference=train_data)
-            valid_sets = [train_data, val_data]
-            valid_names = ['train', 'val']
-        else:
-            valid_sets = [train_data]
-            valid_names = ['train']
+            val_data = lgb.Dataset(X_val_scaled, label=y_val_mapped)
+            valid_sets.append(val_data)
+            valid_names.append("val")
 
-        # Train
+        # --------- Train ----------
         self.model = lgb.train(
             self.params,
             train_data,
-            num_boost_round=500,
+            num_boost_round=800,
             valid_sets=valid_sets,
             valid_names=valid_names,
-            callbacks=[lgb.early_stopping(50), lgb.log_evaluation(50)]
+            callbacks=[
+                lgb.early_stopping(75),
+                lgb.log_evaluation(50)
+            ]
         )
 
-        logger.info(
-            f"Training complete. Best iteration: {self.model.best_iteration}")
-
-        # Note: Skipping CalibratedClassifierCV as it doesn't work with LightGBM Booster
-        # LightGBM probabilities are generally well-calibrated
-        # Can add manual calibration (Platt scaling, isotonic) if needed
-        if calibrate and X_val is not None:
-            logger.info(
-                "Note: Using raw LightGBM probabilities (generally well-calibrated)")
-
+        logger.info(f"[LGBM] Best iteration: {self.model.best_iteration}")
         return self
 
+    # -------------------------------------------------
+    # Predict
+    # -------------------------------------------------
     def predict_proba(self, X):
-        """Predict probabilities."""
         X_scaled = self.scaler.transform(X)
         return self.model.predict(X_scaled)
-    
+
     def predict(self, X):
-        """Predict class labels."""
         probas = self.predict_proba(X)
         labels = np.argmax(probas, axis=1)
-        
-        # Map back to -1, 0, 1
-        label_map_reverse = {0: -1, 1: 0, 2: 1}
-        return np.array([label_map_reverse[l] for l in labels])
 
-    def get_feature_importance(self, importance_type='gain'):
-        """Get feature importance."""
+        # Map back to -1,0,1
+        label_map_reverse = {0: -1, 1: 0, 2: 1}
+        return np.array([label_map_reverse[a] for a in labels])
+
+    # -------------------------------------------------
+    # Feature Importance
+    # -------------------------------------------------
+    def get_feature_importance(self, importance_type="gain"):
         if self.model is None:
             return None
 
         importance = self.model.feature_importance(
             importance_type=importance_type)
-
         if self.feature_names:
             return pd.DataFrame({
-                'feature': self.feature_names,
-                'importance': importance
-            }).sort_values('importance', ascending=False)
-        else:
-            return importance
+                "feature": self.feature_names,
+                "importance": importance
+            }).sort_values("importance", ascending=False)
+        return importance
 
+    # -------------------------------------------------
+    # Save + Load
+    # -------------------------------------------------
     def save(self, path):
-        """Save model, scaler, and metadata."""
         artifact = {
-            'model': self.model,
-            'scaler': self.scaler,
-            'calibrated_model': self.calibrated_model,
-            'feature_names': self.feature_names,
-            'params': self.params
+            "model": self.model,
+            "scaler": self.scaler,
+            "feature_names": self.feature_names,
+            "params": self.params
         }
-
-        with open(path, 'wb') as f:
+        with open(path, "wb") as f:
             pickle.dump(artifact, f)
-
-        logger.info(f"Model saved to {path}")
+        logger.info(f"[LGBM] Saved to {path}")
 
     @classmethod
     def load(cls, path):
-        """Load model from file."""
-        with open(path, 'rb') as f:
+        with open(path, "rb") as f:
             artifact = pickle.load(f)
 
-        instance = cls()
-        instance.model = artifact['model']
-        instance.scaler = artifact['scaler']
-        instance.calibrated_model = artifact.get('calibrated_model')
-        instance.feature_names = artifact.get('feature_names')
-        instance.params = artifact.get('params', instance.params)
-        
-        logger.info(f"Model loaded from {path}")
-        return instance
+        inst = cls()
+        inst.model = artifact["model"]
+        inst.scaler = artifact["scaler"]
+        inst.feature_names = artifact["feature_names"]
+        inst.params = artifact["params"]
+        logger.info(f"[LGBM] Loaded from {path}")
+        return inst

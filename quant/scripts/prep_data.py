@@ -15,19 +15,27 @@ def main():
     print(" DATA PREP - Converting to Institutional Format")
     print("="*70)
 
+    print("PROGRESS:5:Loading configuration...", flush=True)
     # Load tickers from system specs
     with open("SYSTEM_SPEC.yaml", 'r') as f:
         config = yaml.safe_load(f)
 
     tickers = config['objectives']['universe']['tickers']
+    total_tickers = len(tickers)
     print(f"\nTickers: {tickers}")
+    print(f"Total: {total_tickers} tickers")
 
+    print("PROGRESS:10:Initializing data fetcher...", flush=True)
     # Initialize fetcher
     fetcher = SchwabDataFetcher()
 
     # Fetch data for each ticker
-    for ticker in tickers:
-        print(f"\nFetching {ticker}...")
+    print("PROGRESS:15:Starting data fetch...", flush=True)
+    for i, ticker in enumerate(tickers):
+        # Calculate progress (15% to 95%)
+        progress = 15 + int((i / total_tickers) * 80)
+        print(
+            f"PROGRESS:{progress}:Fetching {ticker} ({i+1}/{total_tickers})...", flush=True)
 
         try:
             from_date = (datetime.now() - timedelta(days=365*20)
@@ -68,6 +76,7 @@ def main():
         except Exception as e:
             print(f"  Error fetching {ticker}: {e}")
 
+    print("PROGRESS:100:Complete!", flush=True)
     print("\n" + "="*70)
     print(" DATA PREP COMPLETE")
     print("="*70)

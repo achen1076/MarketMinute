@@ -3,6 +3,11 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import WatchlistsClient from "./WatchlistsClient";
 
+export const metadata = {
+  title: "MarketMinute - Watchlists",
+  description: "Manage your watchlists and track your favorite stocks.",
+};
+
 export default async function WatchlistPage() {
   const session = await auth();
 
