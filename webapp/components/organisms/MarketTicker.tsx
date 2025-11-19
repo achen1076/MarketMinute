@@ -53,7 +53,7 @@ export function MarketTicker() {
     if (!scrollContainer || tickers.length === 0) return;
 
     let scrollPosition = 0;
-    const scrollSpeed = 0.67;
+    const scrollSpeed = 0.5;
     let animationFrameId: number;
 
     const animate = () => {

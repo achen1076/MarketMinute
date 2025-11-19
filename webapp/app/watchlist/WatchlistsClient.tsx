@@ -123,8 +123,12 @@ export default function WatchlistsClient({
     id: string;
     name: string;
   } | null>(null);
-  const [draggedItems, setDraggedItems] = useState<Record<string, WatchlistItem[]>>({});
-  const [pendingReorder, setPendingReorder] = useState<Record<string, boolean>>({});
+  const [draggedItems, setDraggedItems] = useState<
+    Record<string, WatchlistItem[]>
+  >({});
+  const [pendingReorder, setPendingReorder] = useState<Record<string, boolean>>(
+    {}
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -172,7 +176,9 @@ export default function WatchlistsClient({
         return;
       }
 
-      setWatchlists((prev) => prev.filter((w) => w.id !== watchlistToDelete.id));
+      setWatchlists((prev) =>
+        prev.filter((w) => w.id !== watchlistToDelete.id)
+      );
       setDeleteDialogOpen(false);
       setWatchlistToDelete(null);
     } finally {
@@ -192,7 +198,10 @@ export default function WatchlistsClient({
       return;
     }
 
-    const currentItems = draggedItems[watchlistId] || watchlists.find((w) => w.id === watchlistId)?.items || [];
+    const currentItems =
+      draggedItems[watchlistId] ||
+      watchlists.find((w) => w.id === watchlistId)?.items ||
+      [];
     const oldIndex = currentItems.findIndex((item) => item.id === active.id);
     const newIndex = currentItems.findIndex((item) => item.id === over.id);
 
@@ -318,8 +327,10 @@ export default function WatchlistsClient({
         );
       }
 
-      // Clear all edit states
+      // Clear all edit states and close editing mode
+      setEditingWatchlistId(null);
       setEditSymbols([]);
+      setEditName("");
       setDraggedItems((prev) => {
         const updated = { ...prev };
         delete updated[watchlistId];
@@ -336,7 +347,11 @@ export default function WatchlistsClient({
   };
 
   const getWatchlistItems = (watchlistId: string) => {
-    return draggedItems[watchlistId] || watchlists.find((w) => w.id === watchlistId)?.items || [];
+    return (
+      draggedItems[watchlistId] ||
+      watchlists.find((w) => w.id === watchlistId)?.items ||
+      []
+    );
   };
 
   const handleToggleFavorite = async (
@@ -647,7 +662,6 @@ export default function WatchlistsClient({
                           setEditingWatchlistId(null);
                           setEditSymbols([]);
                           setEditName("");
-                          // Clear pending reorder state when canceling
                           setDraggedItems((prev) => {
                             const updated = { ...prev };
                             delete updated[w.id];
@@ -668,11 +682,9 @@ export default function WatchlistsClient({
                         onClick={() => handleSaveAllChanges(w.id)}
                         disabled={
                           loading ||
-                          (
-                            editSymbols.length === 0 &&
+                          (editSymbols.length === 0 &&
                             !pendingReorder[w.id] &&
-                            (editName === w.name || !editName.trim())
-                          )
+                            (editName === w.name || !editName.trim()))
                         }
                         size="sm"
                         className="px-4 text-xs hover:cursor-pointer"
