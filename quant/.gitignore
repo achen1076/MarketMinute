@@ -68,6 +68,8 @@ data/processed/
 # Model outputs
 /outputs/models
 /outputs/backtests
+/outputs/models
+/outputs/backtests
 /models
 
 # Logs
