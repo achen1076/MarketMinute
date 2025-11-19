@@ -26,10 +26,6 @@ wheels/
 .installed.cfg
 *.egg
 
-# Data files
-data/raw/*.csv
-data/processed/*.csv
-
 # Model outputs
 outputs/checkpoints/*.pt
 outputs/logs/
@@ -55,7 +51,10 @@ schwab_token.json
 archive
 
 # Data
-/data
+data/
+data/raw/
+data/processed/
+
 
 # Dashboards
 /dashboards
@@ -67,7 +66,8 @@ archive
 /backtest
 
 # Model outputs
-/outputs
+/outputs/models
+/outputs/backtests
 /models
 
 # Logs
