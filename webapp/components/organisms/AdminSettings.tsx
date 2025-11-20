@@ -91,7 +91,7 @@ export function AdminSettings() {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <Card className="w-full max-w-lg p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-100">Admin Settings</h2>
+          <h2 className="text-xl font-bold text-slate-100">Cache Settings</h2>
           <button
             onClick={() => setIsOpen(false)}
             className="text-slate-400 transition-colors hover:text-slate-200"
