@@ -45,10 +45,10 @@ export default async function SignInPage() {
               </div>
               <div>
                 <h3 className="font-semibold text-white text-sm">
-                  Quant Predictions
+                  Quant Labs
                 </h3>
                 <p className="text-xs text-slate-400">
-                  Model trained predictions
+                  Model trained analytics
                 </p>
               </div>
             </div>
