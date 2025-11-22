@@ -16,7 +16,7 @@ export async function POST() {
         summary: report.summary,
         keyDrivers: report.keyDrivers,
         macroContext: report.macroContext,
-        whatThisMeans: report.whatThisMeans || null,
+        whatThisMeans: report.whatThisMeans ?? undefined,
 
         // Anomaly flags
         indexMove: context.anomalies.indexMove,
