@@ -14,9 +14,6 @@ import pickle
 logger = logging.getLogger(__name__)
 
 
-# -----------------------------------------------------
-# Hybrid Balance (Mode A – soft oversampling)
-# -----------------------------------------------------
 def hybrid_balance(X, y, multiplier=1.4):
     """
     Duplicate minority samples (no synthetic data).
@@ -54,9 +51,6 @@ def hybrid_balance(X, y, multiplier=1.4):
     return X_bal, y_bal
 
 
-# -----------------------------------------------------
-# Class Weight Calculation for XGBoost
-# -----------------------------------------------------
 def compute_class_weights(y):
     """
     Compute balanced class weights for multiclass XGBoost.
@@ -75,9 +69,6 @@ def compute_class_weights(y):
     return weights
 
 
-# -----------------------------------------------------
-# Main Classifier
-# -----------------------------------------------------
 class XGBClassifier:
     """XGBoost classifier with hybrid class balancing."""
 
@@ -116,9 +107,6 @@ class XGBClassifier:
         self.feature_names = None
         self.tuning_study = None
 
-    # -------------------------------------------------
-    # FIT
-    # -------------------------------------------------
     def fit(self, X, y, X_val=None, y_val=None):
         """
         Train XGBoost with hybrid balancing.
@@ -135,7 +123,6 @@ class XGBClassifier:
         if isinstance(X, pd.DataFrame):
             self.feature_names = list(X.columns)
 
-        # --------- Hybrid balance ----------
         Xb, yb = hybrid_balance(X, y_mapped)
         class_weights = compute_class_weights(yb)
         logger.info(f"[CLASS WEIGHTS] {class_weights}")
@@ -143,7 +130,6 @@ class XGBClassifier:
         # Assign per-sample weights to DMatrix
         weight_array = np.array([class_weights[c] for c in yb])
 
-        # --------- Scale ----------
         Xb_scaled = self.scaler.fit_transform(Xb)
 
         dtrain = xgb.DMatrix(Xb_scaled, label=yb, weight=weight_array)
@@ -155,7 +141,6 @@ class XGBClassifier:
             dval = xgb.DMatrix(X_val_scaled, label=y_val_mapped)
             evals.append((dval, "val"))
 
-        # --------- Train ----------
         self.model = xgb.train(
             params=self.params,
             dtrain=dtrain,
@@ -168,9 +153,6 @@ class XGBClassifier:
         logger.info(f"[XGB] Best iteration: {self.model.best_iteration}")
         return self
 
-    # -------------------------------------------------
-    # Predict
-    # -------------------------------------------------
     def predict_proba(self, X):
         X_scaled = self.scaler.transform(X)
         dtest = xgb.DMatrix(X_scaled)
@@ -183,9 +165,6 @@ class XGBClassifier:
         label_map_reverse = {0: -1, 1: 0, 2: 1}
         return np.array([label_map_reverse[a] for a in labels])
 
-    # -------------------------------------------------
-    # Feature Importance
-    # -------------------------------------------------
     def get_feature_importance(self, importance_type='gain'):
         if self.model is None:
             return None
@@ -206,9 +185,6 @@ class XGBClassifier:
 
         return importance
 
-    # -------------------------------------------------
-    # Save + Load
-    # -------------------------------------------------
     def save(self, path):
         artifact = {
             "model": self.model,

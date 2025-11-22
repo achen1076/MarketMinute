@@ -1,6 +1,6 @@
 import "server-only";
 import { getNewsForSymbol, type NewsItem } from "./news";
-import { StockEvent } from "./eventsCache";
+import { StockEvent } from "./eventsDb";
 
 /**
  * Detect events from news headlines and summaries

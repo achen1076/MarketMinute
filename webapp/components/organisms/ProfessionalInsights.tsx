@@ -1,0 +1,193 @@
+"use client";
+
+import { useState } from "react";
+import Card from "@/components/atoms/Card";
+import { Sparkles, Loader2, TrendingUp, AlertCircle } from "lucide-react";
+
+interface StructuredInsight {
+  theme: string;
+  observation: string;
+  evidence: string[];
+  interpretation: string;
+  risk: string;
+  probability: string;
+}
+
+export default function ProfessionalInsights({
+  reportContext,
+}: {
+  reportContext?: any;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [insights, setInsights] = useState<StructuredInsight[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  // Generate structured insights from keyDrivers
+  const generateStructuredInsights = (report: any): StructuredInsight[] => {
+    const structuredInsights: StructuredInsight[] = [];
+
+    if (
+      report.sectorRotation &&
+      report.keyDrivers &&
+      report.keyDrivers.length > 0
+    ) {
+      structuredInsights.push({
+        theme: "Sector Rotation",
+        observation: report.keyDrivers[0] || "Sector leadership shift detected",
+        evidence: [
+          report.keyDrivers[1] || "Multiple sectors showing divergence",
+          `VIX ${
+            report.vixChangePct && report.vixChangePct < 0
+              ? "declining"
+              : "rising"
+          } ${
+            report.vixChangePct ? Math.abs(report.vixChangePct).toFixed(1) : "0"
+          }%`,
+        ],
+        interpretation:
+          "Rotation into cyclicals suggests improving risk appetite",
+        risk:
+          report.vix && report.vix > 20
+            ? "Elevated volatility may reverse rotation"
+            : "Tech lag may deepen if yields rise",
+        probability: "65% continuation",
+      });
+    }
+
+    if (report.volSpike) {
+      structuredInsights.push({
+        theme: "Volatility Event",
+        observation: `VIX ${
+          report.vixChangePct && report.vixChangePct > 0 ? "spiked" : "dropped"
+        } ${
+          report.vixChangePct ? Math.abs(report.vixChangePct).toFixed(1) : "0"
+        }%`,
+        evidence: [
+          `Current VIX: ${report.vix?.toFixed(2) || "N/A"}`,
+          `Realized Vol: ${report.realizedVol?.toFixed(1) || "N/A"}%`,
+        ],
+        interpretation:
+          report.vixChangePct && report.vixChangePct > 0
+            ? "Rising fear premium indicates defensive positioning"
+            : "Declining volatility signals market complacency",
+        risk:
+          report.vixChangePct && report.vixChangePct < 0
+            ? "Complacency risk if unexpected event occurs"
+            : "Extended elevated vol may pressure equity valuations",
+        probability: "55% mean reversion expected",
+      });
+    }
+
+    if (report.indexMove) {
+      structuredInsights.push({
+        theme: "Directional Move",
+        observation: "Significant index movement detected",
+        evidence: [
+          report.keyDrivers && report.keyDrivers.length > 2
+            ? report.keyDrivers[2]
+            : "Broad market participation",
+          "Volume profile elevated",
+        ],
+        interpretation: "Momentum building in primary indices",
+        risk: "Overextension risk if move accelerates without pause",
+        probability: "70% trend continuation next session",
+      });
+    }
+
+    return structuredInsights.length > 0 ? structuredInsights : [];
+  };
+
+  const structuredInsights = reportContext
+    ? generateStructuredInsights(reportContext)
+    : [];
+
+  if (!reportContext) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 mb-4">
+        <TrendingUp className="w-4 h-4 text-indigo-400" />
+        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+          Structured Insights
+        </h3>
+      </div>
+
+      {structuredInsights.length === 0 ? (
+        <div className="text-center py-6 text-slate-500 text-xs">
+          No significant market signals detected
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {structuredInsights.map((insight, idx) => (
+            <Card key={idx} className="bg-slate-800/50 border-slate-700">
+              <div className="p-3">
+                {/* Theme */}
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-semibold text-indigo-400">
+                    {insight.theme}
+                  </h4>
+                  <span className="text-xs text-slate-500">
+                    {insight.probability}
+                  </span>
+                </div>
+
+                {/* Observation */}
+                <div className="mb-2">
+                  <span className="text-xs text-slate-500 uppercase tracking-wide">
+                    Observation
+                  </span>
+                  <p className="text-sm text-slate-200 mt-0.5">
+                    {insight.observation}
+                  </p>
+                </div>
+
+                {/* Evidence */}
+                <div className="mb-2">
+                  <span className="text-xs text-slate-500 uppercase tracking-wide">
+                    Evidence
+                  </span>
+                  <ul className="mt-0.5 space-y-0.5">
+                    {insight.evidence.map((item, i) => (
+                      <li
+                        key={i}
+                        className="text-xs text-slate-300 flex items-start gap-1"
+                      >
+                        <span className="text-slate-600">▪</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Interpretation */}
+                <div className="mb-2">
+                  <span className="text-xs text-slate-500 uppercase tracking-wide">
+                    Interpretation
+                  </span>
+                  <p className="text-xs text-slate-300 mt-0.5">
+                    {insight.interpretation}
+                  </p>
+                </div>
+
+                {/* Risk */}
+                <div className="flex items-start gap-1">
+                  <AlertCircle className="w-3 h-3 text-amber-400 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <span className="text-xs text-amber-400 uppercase tracking-wide">
+                      Risk
+                    </span>
+                    <p className="text-xs text-slate-300 mt-0.5">
+                      {insight.risk}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

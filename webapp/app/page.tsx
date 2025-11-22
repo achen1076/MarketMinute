@@ -11,6 +11,7 @@ import { MarketMinuteSummary } from "@/components/organisms/MarketMinuteSummary"
 import { AdminSettings } from "@/components/organisms/AdminSettings";
 import { EventsTimeline } from "@/components/organisms/EventsTimeline";
 import { SmartAlertsBar } from "@/components/organisms/SmartAlertsBar";
+import SentinelExplainToday from "@/components/organisms/SentinelExplainToday";
 import Link from "next/link";
 
 export default async function DashboardPage() {
@@ -63,6 +64,9 @@ export default async function DashboardPage() {
         <Box display="flex" direction="col" gap="xl" className="xl:flex-row">
           {/* Main Content Area */}
           <Stack spacing="xl" className="flex-1 min-w-0">
+            {/* Sentinel Explain Today */}
+            <SentinelExplainToday />
+
             {activeWatchlistId && (
               <MarketMinuteSummary watchlistId={activeWatchlistId} />
             )}

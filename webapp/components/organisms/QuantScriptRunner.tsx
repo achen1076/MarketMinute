@@ -144,9 +144,12 @@ export default function QuantScriptRunner() {
                   // Parse progress from output
                   const progressValue = parseProgressLine(data.output);
                   if (progressValue !== null) {
-                    setProgress((prev) => ({ ...prev, [scriptId]: progressValue }));
+                    setProgress((prev) => ({
+                      ...prev,
+                      [scriptId]: progressValue,
+                    }));
                   }
-                  
+
                   setOutputs((prev) => ({
                     ...prev,
                     [scriptId]: prev[scriptId] + data.output,
@@ -211,9 +214,12 @@ export default function QuantScriptRunner() {
                   // Parse progress from output
                   const progressValue = parseProgressLine(data.output);
                   if (progressValue !== null) {
-                    setProgress((prev) => ({ ...prev, [scriptId]: progressValue }));
+                    setProgress((prev) => ({
+                      ...prev,
+                      [scriptId]: progressValue,
+                    }));
                   }
-                  
+
                   setOutputs((prev) => ({
                     ...prev,
                     [scriptId]: prev[scriptId] + data.output,
@@ -308,7 +314,8 @@ export default function QuantScriptRunner() {
             ML Pipeline Runner
           </h2>
           <p className="text-sm text-slate-400 mt-1">
-            Complete pipeline: Setup → Data Prep → Training → Predictions → Forecasts
+            Complete pipeline: Setup → Data Prep → Training → Predictions →
+            Forecasts
           </p>
         </div>
         <button
@@ -321,96 +328,64 @@ export default function QuantScriptRunner() {
         </button>
       </div>
 
-        <div className="space-y-4">
-          {scripts.map((script) => (
-            <div
-              key={script.id}
-              className={`border rounded-lg p-4 transition-all ${getStatusColor(
-                statuses[script.id]
-              )}`}
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-start gap-3 flex-1">
-                  {getStatusIcon(statuses[script.id])}
-                  <div>
-                    <h3 className="font-semibold text-slate-200">
-                      {script.name}
-                    </h3>
-                    <p className="text-sm text-slate-400 mt-1">
-                      {script.description}
-                    </p>
-                  </div>
+      <div className="space-y-4">
+        {scripts.map((script) => (
+          <div
+            key={script.id}
+            className={`border rounded-lg p-4 transition-all ${getStatusColor(
+              statuses[script.id]
+            )}`}
+          >
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-start gap-3 flex-1">
+                {getStatusIcon(statuses[script.id])}
+                <div>
+                  <h3 className="font-semibold text-slate-200">
+                    {script.name}
+                  </h3>
+                  <p className="text-sm text-slate-400 mt-1">
+                    {script.description}
+                  </p>
                 </div>
-                <button
-                  onClick={() => runScript(script.id)}
-                  disabled={activeScript !== null}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 disabled:bg-slate-800/50 disabled:text-slate-600 transition-colors text-sm"
-                >
-                  <Play size={14} />
-                  Run
-                </button>
               </div>
-
-              {/* Progress Bar */}
-              {statuses[script.id] === "running" && (
-                <div className="mb-3">
-                  <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
-                    <span>Running...</span>
-                    <span>{progress[script.id]}%</span>
-                  </div>
-                  <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-linear-to-r from-teal-500 to-emerald-500 transition-all duration-300 ease-out"
-                      style={{ width: `${progress[script.id]}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {outputs[script.id] && (
-                <div
-                  ref={(el) => {
-                    outputRefs.current[script.id] = el;
-                  }}
-                  className="mt-3 p-3 rounded-md bg-slate-950 border border-slate-800 max-h-64 overflow-y-auto font-mono text-xs text-slate-300"
-                >
-                  <pre className="whitespace-pre-wrap">
-                    {outputs[script.id]}
-                  </pre>
-                </div>
-              )}
+              <button
+                onClick={() => runScript(script.id)}
+                disabled={activeScript !== null}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 disabled:bg-slate-800/50 disabled:text-slate-600 transition-colors text-sm"
+              >
+                <Play size={14} />
+                Run
+              </button>
             </div>
-          ))}
-        </div>
 
-      {/* Info Box */}
-      <div className="mt-6 p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
-        <div className="flex gap-3">
-          <AlertCircle size={18} className="text-emerald-400 shrink-0 mt-0.5" />
-          <div className="text-sm text-emerald-200">
-            <strong className="block mb-1">⭐ NEW: Optimized ML Pipeline</strong>
-            <ul className="space-y-1 text-emerald-200/80">
-              <li>
-                • <strong>60-68% accuracy</strong> expected (up from 46% with new labeling)
-              </li>
-              <li>
-                • Dominant neutral class (88% neutral, 6% up, 6% down)
-              </li>
-              <li>
-                • Dynamic volatility bands for regime detection
-              </li>
-              <li>
-                • New lag features for momentum context
-              </li>
-              <li>
-                • Training ~20 tickers takes 5-10 minutes
-              </li>
-              <li>
-                • For daily updates, just run steps 4 & 5 (30 seconds)
-              </li>
-            </ul>
+            {/* Progress Bar */}
+            {statuses[script.id] === "running" && (
+              <div className="mb-3">
+                <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+                  <span>Running...</span>
+                  <span>{progress[script.id]}%</span>
+                </div>
+                <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-linear-to-r from-teal-500 to-emerald-500 transition-all duration-300 ease-out"
+                    style={{ width: `${progress[script.id]}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {outputs[script.id] && (
+              <div
+                ref={(el) => {
+                  outputRefs.current[script.id] = el;
+                }}
+                className="mt-3 p-3 rounded-md bg-slate-950 border border-slate-800 max-h-64 overflow-y-auto font-mono text-xs text-slate-300"
+              >
+                <pre className="whitespace-pre-wrap">{outputs[script.id]}</pre>
+              </div>
+            )}
           </div>
-        </div>
+        ))}
       </div>
     </Card>
   );

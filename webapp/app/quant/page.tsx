@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { QuantLabClient } from "@/components/organisms/QuantLabClient";
-
+import DashboardClient from "@/app//DashboardClient";
 export const metadata = {
   title: "MarketMinute - Quant Lab",
   description: "Quantitative model predictions and research tools",
@@ -58,7 +58,10 @@ export default async function QuantLabPage() {
           </div>
         </div>
       </div>
-
+      <DashboardClient
+        watchlists={user?.watchlists ?? []}
+        activeWatchlist={activeWatchlist ?? null}
+      />
       {/* Quant Lab Content */}
       <QuantLabClient symbols={symbols} watchlistName={activeWatchlist?.name} />
     </div>

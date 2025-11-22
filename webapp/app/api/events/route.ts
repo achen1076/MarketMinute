@@ -2,14 +2,16 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import {
-  getTickerEventsFromCache,
-  setTickerEventsInCache,
-  getMacroEventsFromCache,
-  setMacroEventsInCache,
-  cleanExpiredEvents,
+  getTickerEventsFromDb,
+  setTickerEventsInDb,
+  getMacroEventsFromDb,
+  setMacroEventsInDb,
+  cleanExpiredEventsFromDb,
+  hasTickerEventsInDb,
+  hasMacroEventsInDb,
   type StockEvent,
   type MacroEvent,
-} from "@/lib/eventsCache";
+} from "@/lib/eventsDb";
 import { detectEventsFromNews } from "@/lib/eventDetector";
 
 type UpcomingEventsResponse = {
@@ -328,16 +330,19 @@ export async function GET(request: Request) {
       .map((s) => s.trim().toUpperCase())
       .filter(Boolean);
 
-    cleanExpiredEvents();
+    // Clean expired events from database
+    await cleanExpiredEventsFromDb();
 
     const stockEvents: StockEvent[] = [];
     const symbolsToFetch: string[] = [];
 
+    // Check database for each symbol
     for (const symbol of symbols) {
-      const cached = getTickerEventsFromCache(symbol);
-      if (cached) {
-        console.log(`[Events] Cache hit for ${symbol}`);
-        stockEvents.push(...cached.stockEvents);
+      const hasEvents = await hasTickerEventsInDb(symbol);
+      if (hasEvents) {
+        console.log(`[Events] DB hit for ${symbol}`);
+        const events = await getTickerEventsFromDb(symbol);
+        stockEvents.push(...events);
       } else {
         symbolsToFetch.push(symbol);
       }
@@ -349,10 +354,8 @@ export async function GET(request: Request) {
 
       const fetchPromises = symbolsToFetch.map(async (symbol) => {
         const events = await fetchTickerEvents(symbol);
-        setTickerEventsInCache(symbol, {
-          stockEvents: events,
-          fetchedAt: Date.now(),
-        });
+        // Store in database
+        await setTickerEventsInDb(symbol, events);
         return events;
       });
 
@@ -360,14 +363,17 @@ export async function GET(request: Request) {
       stockEvents.push(...results.flat());
     }
 
-    // Fetch macro events (cached separately)
-    let macroEvents = getMacroEventsFromCache();
-    if (!macroEvents) {
-      console.log("[Events] Fetching macro events");
-      macroEvents = await fetchMacroEvents();
-      setMacroEventsInCache(macroEvents);
+    // Fetch macro events from DB or API
+    const hasMacroEvents = await hasMacroEventsInDb();
+    let macroEvents: MacroEvent[];
+    
+    if (hasMacroEvents) {
+      console.log("[Events] Using DB macro events");
+      macroEvents = await getMacroEventsFromDb();
     } else {
-      console.log("[Events] Using cached macro events");
+      console.log("[Events] Fetching macro events from API");
+      macroEvents = await fetchMacroEvents();
+      await setMacroEventsInDb(macroEvents);
     }
 
     // Sort by date

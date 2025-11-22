@@ -9,9 +9,9 @@ import {
   clearSummaryCache,
 } from "@/lib/summaryCache";
 import {
-  getEventsCacheStats,
-  clearEventsCache,
-} from "@/lib/eventsCache";
+  getEventsDbStats,
+  clearEventsDb,
+} from "@/lib/eventsDb";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
   if (action === "clear") {
     const explanationCount = clearExplanationCache();
     const summaryCount = clearSummaryCache();
-    const eventsCount = clearEventsCache();
+    const eventsCount = await clearEventsDb();
     const totalCleared = explanationCount + summaryCount + eventsCount;
 
     return NextResponse.json({
@@ -48,7 +48,7 @@ export async function GET() {
 
   const explanationStats = getExplanationCacheStats();
   const summaryStats = getSummaryCacheStats();
-  const eventsStats = getEventsCacheStats();
+  const eventsStats = await getEventsDbStats();
 
   console.log("[Admin Cache] Stats requested:", {
     explanations: explanationStats.size,

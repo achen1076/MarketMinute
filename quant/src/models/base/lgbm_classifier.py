@@ -15,9 +15,6 @@ import subprocess
 logger = logging.getLogger(__name__)
 
 
-# -----------------------------------------------------
-# GPU Detector
-# -----------------------------------------------------
 def check_gpu_available():
     """Check if GPU is available for LightGBM."""
     try:
@@ -33,9 +30,6 @@ def check_gpu_available():
     return False
 
 
-# -----------------------------------------------------
-# Hybrid Balancer (Mode A - soft oversampling)
-# -----------------------------------------------------
 def hybrid_balance(X, y, multiplier=1.4):
     """
     Soft oversampling:
@@ -80,9 +74,6 @@ def hybrid_balance(X, y, multiplier=1.4):
     return X_bal, y_bal
 
 
-# -----------------------------------------------------
-# Class Weight Calculator
-# -----------------------------------------------------
 def compute_class_weights(y):
     """
     Compute balanced class weights for LightGBM.
@@ -96,9 +87,6 @@ def compute_class_weights(y):
     return weights
 
 
-# -----------------------------------------------------
-# LightGBM Wrapper
-# -----------------------------------------------------
 class LGBMClassifier:
     """LightGBM classifier with hybrid imbalance handling."""
 
@@ -137,9 +125,6 @@ class LGBMClassifier:
         self.scaler = StandardScaler()
         self.feature_names = None
 
-    # -------------------------------------------------
-    # FIT
-    # -------------------------------------------------
     def fit(self, X, y, X_val=None, y_val=None, calibrate=False):
         """
         Train the model with hybrid balancing.
@@ -156,15 +141,13 @@ class LGBMClassifier:
         if isinstance(X, pd.DataFrame):
             self.feature_names = list(X.columns)
 
-        # --------- Hybrid balancing ----------
         Xb, yb = hybrid_balance(X, y_mapped)
         class_weights = compute_class_weights(yb)
         logger.info(f"[CLASS WEIGHTS] {class_weights}")
-        
+
         # Convert class weights to per-sample weights
         weight_array = np.array([class_weights[c] for c in yb])
 
-        # --------- Scaling ----------
         Xb_scaled = self.scaler.fit_transform(Xb)
 
         train_data = lgb.Dataset(Xb_scaled, label=yb, weight=weight_array)
@@ -194,9 +177,6 @@ class LGBMClassifier:
         logger.info(f"[LGBM] Best iteration: {self.model.best_iteration}")
         return self
 
-    # -------------------------------------------------
-    # Predict
-    # -------------------------------------------------
     def predict_proba(self, X):
         X_scaled = self.scaler.transform(X)
         return self.model.predict(X_scaled)
@@ -209,9 +189,6 @@ class LGBMClassifier:
         label_map_reverse = {0: -1, 1: 0, 2: 1}
         return np.array([label_map_reverse[a] for a in labels])
 
-    # -------------------------------------------------
-    # Feature Importance
-    # -------------------------------------------------
     def get_feature_importance(self, importance_type="gain"):
         if self.model is None:
             return None
@@ -225,9 +202,6 @@ class LGBMClassifier:
             }).sort_values("importance", ascending=False)
         return importance
 
-    # -------------------------------------------------
-    # Save + Load
-    # -------------------------------------------------
     def save(self, path):
         artifact = {
             "model": self.model,

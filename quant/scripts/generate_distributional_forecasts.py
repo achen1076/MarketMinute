@@ -2,10 +2,6 @@
 Generate distributional forecasts from model predictions
 
 Outputs: volatility bands, magnitude categories, conviction levels
-
-Updated to work with new optimized model structure and paths
-
-Usage: python3 scripts/generate_distributional_forecasts.py
 """
 
 import pandas as pd
@@ -23,6 +19,11 @@ sys.path.insert(0, str(src_path))
 def calculate_conviction(prob_up, prob_down, prob_neutral):
     """
     Calculate conviction level based on probability distribution
+
+    Args:
+        prob_up: Probability of upward movement
+        prob_down: Probability of downward movement  
+        prob_neutral: Probability of neutral movement
 
     Returns:
         tuple: (conviction_level, conviction_score)

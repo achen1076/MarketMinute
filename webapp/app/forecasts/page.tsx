@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { MarketForecastsClient } from "@/components/organisms/MarketForecastsClient";
+import WatchlistSelector from "@/components/organisms/WatchlistSelector";
 
 export const metadata = {
   title: "MarketMinute - Market Forecasts",
@@ -56,6 +57,12 @@ export default async function ForecastsPage() {
           </div>
         </div>
       </div>
+
+      <WatchlistSelector
+        watchlists={user?.watchlists ?? []}
+        activeWatchlist={activeWatchlist ?? null}
+        showManageButton
+      />
 
       <MarketForecastsClient
         symbols={symbols}

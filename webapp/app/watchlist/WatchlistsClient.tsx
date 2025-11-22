@@ -327,7 +327,6 @@ export default function WatchlistsClient({
         );
       }
 
-      // Clear all edit states and close editing mode
       setEditingWatchlistId(null);
       setEditSymbols([]);
       setEditName("");

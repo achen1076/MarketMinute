@@ -17,6 +17,10 @@ model User {
   updatedAt        DateTime     @updatedAt @map("updated_at")
   activeWatchlistId String?     @map("active_watchlist_id")
 
+  // Sentinel preferences
+  sentinelFocus    String?      @default("balanced") @map("sentinel_focus") // "tech", "macro", "volatility", "balanced"
+  sentinelDepth    String?      @default("standard") @map("sentinel_depth") // "brief", "standard", "detailed"
+
   // Auth.js relations
   accounts         Account[]
   sessions         Session[]
@@ -137,4 +141,88 @@ model DailyWatchlistSummary {
   @@unique([watchlistId, date])
   @@index([watchlistId])
   @@map("daily_watchlist_summaries")
+}
+
+model MacroEvent {
+  id          String   @id @default(cuid())
+  type        String   // "fomc", "cpi", "jobs", "gdp", "other"
+  title       String
+  date        String   // ISO date string (YYYY-MM-DD)
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([type, date])
+  @@index([date])
+  @@map("macro_events")
+}
+
+model TickerEvent {
+  id          String   @id @default(cuid())
+  symbol      String   // Ticker symbol (e.g., "AAPL")
+  type        String   // "earnings", "dividend", "conference", "other"
+  title       String
+  date        String   // ISO date string (YYYY-MM-DD)
+  description String?  @db.Text
+  source      String?  // "api" or "news"
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([symbol, type, date])
+  @@index([symbol])
+  @@index([date])
+  @@map("ticker_events")
+}
+
+model SentinelReport {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  // core report fields
+  summary         String   @db.Text
+  keyDrivers      Json     @map("key_drivers")
+  macroContext    String?  @db.Text @map("macro_context")
+  scenarioQuestions Json?  @map("scenario_questions")
+
+  // anomaly flags
+  indexMove       Boolean  @map("index_move")
+  sectorRotation  Boolean  @map("sector_rotation")
+  macroSurprise   Boolean  @map("macro_surprise")
+  volSpike        Boolean  @map("vol_spike")
+
+  // market snapshot summary
+  vix             Float?
+  vixChangePct    Float?   @map("vix_change_pct")
+  realizedVol     Float?   @map("realized_vol")
+
+  // optional: store raw context for later reprocessing
+  context         Json
+
+  // optional: user-based reports later on
+  userId          String?  @map("user_id")
+
+  @@index([createdAt])
+  @@index([indexMove])
+  @@index([sectorRotation])
+  @@index([macroSurprise])
+  @@index([volSpike])
+  @@map("sentinel_reports")
+}
+
+model InsightReport {
+  id                String   @id @default(cuid())
+  createdAt         DateTime @default(now()) @map("created_at")
+  
+  // insight cards as JSON array
+  cards             Json
+  
+  // link to the sentinel report this was generated from
+  sentinelReportId  String?  @map("sentinel_report_id")
+  
+  // optional: user-specific insights
+  userId            String?  @map("user_id")
+
+  @@index([createdAt])
+  @@index([sentinelReportId])
+  @@map("insight_reports")
 }

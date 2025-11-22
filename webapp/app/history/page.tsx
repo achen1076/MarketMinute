@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import Card from "@/components/atoms/Card";
 import { SinceLastVisit } from "@/components/organisms/SinceLastVisit";
 import { WatchlistTimeline } from "@/components/organisms/WatchlistTimeline";
+import WatchlistSelector from "@/components/organisms/WatchlistSelector";
 
 export const metadata = {
   title: "MarketMinute - History",
@@ -25,6 +26,7 @@ export default async function HistoryPage() {
         include: {
           items: true,
         },
+        orderBy: [{ isFavorite: "desc" }, { createdAt: "asc" }],
       },
     },
   });
@@ -41,6 +43,12 @@ export default async function HistoryPage() {
           Track changes since your last visit and view your watchlist timeline.
         </p>
       </header>
+
+      <WatchlistSelector
+        watchlists={user?.watchlists ?? []}
+        activeWatchlist={activeWatchlist ?? null}
+        showManageButton
+      />
 
       {!activeWatchlist && (
         <Card className="p-6 text-center">
