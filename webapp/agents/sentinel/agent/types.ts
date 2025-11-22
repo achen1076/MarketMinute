@@ -86,12 +86,25 @@ export const MarketDrilldownSchema = z.object({
 export type MarketDrilldown = z.infer<typeof MarketDrilldownSchema>;
 
 /*
+  What This Means - Structured narrative for user understanding.
+*/
+export const WhatThisMeansSchema = z.object({
+  whatHappened: z.string(),
+  whyItMatters: z.string(),
+  whatCouldHappenNext: z.string(),
+  whatToWatch: z.array(z.string()),
+});
+
+export type WhatThisMeans = z.infer<typeof WhatThisMeansSchema>;
+
+/*
   LLM-generated special report.
 */
 export const SpecialReportSchema = z.object({
   summary: z.string(),
   keyDrivers: z.array(z.string()),
   macroContext: z.string().nullable(),
+  whatThisMeans: WhatThisMeansSchema.optional(),
 });
 
 export type SpecialReport = z.infer<typeof SpecialReportSchema>;

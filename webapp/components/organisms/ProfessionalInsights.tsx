@@ -50,7 +50,7 @@ export default function ProfessionalInsights({
           report.vix && report.vix > 20
             ? "Elevated volatility may reverse rotation"
             : "Tech lag may deepen if yields rise",
-        probability: "65% continuation",
+        probability: "",
       });
     }
 
@@ -74,7 +74,7 @@ export default function ProfessionalInsights({
           report.vixChangePct && report.vixChangePct < 0
             ? "Complacency risk if unexpected event occurs"
             : "Extended elevated vol may pressure equity valuations",
-        probability: "55% mean reversion expected",
+        probability: "",
       });
     }
 
@@ -90,7 +90,7 @@ export default function ProfessionalInsights({
         ],
         interpretation: "Momentum building in primary indices",
         risk: "Overextension risk if move accelerates without pause",
-        probability: "70% trend continuation next session",
+        probability: "",
       });
     }
 
@@ -172,16 +172,14 @@ export default function ProfessionalInsights({
                 </div>
 
                 {/* Risk */}
-                <div className="flex items-start gap-1">
-                  <AlertCircle className="w-3 h-3 text-amber-400 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <AlertCircle className="w-3 h-3 text-amber-400" />
                     <span className="text-xs text-amber-400 uppercase tracking-wide">
                       Risk
                     </span>
-                    <p className="text-xs text-slate-300 mt-0.5">
-                      {insight.risk}
-                    </p>
                   </div>
+                  <p className="text-xs text-slate-300">{insight.risk}</p>
                 </div>
               </div>
             </Card>

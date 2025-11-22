@@ -183,6 +183,7 @@ model SentinelReport {
   keyDrivers      Json     @map("key_drivers")
   macroContext    String?  @db.Text @map("macro_context")
   scenarioQuestions Json?  @map("scenario_questions")
+  whatThisMeans   Json?    @map("what_this_means") // Structured narrative: whatHappened, whyItMatters, whatCouldHappenNext, whatToWatch
 
   // anomaly flags
   indexMove       Boolean  @map("index_move")

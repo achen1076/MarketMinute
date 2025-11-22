@@ -4,7 +4,7 @@ import { get_realized_vol } from "../services/volatility/get_realized_volatility
 import { runTriggers } from "./triggers";
 import { runMarketDrilldown } from "./drilldown";
 import { buildSentinelContext } from "./context";
-import { generateSpecialReport } from "./report";
+import { generateSpecialReport, generateWhatThisMeans } from "./report";
 
 /*
   Main Sentinel agent loop. Executes one full analysis cycle.
@@ -40,6 +40,12 @@ export async function runSentinelAgent() {
   });
 
   const report = await generateSpecialReport(context);
+
+  // Generate the "What This Means" narrative
+  const whatThisMeans = await generateWhatThisMeans(context, report);
+
+  // Add it to the report
+  report.whatThisMeans = whatThisMeans;
 
   return {
     context,

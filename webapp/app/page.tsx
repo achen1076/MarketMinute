@@ -64,9 +64,6 @@ export default async function DashboardPage() {
         <Box display="flex" direction="col" gap="xl" className="xl:flex-row">
           {/* Main Content Area */}
           <Stack spacing="xl" className="flex-1 min-w-0">
-            {/* Sentinel Explain Today */}
-            <SentinelExplainToday />
-
             {activeWatchlistId && (
               <MarketMinuteSummary watchlistId={activeWatchlistId} />
             )}
@@ -76,6 +73,9 @@ export default async function DashboardPage() {
 
             {/* Upcoming Events */}
             {snapshots.length > 0 && <EventsTimeline symbols={symbols} />}
+
+            {/* Sentinel Intelligence Panel */}
+            <SentinelExplainToday />
 
             {user?.watchlists.length === 0 && (
               <Card className="p-8 text-center">

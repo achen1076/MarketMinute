@@ -8,6 +8,7 @@ import {
   AlertCircle,
   Brain,
   ExternalLink,
+  ChevronDown,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -29,6 +30,7 @@ export default function SentinelExplainToday() {
   const [report, setReport] = useState<SentinelReport | null>(null);
   const [reportId, setReportId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   async function explainToday() {
     setLoading(true);
@@ -57,125 +59,141 @@ export default function SentinelExplainToday() {
 
   return (
     <Card className="bg-linear-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 border-indigo-500/30">
-      <div className="p-6">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-indigo-500/20">
-              <Brain className="w-6 h-6 text-indigo-400" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-slate-100">🧠 Sentinel</h2>
-              <p className="text-sm text-slate-400">AI Market Intelligence</p>
-            </div>
+      {/* Collapsible Header */}
+      <div
+        className="flex items-center justify-between p-4 cursor-pointer hover:bg-indigo-500/5 transition-colors"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-indigo-500/20">
+            <Brain className="w-6 h-6 text-indigo-400" />
           </div>
+          <div>
+            <h2 className="text-xl font-bold text-slate-100">🧠 Sentinel</h2>
+            <p className="text-sm text-slate-400">AI Market Intelligence</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
           <Link
             href="/sentinel"
+            onClick={(e) => e.stopPropagation()}
             className="flex items-center gap-2 px-3 py-1.5 text-sm text-indigo-300 hover:text-indigo-200 hover:bg-indigo-500/10 rounded-lg transition-colors"
           >
             Dashboard
             <ExternalLink size={14} />
           </Link>
+          <ChevronDown
+            className={`w-5 h-5 text-slate-400 transition-transform ${
+              isExpanded ? "rotate-180" : ""
+            }`}
+          />
         </div>
+      </div>
 
-        {/* Call to Action */}
-        {!report && !loading && (
-          <div className="space-y-4">
-            <p className="text-slate-300">
-              Get an AI-powered explanation of today&apos;s market moves,
-              including anomaly detection, sector rotation analysis, and
-              volatility insights.
-            </p>
-            <button
-              onClick={explainToday}
-              disabled={loading}
-              className="w-full px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            >
-              <Sparkles size={18} />
-              Explain Today
-            </button>
-          </div>
-        )}
-
-        {/* Loading State */}
-        {loading && (
-          <div className="flex flex-col items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent mb-4"></div>
-            <p className="text-slate-400 animate-pulse">
-              Analyzing market data...
-            </p>
-          </div>
-        )}
-
-        {/* Error State */}
-        {error && (
-          <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-lg flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-rose-200 font-medium">Error</p>
-              <p className="text-rose-300/80 text-sm">{error}</p>
+      {/* Collapsible Content */}
+      {isExpanded && (
+        <div className="p-6 pt-0 border-t border-indigo-500/20">
+          {/* Call to Action */}
+          {!report && !loading && (
+            <div className="space-y-4">
+              <p className="text-slate-300">
+                Get an AI-powered explanation of today&apos;s market moves,
+                including anomaly detection, sector rotation analysis, and
+                volatility insights.
+              </p>
+              <button
+                onClick={explainToday}
+                disabled={loading}
+                className="w-full px-6 py-3 bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              >
+                <Sparkles size={18} />
+                Explain Today
+              </button>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Report Display */}
-        {report && (
-          <div className="space-y-6 animate-in fade-in duration-500">
-            {/* Summary */}
-            <div>
-              <h3 className="text-lg font-semibold text-slate-100 mb-3 flex items-center gap-2">
-                <TrendingUp size={18} className="text-indigo-400" />
-                Market Summary
-              </h3>
-              <p className="text-slate-300 leading-relaxed">{report.summary}</p>
+          {/* Loading State */}
+          {loading && (
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent mb-4"></div>
+              <p className="text-slate-400 animate-pulse">
+                Analyzing market data...
+              </p>
             </div>
+          )}
 
-            {/* Key Drivers */}
-            {report.keyDrivers.length > 0 && (
+          {/* Error State */}
+          {error && (
+            <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-lg flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
               <div>
-                <h3 className="text-lg font-semibold text-slate-100 mb-3">
-                  Key Drivers
-                </h3>
-                <ul className="space-y-2">
-                  {report.keyDrivers.map((driver, idx) => (
-                    <li
-                      key={idx}
-                      className="flex items-start gap-3 text-slate-300"
-                    >
-                      <span className="text-indigo-400 font-bold mt-0.5">
-                        •
-                      </span>
-                      <span>{driver}</span>
-                    </li>
-                  ))}
-                </ul>
+                <p className="text-rose-200 font-medium">Error</p>
+                <p className="text-rose-300/80 text-sm">{error}</p>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Macro Context */}
-            {report.macroContext && (
+          {/* Report Display */}
+          {report && (
+            <div className="space-y-6 animate-in fade-in duration-500">
+              {/* Summary */}
               <div>
-                <h3 className="text-lg font-semibold text-slate-100 mb-3">
-                  Macro Context
+                <h3 className="text-lg font-semibold text-slate-100 mb-3 flex items-center gap-2">
+                  <TrendingUp size={18} className="text-indigo-400" />
+                  Market Summary
                 </h3>
                 <p className="text-slate-300 leading-relaxed">
-                  {report.macroContext}
+                  {report.summary}
                 </p>
               </div>
-            )}
 
-            {/* Run Again Button */}
-            <button
-              onClick={explainToday}
-              disabled={loading}
-              className="w-full px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors flex items-center justify-center gap-2"
-            >
-              <Sparkles size={16} />
-              Refresh Analysis
-            </button>
-          </div>
-        )}
-      </div>
+              {/* Key Drivers */}
+              {report.keyDrivers.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-100 mb-3">
+                    Key Drivers
+                  </h3>
+                  <ul className="space-y-2">
+                    {report.keyDrivers.map((driver, idx) => (
+                      <li
+                        key={idx}
+                        className="flex items-start gap-3 text-slate-300"
+                      >
+                        <span className="text-indigo-400 font-bold mt-0.5">
+                          •
+                        </span>
+                        <span>{driver}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Macro Context */}
+              {report.macroContext && (
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-100 mb-3">
+                    Macro Context
+                  </h3>
+                  <p className="text-slate-300 leading-relaxed">
+                    {report.macroContext}
+                  </p>
+                </div>
+              )}
+
+              {/* Run Again Button */}
+              <button
+                onClick={explainToday}
+                disabled={loading}
+                className="w-full px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <Sparkles size={16} />
+                Refresh Analysis
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </Card>
   );
 }

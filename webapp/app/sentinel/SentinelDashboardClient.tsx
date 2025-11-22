@@ -2,20 +2,14 @@
 
 import { useState } from "react";
 import Card from "@/components/atoms/Card";
-import {
-  Brain,
-  TrendingUp,
-  AlertTriangle,
-  Activity,
-  Calendar,
-  BarChart3,
-  Sparkles,
-  ChevronDown,
-  ChevronUp,
-  Settings,
-} from "lucide-react";
+import { Brain, Sparkles, ChevronDown } from "lucide-react";
 import SentinelPreferences from "@/components/organisms/SentinelPreferences";
 import ProfessionalInsights from "@/components/organisms/ProfessionalInsights";
+import WhatThisMeans from "@/components/organisms/WhatThisMeans";
+import VolatilityCard from "@/components/molecules/VolatilityCard";
+import MarketSignalsCard from "@/components/molecules/MarketSignalsCard";
+import MarketSummaryCard from "@/components/molecules/MarketSummaryCard";
+import RegimeComponentsCard from "@/components/molecules/RegimeComponentsCard";
 
 interface SentinelReport {
   id: string;
@@ -24,6 +18,7 @@ interface SentinelReport {
   keyDrivers: any;
   macroContext: string | null;
   scenarioQuestions: any;
+  whatThisMeans?: any;
   indexMove: boolean;
   sectorRotation: boolean;
   macroSurprise: boolean;
@@ -101,250 +96,37 @@ export default function SentinelDashboardClient({
       {/* Professional 3-Column Grid Layout */}
       {latestReport ? (
         <>
-          {/* Above the Fold - Professional Dense Layout */}
+          {/* Above the Fold */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* LEFT COLUMN - Market Data */}
             <div className="space-y-4">
-              {/* VIX & Volatility */}
-              <Card className="bg-slate-800/50 border-slate-700">
-                <div className="p-4">
-                  <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
-                    Volatility
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="flex items-baseline justify-between">
-                      <span className="text-sm text-slate-400">VIX</span>
-                      <span className="text-2xl font-bold text-slate-100">
-                        {latestReport.vix?.toFixed(2) || "--"}
-                      </span>
-                    </div>
-                    {latestReport.vixChangePct !== null && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-400">Change</span>
-                        <span
-                          className={
-                            latestReport.vixChangePct > 0
-                              ? "text-rose-400 font-medium"
-                              : "text-emerald-400 font-medium"
-                          }
-                        >
-                          {latestReport.vixChangePct > 0 ? "+" : ""}
-                          {latestReport.vixChangePct.toFixed(1)}%
-                        </span>
-                      </div>
-                    )}
-                    {latestReport.realizedVol !== null && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-400">Realized</span>
-                        <span className="text-slate-100 font-medium">
-                          {latestReport.realizedVol.toFixed(1)}%
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </Card>
+              <VolatilityCard
+                vix={latestReport.vix}
+                vixChangePct={latestReport.vixChangePct}
+                realizedVol={latestReport.realizedVol}
+              />
 
-              {/* Market Signals */}
-              <Card className="bg-slate-800/50 border-slate-700">
-                <div className="p-4">
-                  <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
-                    Market Signals
-                  </h3>
-                  <div className="space-y-2">
-                    {latestReport.sectorRotation && (
-                      <div className="flex items-start gap-2 text-sm">
-                        <div className="w-1.5 h-1.5 rounded-full bg-purple-400 mt-1.5"></div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-slate-200 font-medium">
-                              Sector Rotation
-                            </span>
-                            <span className="text-xs text-purple-400">
-                              High
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-400 mt-0.5">
-                            Often precedes broadening breadth
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                    {latestReport.indexMove && (
-                      <div className="flex items-start gap-2 text-sm">
-                        <div className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5"></div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-slate-200 font-medium">
-                              Index Move
-                            </span>
-                            <span className="text-xs text-blue-400">
-                              Moderate
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-400 mt-0.5">
-                            Directional move detected
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                    {latestReport.volSpike && (
-                      <div className="flex items-start gap-2 text-sm">
-                        <div className="w-1.5 h-1.5 rounded-full bg-rose-400 mt-1.5"></div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-slate-200 font-medium">
-                              Vol Spike
-                            </span>
-                            <span className="text-xs text-rose-400">High</span>
-                          </div>
-                          <p className="text-xs text-slate-400 mt-0.5">
-                            Risk premium adjustment
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                    {latestReport.macroSurprise && (
-                      <div className="flex items-start gap-2 text-sm">
-                        <div className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5"></div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-slate-200 font-medium">
-                              Macro Event
-                            </span>
-                            <span className="text-xs text-amber-400">
-                              Moderate
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-400 mt-0.5">
-                            Economic data release
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </Card>
+              <MarketSignalsCard
+                sectorRotation={latestReport.sectorRotation}
+                indexMove={latestReport.indexMove}
+                volSpike={latestReport.volSpike}
+                macroSurprise={latestReport.macroSurprise}
+              />
             </div>
 
             {/* CENTER COLUMN - Summary & Regime */}
             <div className="space-y-4">
-              {/* Professional Summary */}
-              <Card className="bg-slate-800/50 border-slate-700">
-                <div className="p-4">
-                  <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
-                    Market Summary
-                  </h3>
-                  <div className="space-y-1.5 text-sm">
-                    <div className="flex items-start gap-2">
-                      <span className="text-slate-500 min-w-[70px] text-xs">
-                        Equities:
-                      </span>
-                      <span className="text-slate-200">
-                        {latestReport.keyDrivers &&
-                        latestReport.keyDrivers.length > 0
-                          ? latestReport.keyDrivers[0]
-                          : "Broad market activity"}
-                      </span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <span className="text-slate-500 min-w-[70px] text-xs">
-                        Sectors:
-                      </span>
-                      <span className="text-slate-200">
-                        {latestReport.keyDrivers &&
-                        latestReport.keyDrivers.length > 1
-                          ? latestReport.keyDrivers[1]
-                          : "Mixed performance"}
-                      </span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <span className="text-slate-500 min-w-[70px] text-xs">
-                        Volatility:
-                      </span>
-                      <span className="text-slate-200">
-                        VIX{" "}
-                        {latestReport.vixChangePct &&
-                        latestReport.vixChangePct < 0
-                          ? "↓"
-                          : "↑"}{" "}
-                        {latestReport.vixChangePct
-                          ? Math.abs(latestReport.vixChangePct).toFixed(0)
-                          : "0"}
-                        % →{" "}
-                        {latestReport.vixChangePct &&
-                        latestReport.vixChangePct < 0
-                          ? "easing"
-                          : "rising"}{" "}
-                        risk premium
-                      </span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <span className="text-slate-500 min-w-[70px] text-xs">
-                        Regime:
-                      </span>
-                      <span className="text-slate-200">
-                        {latestReport.vix && latestReport.vix > 25
-                          ? "Risk-off"
-                          : latestReport.sectorRotation
-                          ? "Risk-on rotation"
-                          : "Neutral"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </Card>
+              <MarketSummaryCard
+                keyDrivers={latestReport.keyDrivers || []}
+                vixChangePct={latestReport.vixChangePct}
+                vix={latestReport.vix}
+                sectorRotation={latestReport.sectorRotation}
+              />
 
-              {/* Regime Components */}
-              <Card className="bg-slate-800/50 border-slate-700">
-                <div className="p-4">
-                  <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
-                    Regime Components
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-400">Vol Regime</span>
-                      <span
-                        className={`font-medium ${
-                          latestReport.vix && latestReport.vix > 25
-                            ? "text-rose-400"
-                            : latestReport.vix && latestReport.vix > 20
-                            ? "text-amber-400"
-                            : "text-emerald-400"
-                        }`}
-                      >
-                        {latestReport.vix && latestReport.vix > 25
-                          ? "Elevated"
-                          : latestReport.vix && latestReport.vix > 20
-                          ? "Moderate"
-                          : "Calm"}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-400">Factor Regime</span>
-                      <span className="font-medium text-slate-200">
-                        {latestReport.sectorRotation
-                          ? "Small-cap leadership"
-                          : "Large-cap led"}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-400">Sector Regime</span>
-                      <span className="font-medium text-slate-200">
-                        {latestReport.sectorRotation
-                          ? "Cyclical tilt"
-                          : "Defensive tilt"}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-400">Liquidity Regime</span>
-                      <span className="font-medium text-slate-200">
-                        Neutral
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </Card>
+              <RegimeComponentsCard
+                vix={latestReport.vix}
+                sectorRotation={latestReport.sectorRotation}
+              />
             </div>
 
             {/* RIGHT COLUMN - Key Insights */}
@@ -404,6 +186,9 @@ export default function SentinelDashboardClient({
               )}
             </div>
           </div>
+
+          {/* What This Means - Narrative Summary */}
+          {latestReport && <WhatThisMeans report={latestReport} />}
 
           {/* Structured Professional Insights */}
           <Card className="bg-slate-800/50 border-slate-700">
@@ -491,10 +276,11 @@ export default function SentinelDashboardClient({
                   </div>
 
                   {isExpanded && (
-                    <div className="p-3 bg-slate-900/50 border-t border-slate-700/50 space-y-2">
+                    <div className="p-3 bg-slate-900/50 border-t border-slate-700/50 space-y-3">
                       <p className="text-xs text-slate-300 leading-relaxed">
                         {report.summary}
                       </p>
+
                       {report.keyDrivers && report.keyDrivers.length > 0 && (
                         <div className="space-y-1">
                           {report.keyDrivers
@@ -510,6 +296,60 @@ export default function SentinelDashboardClient({
                                 <span>{driver}</span>
                               </div>
                             ))}
+                        </div>
+                      )}
+
+                      {/* What This Means Section */}
+                      {report.whatThisMeans && (
+                        <div className="pt-2 border-t border-slate-700/50 space-y-2">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xs font-semibold text-indigo-400">
+                              What This Means
+                            </span>
+                          </div>
+
+                          <div className="space-y-2">
+                            <div>
+                              <span className="text-xs font-medium text-slate-400">
+                                What happened:
+                              </span>
+                              <p className="text-xs text-slate-300 mt-0.5">
+                                {(report.whatThisMeans as any).whatHappened}
+                              </p>
+                            </div>
+
+                            <div>
+                              <span className="text-xs font-medium text-slate-400">
+                                Why it matters:
+                              </span>
+                              <p className="text-xs text-slate-300 mt-0.5">
+                                {(report.whatThisMeans as any).whyItMatters}
+                              </p>
+                            </div>
+
+                            {(report.whatThisMeans as any).whatToWatch && (
+                              <div>
+                                <span className="text-xs font-medium text-slate-400">
+                                  Watch tomorrow:
+                                </span>
+                                <ul className="text-xs text-slate-300 mt-0.5 space-y-0.5">
+                                  {(report.whatThisMeans as any).whatToWatch
+                                    .slice(0, 3)
+                                    .map((item: string, idx: number) => (
+                                      <li
+                                        key={idx}
+                                        className="flex items-start gap-1.5"
+                                      >
+                                        <span className="text-indigo-400 mt-0.5">
+                                          •
+                                        </span>
+                                        <span>{item}</span>
+                                      </li>
+                                    ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
