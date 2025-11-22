@@ -24,11 +24,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async signIn() {
-      return true;
+    async signIn({ user, account, profile }) {
+      try {
+        // Allow sign in
+        return true;
+      } catch (error) {
+        console.error("Sign in error:", error);
+        return false;
+      }
     },
-    async redirect({ baseUrl }) {
+    async redirect({ url, baseUrl }) {
+      // Allows relative callback URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // Allows callback URLs on the same origin
+      else if (new URL(url).origin === baseUrl) return url;
       return baseUrl;
     },
+    async session({ session, user }) {
+      if (session?.user) {
+        session.user.id = user.id;
+      }
+      return session;
+    },
   },
+  debug: process.env.NODE_ENV === "development",
 });
