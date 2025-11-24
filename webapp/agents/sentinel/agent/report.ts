@@ -79,31 +79,32 @@ export async function generateWhatThisMeans(
 ): Promise<WhatThisMeans> {
   const prompt = `You are a market analyst explaining today's market action to an informed investor.
 
-# Context
-${JSON.stringify(context, null, 2)}
+      # Context
+      ${JSON.stringify(context, null, 2)}
 
-# Today's Summary
-${report.summary}
+      # Today's Summary
+      ${report.summary}
 
-# Key Drivers
-${report.keyDrivers.join(", ")}
+      # Key Drivers
+      ${report.keyDrivers.join(", ")}
 
-# Your Task
-Generate a structured narrative that helps the user understand what happened and what it means.
+      # Your Task
+      Generate a structured narrative that helps the user understand what happened and what it means.
 
-## Tone & Style
-- Conversational, calm, human tone
-- No jargon, no predictions, no idioms
-- No investment advice
-- Something between Morning Brew + Goldman Sachs notes
+      ## Tone & Style
+      - Conversational, calm, human tone
+      - No jargon, no predictions, no idioms
+      - No investment advice
+      - Something between Morning Brew + Goldman Sachs notes
 
-Return ONLY valid JSON with this structure:
-{
-  "whatHappened": "2-3 sentence summary in plain English of what happened today",
-  "whyItMatters": "2-3 sentences explaining the significance - why should they care?",
-  "whatCouldHappenNext": "2-3 sentences on potential scenarios (not predictions)",
-  "whatToWatch": ["3-5 specific things to watch tomorrow as array of strings"]
-}`;
+      Return ONLY valid JSON with this structure:
+      {
+        "whatHappened": "2-3 sentence summary in plain English of what happened today",
+        "whyItMatters": "2-3 sentences explaining the significance - why should they care?",
+        "whatCouldHappenNext": "2-3 sentences on potential scenarios (not predictions)",
+        "whatToWatch": ["3-5 specific things to watch tomorrow as array of strings"]
+      }
+    `;
 
   const text = await runLLM({
     model: "gpt-5-mini",

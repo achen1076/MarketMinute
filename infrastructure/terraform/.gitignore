@@ -1,0 +1,17 @@
+# Terraform files
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars
+!terraform.tfvars.example
+~/.aws/credentials
+~/.aws/config
+terraform.tfvars
+terraform.tfvars.example
+
+# Lambda package
+lambda_package.zip
+
+# Mac
+.DS_Store

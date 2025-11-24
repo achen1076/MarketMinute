@@ -1,0 +1,8 @@
+numpy
+pandas
+xgboost
+lightgbm
+scikit-learn
+joblib
+optuna
+flask==2.3.3

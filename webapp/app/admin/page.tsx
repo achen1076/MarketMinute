@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import QuantScriptRunner from "@/components/organisms/QuantScriptRunner";
 import WatchlistSelector from "@/components/organisms/WatchlistSelector";
 import SentinelRunner from "@/components/organisms/SentinelRunner";
+import LambdaCronRunner from "@/components/organisms/LambdaCronRunner";
 
 // Configure admin emails
 const ADMIN_EMAILS = ["achen1076@gmail.com"];
@@ -47,6 +48,7 @@ export default async function AdminPage() {
           showManageButton
         />
 
+        <LambdaCronRunner />
         <QuantScriptRunner />
         <SentinelRunner />
       </div>

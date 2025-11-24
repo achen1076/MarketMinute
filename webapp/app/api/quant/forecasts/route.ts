@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { readFile } from "fs/promises";
-import { join } from "path";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   const session = await auth();
@@ -10,39 +9,53 @@ export async function GET() {
   }
 
   try {
-    // Read the distributional forecasts CSV from the quant_app folder
-    const quantPath = join(
-      process.cwd(),
-      "../quant/outputs/distributional_forecasts.csv"
-    );
-    const csvContent = await readFile(quantPath, "utf-8");
-
-    // Parse CSV
-    const lines = csvContent.trim().split("\n");
-    const headers = lines[0].split(",");
-
-    const forecasts = lines.slice(1).map((line) => {
-      const values = line.split(",");
-      const obj: Record<string, any> = {};
-
-      headers.forEach((header, i) => {
-        const key = header.trim();
-        const value = values[i]?.trim();
-
-        if (key === "ticker" || key === "timestamp" || key === "directional_bias" || 
-            key === "conviction" || key === "most_likely_category") {
-          obj[key] = value;
-        } else if (value && !isNaN(parseFloat(value))) {
-          obj[key] = parseFloat(value);
-        } else {
-          obj[key] = value;
-        }
-      });
-
-      return obj;
+    // Get the most recent run of forecasts
+    const latestRun = await prisma.distribionalForecast.findFirst({
+      orderBy: { createdAt: "desc" },
+      select: { runId: true, timestamp: true },
     });
 
-    return NextResponse.json({ forecasts });
+    if (!latestRun) {
+      return NextResponse.json({
+        forecasts: [],
+        message:
+          "No forecasts available yet. Run the cron job to generate forecasts.",
+      });
+    }
+
+    // Get all forecasts from that run
+    const forecasts = await prisma.distribionalForecast.findMany({
+      where: { runId: latestRun.runId },
+      orderBy: { ticker: "asc" },
+    });
+
+    // Transform to match expected format
+    const formatted = forecasts.map((f) => ({
+      ticker: f.ticker,
+      timestamp: f.timestamp.toISOString(),
+      current_price: f.currentPrice,
+      expected_range_pct: f.expectedRangePct,
+      upper_bound: f.upperBound,
+      lower_bound: f.lowerBound,
+      directional_bias: f.directionalBias,
+      conviction: f.conviction,
+      conviction_score: f.convictionScore,
+      most_likely_category: f.mostLikelyCategory,
+      prob_large_up: f.probLargeUp,
+      prob_mild_up: f.probMildUp,
+      prob_flat: f.probFlat,
+      prob_mild_down: f.probMildDown,
+      prob_large_down: f.probLargeDown,
+      p10: f.p10,
+      p50: f.p50,
+      p90: f.p90,
+    }));
+
+    return NextResponse.json({
+      forecasts: formatted,
+      timestamp: latestRun.timestamp.toISOString(),
+      runId: latestRun.runId,
+    });
   } catch (error) {
     console.error("Failed to load distributional forecasts:", error);
     return NextResponse.json(

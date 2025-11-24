@@ -6,6 +6,29 @@ MarketMinute is a full-stack financial intelligence platform that combines real-
 
 ---
 
+## 🆕 Recent Updates
+
+### Sentinel AI Agent (v1.0)
+
+- **🧠 Autonomous Market Intelligence** - Multi-stage analysis pipeline with anomaly detection
+- **📝 Structured Narratives** - "What This Means" explanations in plain English
+- **📊 Historical Tracking** - Database-backed report history with expandable insights
+- **🎨 Component Refactoring** - Modular dashboard with reusable cards
+- **🔄 Collapsible UI** - Space-efficient panel design on homepage
+
+### Component Library Expansion
+
+- **Molecules**: `VolatilityCard`, `MarketSignalsCard`, `MarketSummaryCard`, `RegimeComponentsCard`
+- **Organisms**: `SentinelExplainToday`, `WhatThisMeans`, `ProfessionalInsights`
+
+### Database Schema Updates
+
+- Added `SentinelReport` model with structured narrative storage
+- JSON fields for flexible data structures (`whatThisMeans`, `context`, `keyDrivers`)
+- Indexed anomaly flags for efficient querying
+
+---
+
 ## 🎯 Overview
 
 MarketMinute consists of two integrated systems:
@@ -19,6 +42,13 @@ MarketMinute consists of two integrated systems:
 
 ### 📊 Market Intelligence
 
+- **🧠 Sentinel AI Agent** - Autonomous market intelligence system with anomaly detection
+  - Multi-stage analysis pipeline (market snapshot → anomaly detection → specialized report)
+  - Structured "What This Means" narratives explaining market moves in plain English
+  - Volatility regime classification (VIX tracking, realized volatility)
+  - Sector rotation detection and analysis
+  - Macro event integration and surprise detection
+  - Historical report tracking with expandable insights
 - **Real-time Market Data** - Live quotes and price updates via Schwab API
 - **AI Market Summaries** - Natural language summaries powered by LangChain & OpenAI
 - **Smart Alerts** - Automated notifications for price movements, volume spikes, and 52-week highs
@@ -95,8 +125,8 @@ MarketMinute consists of two integrated systems:
 ### Design System
 
 - **Atoms** - Button, Card, Dialog, Stack, Box
-- **Molecules** - TickerSearch, TickerListClient
-- **Organisms** - Sidebar, MarketTicker, MarketMinuteSummary, SmartAlertsBar, EventsTimeline
+- **Molecules** - TickerSearch, TickerListClient, VolatilityCard, MarketSignalsCard, MarketSummaryCard, RegimeComponentsCard
+- **Organisms** - Sidebar, MarketTicker, MarketMinuteSummary, SmartAlertsBar, EventsTimeline, SentinelExplainToday, WhatThisMeans, ProfessionalInsights
 
 ### Key Hooks
 
@@ -109,6 +139,73 @@ MarketMinute consists of two integrated systems:
 - `schwabAuth` - Schwab API OAuth flow
 - `marketData` - Market data fetching and transformation
 - `eventDetector` - Macro event detection logic
+
+---
+
+## 🧠 Sentinel AI Agent
+
+The Sentinel AI Agent is an autonomous market intelligence system that provides real-time market analysis with human-readable narratives.
+
+### Architecture
+
+**Multi-Stage Pipeline:**
+
+1. **Market Snapshot** - Fetches real-time data from Schwab API
+   - Index prices (SPY, QQQ, IWM)
+   - Sector performance (11 sectors)
+   - Individual stock snapshots
+2. **Anomaly Detection** - Rule-based triggers for market events
+   - **Index Move** - Significant directional moves (>1% threshold)
+   - **Sector Rotation** - Divergence between sectors (>2% spread)
+   - **Volatility Spike** - VIX changes >10%
+   - **Macro Surprise** - Unexpected economic events
+3. **Market Drilldown** - Deep analysis when anomalies detected
+   - Leading/lagging sector identification
+   - Volatility regime classification
+   - Cross-asset correlation analysis
+4. **Report Generation** - AI-powered narrative creation
+   - Summary and key drivers (GPT-4 Turbo)
+   - Structured "What This Means" explanations
+   - Macro context integration
+   - Professional insights and risk assessment
+
+### What This Means Structure
+
+Generated AI narratives follow a consistent format:
+
+```typescript
+{
+  whatHappened: string,      // 2-3 sentence plain English summary
+  whyItMatters: string,      // Significance explanation
+  whatCouldHappenNext: string, // Potential scenarios
+  whatToWatch: string[]      // 3-5 specific monitoring points
+}
+```
+
+**Tone & Style:**
+
+- Conversational, calm, human tone
+- No jargon, predictions, or idioms
+- Something between Morning Brew + Goldman Sachs notes
+- No investment advice
+
+### Storage & History
+
+All Sentinel reports are stored in PostgreSQL with:
+
+- Full market context (JSON)
+- Anomaly flags for filtering
+- Volatility metrics
+- Structured narratives
+- Historical tracking with expandable UI
+
+### Dashboard Features
+
+- **Collapsible Panel** - Accessible from homepage
+- **One-Click Analysis** - Generate reports on demand
+- **Historical Reports** - View past 20 analyses
+- **What This Means** - Expandable narratives in history table
+- **Link to Full Dashboard** - `/sentinel` page with comprehensive views
 
 ---
 
@@ -250,7 +347,19 @@ MarketMinute/
 │   │   ├── forecasts/        # ML forecasts page
 │   │   ├── history/          # Historical data view
 │   │   ├── quant/            # Quant lab interface
+│   │   ├── sentinel/         # Sentinel AI dashboard
 │   │   └── watchlist/        # Watchlist management
+│   ├── agents/               # AI agent systems
+│   │   └── sentinel/         # Sentinel agent implementation
+│   │       ├── agent/        # Core agent logic
+│   │       │   ├── anomaly.ts    # Anomaly detection
+│   │       │   ├── context.ts    # Context builder
+│   │       │   ├── loop.ts       # Main execution loop
+│   │       │   ├── report.ts     # Report generation
+│   │       │   └── types.ts      # Type definitions
+│   │       ├── config/       # Configuration
+│   │       ├── llm/          # LLM integration
+│   │       └── market/       # Market data fetchers
 │   ├── components/
 │   │   ├── atoms/            # Basic UI components
 │   │   ├── molecules/        # Composite components
@@ -290,6 +399,7 @@ cd webapp
 
 # Install dependencies
 npm install
+# Note: postinstall script automatically runs "prisma generate"
 
 # Configure environment variables
 cp .env.example .env.local
@@ -302,10 +412,12 @@ cp .env.example .env.local
 
 # Initialize database
 npx prisma migrate dev
-npx prisma generate
+# Latest migration includes SentinelReport model
 
 # Run development server
 npm run dev
+# Access the app at http://localhost:3000
+# Visit /sentinel for Sentinel AI dashboard
 ```
 
 Visit `http://localhost:3000`
@@ -360,6 +472,7 @@ python3 scripts/generate_distributional_forcasts.py
 - `POST /api/explain` - Get detailed explanations for market movements
 - `GET /api/smart-alerts` - Fetch triggered smart alerts
 - `GET /api/macro-news` - Macro event detection
+- `POST /api/sentinel` - Generate Sentinel AI market intelligence report
 
 ### Quant Lab
 
@@ -402,6 +515,8 @@ Key models:
 - **WatchlistItem** - Individual stocks with ordering
 - **Session** - Session Auth
 - **DailyWatchlistSummary** - Historical performance snapshots
+- **SentinelReport** - AI-generated market intelligence reports with structured narratives
+- **InsightReport** - Historical insight reports
 
 ```
 User
@@ -410,7 +525,17 @@ User
  │     └── Macros (1-to-many)
  ├── Accounts (OAuth providers)
  ├── Sessions (Auth)
- └── DailyWatchlistSummaries (through watchlist)
+ ├── DailyWatchlistSummaries (through watchlist)
+ └── SentinelReports (1-to-many)
+
+SentinelReport
+ ├── summary (Text)
+ ├── keyDrivers (JSON)
+ ├── macroContext (Text, nullable)
+ ├── whatThisMeans (JSON, nullable) - Structured narrative
+ ├── anomaly flags (indexMove, sectorRotation, macroSurprise, volSpike)
+ ├── volatility metrics (vix, vixChangePct, realizedVol)
+ └── context (JSON) - Full market context for reprocessing
 ```
 
 Run migrations:

@@ -55,3 +55,4 @@ webapp/lib/generated/prisma/
 *.tmp
 .temp/
 tmp/
+.vercel

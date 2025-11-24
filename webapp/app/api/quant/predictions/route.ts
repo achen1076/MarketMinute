@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { readFile } from "fs/promises";
-import { join } from "path";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   const session = await auth();
@@ -10,40 +9,47 @@ export async function GET() {
   }
 
   try {
-    // Read the live predictions CSV from the quant_app folder
-    const quantPath = join(
-      process.cwd(),
-      "../quant/outputs/live_predictions.csv"
-    );
-    const csvContent = await readFile(quantPath, "utf-8");
-
-    // Parse CSV
-    const lines = csvContent.trim().split("\n");
-    const headers = lines[0].split(",");
-
-    const predictions = lines.slice(1).map((line) => {
-      const values = line.split(",");
-      const obj: Record<string, any> = {};
-
-      headers.forEach((header, i) => {
-        const key = header.trim();
-        const value = values[i]?.trim();
-
-        if (key === "ticker" || key === "signal" || key === "timestamp") {
-          obj[key] = value;
-        } else if (key === "should_trade") {
-          obj[key] = value === "True";
-        } else if (value && !isNaN(parseFloat(value))) {
-          obj[key] = parseFloat(value);
-        } else {
-          obj[key] = value;
-        }
-      });
-
-      return obj;
+    // Get the most recent run of predictions
+    const latestRun = await prisma.livePrediction.findFirst({
+      orderBy: { createdAt: "desc" },
+      select: { runId: true, timestamp: true },
     });
 
-    return NextResponse.json({ predictions });
+    if (!latestRun) {
+      return NextResponse.json({
+        predictions: [],
+        message:
+          "No predictions available yet. Run the cron job to generate predictions.",
+      });
+    }
+
+    // Get all predictions from that run
+    const predictions = await prisma.livePrediction.findMany({
+      where: { runId: latestRun.runId },
+      orderBy: { ticker: "asc" },
+    });
+
+    // Transform to match expected format
+    const formatted = predictions.map((p) => ({
+      ticker: p.ticker,
+      timestamp: p.timestamp.toISOString(),
+      current_price: p.currentPrice,
+      signal: p.signal,
+      confidence: p.confidence,
+      prob_up: p.probUp,
+      prob_neutral: p.probNeutral,
+      prob_down: p.probDown,
+      should_trade: p.shouldTrade,
+      take_profit: p.takeProfit,
+      stop_loss: p.stopLoss,
+      atr: p.atr,
+    }));
+
+    return NextResponse.json({
+      predictions: formatted,
+      timestamp: latestRun.timestamp.toISOString(),
+      runId: latestRun.runId,
+    });
   } catch (error) {
     console.error("Failed to load quant predictions:", error);
     return NextResponse.json(

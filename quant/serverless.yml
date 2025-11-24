@@ -1,0 +1,76 @@
+service: marketminute-quant
+
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: python3.10
+  region: us-east-1
+  timeout: 900 # 15 minutes
+  memorySize: 10240 # 10GB
+
+  environment:
+    DATABASE_URL: ${env:DATABASE_URL}
+    SCHWAB_APP_KEY: ${env:SCHWAB_APP_KEY}
+    SCHWAB_APP_SECRET: ${env:SCHWAB_APP_SECRET}
+
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: "*"
+
+functions:
+  quantAnalysis:
+    handler: lambda_handler.lambda_handler
+    name: marketminute-quant-analysis
+    description: Daily ML predictions and distributional forecasts
+    events:
+      # Trigger via HTTP (called by Vercel cron)
+      - httpApi:
+          path: /analyze
+          method: post
+
+    # Lambda container settings for large dependencies
+    package:
+      individually: true
+      patterns:
+        - "!.git/**"
+        - "!.venv/**"
+        - "!__pycache__/**"
+        - "!*.pyc"
+        - "!data/**" # Exclude raw data
+        - "!outputs/models/**" # Models are too large, load from S3 if needed
+        - src/**
+        - scripts/**
+        - lambda_handler.py
+
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    dockerizePip: true # Use Docker for consistent builds
+    slim: true # Remove unnecessary files
+    strip: false
+    zip: true
+    layer: true # Create Lambda layer for dependencies
+    useStaticCache: false
+    useDownloadCache: false
+    pipCmdExtraArgs:
+      - --platform manylinux2014_x86_64
+      - --only-binary=:all:
+
+# Use Lambda layers to handle large dependencies
+layers:
+  quantDependencies:
+    path: layer
+    name: ${self:service}-dependencies
+    description: ML dependencies (LightGBM, XGBoost, PyTorch, etc.)
+    compatibleRuntimes:
+      - python3.10
+    retain: false

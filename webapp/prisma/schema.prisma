@@ -227,3 +227,57 @@ model InsightReport {
   @@index([sentinelReportId])
   @@map("insight_reports")
 }
+
+model LivePrediction {
+  id            String   @id @default(cuid())
+  ticker        String
+  timestamp     DateTime
+  currentPrice  Float    @map("current_price")
+  signal        String   // "BUY", "SELL", "NEUTRAL"
+  confidence    Float
+  probUp        Float    @map("prob_up")
+  probNeutral   Float    @map("prob_neutral")
+  probDown      Float    @map("prob_down")
+  shouldTrade   Boolean  @map("should_trade")
+  takeProfit    Float?   @map("take_profit")
+  stopLoss      Float?   @map("stop_loss")
+  atr           Float?
+  createdAt     DateTime @default(now()) @map("created_at")
+  runId         String   @map("run_id") // Group predictions from same Lambda run
+
+  @@index([ticker])
+  @@index([timestamp])
+  @@index([runId])
+  @@index([createdAt])
+  @@map("live_predictions")
+}
+
+model DistribionalForecast {
+  id                    String   @id @default(cuid())
+  ticker                String
+  timestamp             DateTime
+  currentPrice          Float    @map("current_price")
+  expectedRangePct      Float    @map("expected_range_pct")
+  upperBound            Float    @map("upper_bound")
+  lowerBound            Float    @map("lower_bound")
+  directionalBias       String   @map("directional_bias") // "Bullish", "Bearish", "Neutral"
+  conviction            String   // "High", "Medium", "Low"
+  convictionScore       Float    @map("conviction_score")
+  mostLikelyCategory    String   @map("most_likely_category")
+  probLargeUp           Float    @map("prob_large_up")
+  probMildUp            Float    @map("prob_mild_up")
+  probFlat              Float    @map("prob_flat")
+  probMildDown          Float    @map("prob_mild_down")
+  probLargeDown         Float    @map("prob_large_down")
+  p10                   Float
+  p50                   Float
+  p90                   Float
+  createdAt             DateTime @default(now()) @map("created_at")
+  runId                 String   @map("run_id") // Group forecasts from same Lambda run
+
+  @@index([ticker])
+  @@index([timestamp])
+  @@index([runId])
+  @@index([createdAt])
+  @@map("distributional_forecasts")
+}
