@@ -28,6 +28,7 @@ type Prediction = {
 type EnhancedSignal = Prediction & {
   quantScore: number;
   edge: number;
+  edgeDirectional: number;
   regime: string;
   expectedReturn: number;
   expectedVolatility: number;
@@ -74,6 +75,7 @@ const calculateSignalMetrics = (pred: Prediction): EnhancedSignal => {
     pred;
 
   const edge = Math.abs(prob_up - prob_down);
+  const edgeDirectional = prob_up - prob_down;
   const directionalBias =
     prob_up > prob_down ? prob_up - prob_down : -(prob_down - prob_up);
 
@@ -164,6 +166,7 @@ const calculateSignalMetrics = (pred: Prediction): EnhancedSignal => {
     ...pred,
     quantScore,
     edge,
+    edgeDirectional,
     regime,
     expectedReturn,
     expectedVolatility,
@@ -569,9 +572,15 @@ function TopSignalsView({ signals }: { signals: EnhancedSignal[] }) {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <p className="text-xs text-slate-500">Edge</p>
-                      <p className="text-sm font-semibold text-teal-400">
-                        {(signal.edge * 100).toFixed(1)}%
+                      <p className="text-xs text-slate-500">Directional Edge</p>
+                      <p
+                        className={`text-sm font-semibold ${
+                          signal.edgeDirectional > 0
+                            ? "text-teal-400"
+                            : "text-rose-400"
+                        }`}
+                      >
+                        {(signal.edgeDirectional * 100).toFixed(1)}%
                       </p>
                     </div>
                     <div>
@@ -621,6 +630,7 @@ function EnhancedPredictionCard({ signal }: { signal: EnhancedSignal }) {
     current_price,
     quantScore,
     edge,
+    edgeDirectional,
     regime,
     expectedReturn,
     prob1PctMove,
@@ -694,9 +704,13 @@ function EnhancedPredictionCard({ signal }: { signal: EnhancedSignal }) {
       {/* Metrics Grid */}
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div className="p-3 rounded-lg bg-slate-800/30">
-          <p className="text-xs text-slate-500 mb-1">Edge</p>
-          <p className="text-lg font-bold text-teal-400">
-            {(edge * 100).toFixed(1)}%
+          <p className="text-xs text-slate-500 mb-1">Directional Edge</p>
+          <p
+            className={`text-lg font-bold ${
+              edgeDirectional > 0 ? "text-teal-400" : "text-rose-400"
+            }`}
+          >
+            {(edgeDirectional * 100).toFixed(1)}%
           </p>
         </div>
         <div className="p-3 rounded-lg bg-slate-800/30">
