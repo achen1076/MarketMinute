@@ -189,7 +189,7 @@ def fetch_market_data():
             df = schwab_client.fetch_aggregates(
                 ticker=ticker,
                 timespan="day",
-                from_date=(datetime.now() - timedelta(days=60)
+                from_date=(datetime.now() - timedelta(days=365*20)
                            ).strftime("%Y-%m-%d"),
                 to_date=datetime.now().strftime("%Y-%m-%d")
             )

@@ -8,6 +8,16 @@ MarketMinute is a full-stack financial intelligence platform that combines real-
 
 ## 🆕 Recent Updates
 
+### AWS Serverless Infrastructure (v2.0)
+
+- **☁️ Lambda + SageMaker** - Fully serverless ML inference pipeline
+- **⏰ Automated Daily Analysis** - EventBridge cron job (Mon-Fri, 4:05 PM EST)
+- **🗄️ Database-Backed Predictions** - Results stored in PostgreSQL for instant page loads
+- **🐳 Docker Deployment** - Containerized Lambda and SageMaker models
+- **🏗️ Infrastructure as Code** - Terraform for reproducible AWS deployments
+- **🔐 Secrets Management** - AWS Secrets Manager integration
+- **📊 Manual Trigger** - Admin panel button for testing cron job
+
 ### Sentinel AI Agent (v1.0)
 
 - **🧠 Autonomous Market Intelligence** - Multi-stage analysis pipeline with anomaly detection
@@ -19,22 +29,25 @@ MarketMinute is a full-stack financial intelligence platform that combines real-
 ### Component Library Expansion
 
 - **Molecules**: `VolatilityCard`, `MarketSignalsCard`, `MarketSummaryCard`, `RegimeComponentsCard`
-- **Organisms**: `SentinelExplainToday`, `WhatThisMeans`, `ProfessionalInsights`
+- **Organisms**: `SentinelExplainToday`, `WhatThisMeans`, `ProfessionalInsights`, `LambdaCronRunner`
 
 ### Database Schema Updates
 
 - Added `SentinelReport` model with structured narrative storage
+- Added `LivePrediction` model for ML trading signals (21 tickers daily)
+- Added `DistribionalForecast` model for probabilistic forecasts (21 tickers daily)
 - JSON fields for flexible data structures (`whatThisMeans`, `context`, `keyDrivers`)
-- Indexed anomaly flags for efficient querying
+- Indexed anomaly flags and `runId` for efficient querying
 
 ---
 
 ## 🎯 Overview
 
-MarketMinute consists of two integrated systems:
+MarketMinute consists of three integrated systems:
 
-**Web Application** - Modern Next.js dashboard for market monitoring and AI insights
-**Quant Lab System** - ML-powered engine with movements predictions and forcasts
+**Web Application** - Modern Next.js dashboard for market monitoring and AI insights  
+**Quant Lab System** - ML-powered engine with movement predictions and forecasts  
+**AWS Infrastructure** - Serverless Lambda + SageMaker for automated daily analysis
 
 ---
 
@@ -67,10 +80,22 @@ MarketMinute consists of two integrated systems:
 
 - **ML Predictions** - LightGBM/XGBoost/LSTM models for daily trading signals
 - **Distributional Forecasts** - Probabilistic price predictions with confidence intervals
+- **Database-Backed Results** - Predictions stored in PostgreSQL for instant page loads
+- **Automated Daily Analysis** - AWS Lambda cron job runs at 4:05 PM EST weekdays
 - **Backtesting Engine** - Multi-year historical performance validation
 - **Paper Trading** - Live simulation with realistic execution costs
 - **Interactive Dashboards** - Streamlit-based visualization and monitoring
 - **Walk-Forward Validation** - Robust cross-validation strategy
+
+### ☁️ AWS Infrastructure
+
+- **Lambda Orchestrator** - Serverless function coordinates daily analysis workflow
+- **SageMaker Endpoint** - Serverless ML inference for real-time predictions
+- **EventBridge Scheduler** - Automated cron job (Mon-Fri, 4:05 PM EST)
+- **Docker Deployment** - Containerized Lambda and SageMaker models
+- **Infrastructure as Code** - Terraform configuration for reproducible deployments
+- **Secrets Management** - AWS Secrets Manager for Schwab OAuth tokens
+- **Database Integration** - Lambda saves results directly to production database
 
 ### 🎨 User Experience
 
@@ -111,10 +136,15 @@ MarketMinute consists of two integrated systems:
 - **Visualization:** Streamlit, Plotly
 - **Market Data:** Schwab API (schwab-py)
 
-### Infrastructure
+### Infrastructure & Cloud
 
 - **Market Data Provider:** Schwab API
-- **Deployment:** Vercel-ready (Next.js)
+- **Web Deployment:** Vercel (Next.js production hosting)
+- **ML Infrastructure:** AWS Lambda + SageMaker (serverless inference)
+- **Orchestration:** AWS EventBridge (cron scheduler)
+- **Secrets:** AWS Secrets Manager
+- **Container Registry:** AWS ECR (Docker images)
+- **Infrastructure as Code:** Terraform
 - **Version Control:** Git
 - **Environment:** Node.js 20+, Python 3.10+
 
@@ -369,16 +399,33 @@ MarketMinute/
 │   ├── prisma/               # Database schema and migrations
 │   └── public/               # Static assets
 │
-└── quant/                     # Quantitative trading system
-    ├── backtest/             # Backtesting engines
-    ├── paper_trading/        # Live paper trading
-    ├── dashboards/           # Streamlit dashboards
-    ├── scripts/              # CLI utilities
-    ├── src/                  # Core library
-    │   ├── data/            # Data loading & processing
-    │   └── models/          # ML model implementations
-    ├── data/                 # Data storage
-    └── outputs/              # Models & results
+├── quant/                     # Quantitative trading system
+│   ├── backtest/             # Backtesting engines
+│   ├── paper_trading/        # Live paper trading
+│   ├── dashboards/           # Streamlit dashboards
+│   ├── scripts/              # CLI utilities
+│   ├── lambda/               # AWS Lambda function
+│   │   ├── lambda_handler.py # Orchestrator function
+│   │   ├── predictions.py    # Prediction generation
+│   │   ├── forecasting.py    # Distributional forecasts
+│   │   ├── Dockerfile        # Lambda container config
+│   │   └── deploy_lambda.sh  # Deployment script
+│   ├── src/                  # Core library
+│   │   ├── data/            # Data loading & processing
+│   │   └── models/          # ML model implementations
+│   ├── data/                 # Data storage
+│   └── outputs/              # Models & results
+│
+└── infrastructure/            # Cloud infrastructure
+    ├── terraform/            # Infrastructure as Code
+    │   ├── lambda.tf        # Lambda function config
+    │   ├── sagemaker.tf     # SageMaker endpoint config
+    │   ├── scheduler.tf     # EventBridge cron job
+    │   ├── secrets.tf       # Secrets Manager config
+    │   ├── variables.tf     # Terraform variables
+    │   └── terraform.tfvars # Configuration values
+    └── scripts/             # Management utilities
+        └── manage_scheduler.sh  # Cron job management
 ```
 
 ---
@@ -445,9 +492,102 @@ python3 scripts/train_model.py
 # Generate Predictions
 python3 scripts/generate_predictions.py
 
-# Generate Forcasts
-python3 scripts/generate_distributional_forcasts.py
+# Generate Forecasts
+python3 scripts/generate_distributional_forecasts.py
 ```
+
+### AWS Infrastructure Setup
+
+**Prerequisites:**
+
+- AWS CLI configured with credentials
+- Terraform installed
+- Docker installed
+- AWS account with appropriate permissions
+
+**1. Configure Terraform Variables**
+
+```bash
+cd infrastructure/terraform
+
+# Create terraform.tfvars
+cat > terraform.tfvars << 'EOF'
+project_name = "marketminute"
+environment = "dev"
+aws_region = "us-east-1"
+sagemaker_image_uri = "YOUR_ECR_URI/marketminute-sagemaker:latest"
+lambda_image_uri = "YOUR_ECR_URI/marketminute-lambda:latest"
+webapp_url = "https://market-minute.vercel.app"
+EOF
+```
+
+**2. Deploy SageMaker Model**
+
+```bash
+cd ../../quant/sagemaker
+
+# Build and push Docker image
+./deploy_sagemaker.sh
+
+# Copy the ECR URI and update terraform.tfvars
+```
+
+**3. Deploy Lambda Function**
+
+```bash
+cd ../lambda
+
+# Build and push Docker image
+./deploy_lambda.sh
+
+# Copy the ECR URI and update terraform.tfvars
+```
+
+**4. Apply Terraform**
+
+```bash
+cd ../../infrastructure/terraform
+
+# Initialize Terraform
+terraform init
+
+# Preview changes
+terraform plan
+
+# Apply infrastructure
+terraform apply
+
+# Note the Lambda Function URL output
+```
+
+**5. Test the Integration**
+
+```bash
+# Manual trigger test
+cd ../scripts
+./manage_scheduler.sh test
+
+# Check logs
+./manage_scheduler.sh logs
+
+# Verify EventBridge schedule
+./manage_scheduler.sh status
+```
+
+**Automated Daily Schedule:**
+
+- **Time**: 4:05 PM EST (21:05 UTC)
+- **Days**: Monday - Friday
+- **Rule**: `marketminute-dev-daily-analysis`
+
+The Lambda function will:
+
+1. Fetch market data via Schwab API
+2. Generate features for 21 tech tickers
+3. Call SageMaker endpoint for predictions
+4. Generate distributional forecasts
+5. Save results to production database
+6. Trigger Sentinel agent analysis
 
 ---
 
@@ -476,10 +616,15 @@ python3 scripts/generate_distributional_forcasts.py
 
 ### Quant Lab
 
-- `GET /api/quant/predictions` - Fetch ML trading predictions
-- `GET /api/quant/forecasts` - Get distributional forecasts
+- `GET /api/quant/predictions` - Fetch ML trading predictions (from database)
+- `GET /api/quant/forecasts` - Get distributional forecasts (from database)
+- `POST /api/quant/save-results` - Save Lambda predictions to database (internal)
 - `POST /api/quant/generate` - Trigger new predictions
 - `POST /api/quant/run-script` - Execute quant scripts
+
+### Admin & Monitoring
+
+- `POST /api/admin/trigger-cron` - Manually trigger Lambda cron job (testing)
 
 ### User & Admin
 
@@ -517,6 +662,8 @@ Key models:
 - **DailyWatchlistSummary** - Historical performance snapshots
 - **SentinelReport** - AI-generated market intelligence reports with structured narratives
 - **InsightReport** - Historical insight reports
+- **LivePrediction** - ML trading signals from Lambda (21 tickers daily)
+- **DistribionalForecast** - Probabilistic price forecasts (21 tickers daily)
 
 ```
 User
@@ -536,6 +683,21 @@ SentinelReport
  ├── anomaly flags (indexMove, sectorRotation, macroSurprise, volSpike)
  ├── volatility metrics (vix, vixChangePct, realizedVol)
  └── context (JSON) - Full market context for reprocessing
+
+LivePrediction
+ ├── ticker, timestamp, currentPrice
+ ├── signal (BUY/SELL/NEUTRAL)
+ ├── confidence, probUp, probNeutral, probDown
+ ├── shouldTrade, takeProfit, stopLoss, atr
+ └── runId (groups predictions from same Lambda run)
+
+DistribionalForecast
+ ├── ticker, timestamp, currentPrice
+ ├── expectedRangePct, upperBound, lowerBound
+ ├── directionalBias, conviction, convictionScore
+ ├── probability distribution (probLargeUp, probMildUp, probFlat, probMildDown, probLargeDown)
+ ├── percentiles (p10, p50, p90)
+ └── runId (groups forecasts from same Lambda run)
 ```
 
 Run migrations:
@@ -601,10 +763,62 @@ This is a private project. For questions or access, contact the repository owner
 
 ---
 
-## 📚 Additional Resources
+## � Deployment
+
+### Vercel (Web Application)
+
+**Important Configuration:**
+
+1. **Root Directory**: Set to `webapp` in Vercel project settings
+2. **Environment Variables**: Configure in Vercel Dashboard
+   - `DATABASE_URL` - Production PostgreSQL connection string
+   - `NEXTAUTH_SECRET` - Authentication secret
+   - `NEXTAUTH_URL` - `https://market-minute.vercel.app`
+   - `OPENAI_API_KEY` - OpenAI API key
+   - `SCHWAB_CLIENT_ID` - Schwab API client ID
+   - `SCHWAB_CLIENT_SECRET` - Schwab API secret
+   - `LAMBDA_FUNCTION_URL` - AWS Lambda function URL
+
+**Deploy:**
+
+```bash
+cd webapp
+vercel deploy --prod
+```
+
+**Build Configuration:**
+
+- Build Command: `prisma generate && next build`
+- Output Directory: `.next`
+- Install Command: `npm install`
+
+### AWS (Infrastructure)
+
+See **AWS Infrastructure Setup** section above for full deployment instructions.
+
+**Quick Deploy:**
+
+```bash
+# 1. Deploy models
+cd quant/sagemaker && ./deploy_sagemaker.sh
+cd ../lambda && ./deploy_lambda.sh
+
+# 2. Apply infrastructure
+cd ../../infrastructure/terraform
+terraform apply
+
+# 3. Test
+cd ../scripts && ./manage_scheduler.sh test
+```
+
+---
+
+## �📚 Additional Resources
 
 - **System Specification:** [quant/SYSTEM_SPEC.yaml](quant/SYSTEM_SPEC.yaml)
 - **Prisma Schema:** [webapp/prisma/schema.prisma](webapp/prisma/schema.prisma)
+- **Terraform Configuration:** [infrastructure/terraform/](infrastructure/terraform/)
+- **Lambda Handler:** [quant/lambda/lambda_handler.py](quant/lambda/lambda_handler.py)
 
 ---
 
