@@ -56,3 +56,5 @@ webapp/lib/generated/prisma/
 .temp/
 tmp/
 .vercel
+
+schwab_token.json
