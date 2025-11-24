@@ -70,12 +70,15 @@ type Props = {
 };
 
 const calculateSignalMetrics = (pred: Prediction): EnhancedSignal => {
-  const { prob_up, prob_down, prob_neutral, confidence, atr } = pred;
+  const { prob_up, prob_down, prob_neutral, confidence, atr, current_price } =
+    pred;
 
   const edge = Math.abs(prob_up - prob_down);
   const directionalBias =
     prob_up > prob_down ? prob_up - prob_down : -(prob_down - prob_up);
-  const volatility = atr || 0.02;
+
+  // Convert ATR from dollars to percentage of current price
+  const volatility = atr ? atr / current_price : 0.02;
 
   const expectedReturn = directionalBias * volatility;
   const expectedVolatility = volatility * (1 + edge);

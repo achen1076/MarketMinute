@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
+  // No auth required - this is an internal service endpoint called by Lambda
   try {
     const body = await request.json();
     const { live_predictions, distributional_forecasts, timestamp } = body;
