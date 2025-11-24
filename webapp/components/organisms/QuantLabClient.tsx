@@ -532,6 +532,8 @@ function TopSignalsView({ signals }: { signals: EnhancedSignal[] }) {
                     ? "#10b981"
                     : signal.quantScore >= 50
                     ? "#3b82f6"
+                    : signal.quantScore >= 30
+                    ? "#f59e0b"
                     : "#64748b",
               }}
             >
@@ -550,6 +552,8 @@ function TopSignalsView({ signals }: { signals: EnhancedSignal[] }) {
                           ? "bg-emerald-500/20 text-emerald-400"
                           : signal.quantScore >= 50
                           ? "bg-blue-500/20 text-blue-400"
+                          : signal.quantScore >= 30
+                          ? "bg-amber-500/20 text-amber-400"
                           : "bg-slate-500/20 text-slate-400"
                       }`}
                     >

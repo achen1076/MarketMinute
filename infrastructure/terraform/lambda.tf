@@ -49,6 +49,9 @@ resource "aws_lambda_function" "quant_orchestrator" {
   role          = aws_iam_role.lambda_execution.arn
   timeout       = 300
   memory_size   = 1024
+  
+  # Natural rate limiting: 32-second execution time + CORS restrictions
+  # Reserved concurrency not needed for low-frequency workload (daily cron + occasional manual triggers)
 
   environment {
     variables = {
@@ -62,7 +65,7 @@ resource "aws_lambda_function" "quant_orchestrator" {
   }
 }
 
-# Lambda Function URL (public endpoint)
+# Lambda Function URL (public endpoint with restricted CORS)
 resource "aws_lambda_function_url" "quant_orchestrator" {
   count = var.lambda_image_uri != "none" && var.lambda_image_uri != "" ? 1 : 0
   
@@ -71,11 +74,27 @@ resource "aws_lambda_function_url" "quant_orchestrator" {
 
   cors {
     allow_credentials = false
-    allow_origins     = ["*"]
+    # Only allow requests from authorized origins (webapp + localhost for dev)
+    allow_origins     = [
+      var.webapp_url,
+      "http://localhost:3000",
+      "http://localhost:3001"
+    ]
     allow_methods     = ["POST"]
     allow_headers     = ["content-type", "x-api-key"]
     max_age           = 86400
   }
+}
+
+# Permission for public invocation via Function URL
+resource "aws_lambda_permission" "allow_function_url" {
+  count = var.lambda_image_uri != "none" && var.lambda_image_uri != "" ? 1 : 0
+  
+  statement_id           = "AllowPublicInvoke"
+  action                 = "lambda:InvokeFunctionUrl"
+  function_name          = aws_lambda_function.quant_orchestrator[0].function_name
+  principal              = "*"
+  function_url_auth_type = "NONE"
 }
 
 output "lambda_function_url" {
