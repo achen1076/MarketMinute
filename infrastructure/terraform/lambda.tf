@@ -47,8 +47,8 @@ resource "aws_lambda_function" "quant_orchestrator" {
   package_type  = "Image"
   image_uri     = var.lambda_image_uri
   role          = aws_iam_role.lambda_execution.arn
-  timeout       = 60
-  memory_size   = 512
+  timeout       = 300
+  memory_size   = 1024
 
   environment {
     variables = {
