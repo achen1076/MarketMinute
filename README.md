@@ -51,6 +51,32 @@ MarketMinute consists of three integrated systems:
 
 ---
 
+## 🏗️ System Architecture
+
+**System Architecture Diagram:**  
+[View System Architecture](https://www.mermaidchart.com/d/b04d8bc2-1ebc-4be4-9af3-4521d3f75e5b)
+
+**Daily Cron Flow:**  
+[View Automated Daily Analysis Flow](https://www.mermaidchart.com/d/3fb4ddc5-c176-4488-987a-cbc01cf20c96)
+
+The system uses a serverless architecture with three main components:
+
+1. **Web Application (Next.js + Vercel)** - User-facing dashboard with real-time data
+2. **Quant Lambda (AWS)** - Orchestrates daily market data fetch and ML inference
+3. **SageMaker Endpoint (AWS)** - Serves ML model predictions on-demand
+
+**Daily Automated Flow:**
+
+- **4:05 PM EST (Mon-Fri)**: EventBridge triggers Lambda function
+- **Lambda**: Fetches 20 years of market data from Schwab API
+- **Lambda**: Calls SageMaker endpoint for ML predictions
+- **Lambda**: Generates distributional forecasts and trading signals
+- **Lambda**: Saves results to PostgreSQL database
+- **Lambda**: Triggers Sentinel AI agent for market analysis
+- **Webapp**: Displays fresh predictions and insights (instant page loads from DB)
+
+---
+
 ## ✨ Key Features
 
 ### 📊 Market Intelligence
@@ -369,63 +395,222 @@ MarketMinute's Quant Lab employs four specialized models for market prediction:
 
 ```
 MarketMinute/
+├── .env                       # Environment variables
+├── .gitignore                 # Git ignore rules
+├── README.md                  # Project documentation
+├── deploy.sh                  # Main deployment script
+├── schwab_token.json          # Schwab OAuth token
+│
 ├── webapp/                    # Next.js web application
+│   ├── .env                   # Environment variables
+│   ├── .gitignore             # Git ignore rules
+│   ├── auth.ts                # NextAuth configuration
+│   ├── next.config.ts         # Next.js configuration
+│   ├── package.json           # Node dependencies
+│   ├── tsconfig.json          # TypeScript configuration
+│   ├── tailwind.config.ts     # Tailwind CSS configuration
+│   ├── vercel.json            # Vercel deployment config
+│   │
 │   ├── app/                   # App router pages
-│   │   ├── api/              # API routes (30+ endpoints)
 │   │   ├── (auth)/           # Authentication pages
+│   │   │   ├── login/        # Login page
+│   │   │   └── signup/       # Signup page
 │   │   ├── admin/            # Admin dashboard
+│   │   │   └── page.tsx      # Admin interface
+│   │   ├── api/              # API routes (30+ endpoints)
+│   │   │   ├── auth/         # Authentication endpoints
+│   │   │   ├── quant/        # Quant data endpoints
+│   │   │   ├── sentinel/     # Sentinel agent endpoints
+│   │   │   ├── schwab/       # Schwab API proxy
+│   │   │   ├── watchlist/    # Watchlist endpoints
+│   │   │   └── ...           # Market data, news, etc.
 │   │   ├── forecasts/        # ML forecasts page
+│   │   │   └── page.tsx      # Forecasts dashboard
 │   │   ├── history/          # Historical data view
+│   │   │   └── page.tsx      # History dashboard
 │   │   ├── quant/            # Quant lab interface
+│   │   │   └── page.tsx      # Quant dashboard
 │   │   ├── sentinel/         # Sentinel AI dashboard
-│   │   └── watchlist/        # Watchlist management
+│   │   │   ├── page.tsx      # Sentinel dashboard
+│   │   │   └── [reportId]/   # Individual report view
+│   │   ├── watchlist/        # Watchlist management
+│   │   │   ├── page.tsx      # Watchlist dashboard
+│   │   │   └── [symbol]/     # Individual stock view
+│   │   ├── DashboardClient.tsx  # Main dashboard client
+│   │   ├── layout.tsx        # Root layout
+│   │   ├── page.tsx          # Homepage
+│   │   └── globals.css       # Global styles
+│   │
 │   ├── agents/               # AI agent systems
 │   │   └── sentinel/         # Sentinel agent implementation
 │   │       ├── agent/        # Core agent logic
-│   │       │   ├── anomaly.ts    # Anomaly detection
+│   │       │   ├── drilldown.ts  # Drilldown causation
 │   │       │   ├── context.ts    # Context builder
 │   │       │   ├── loop.ts       # Main execution loop
 │   │       │   ├── report.ts     # Report generation
 │   │       │   └── types.ts      # Type definitions
 │   │       ├── config/       # Configuration
+│   │       │   ├── prompts.ts    # LLM prompts
+│   │       │   └── types.ts      # Config types
 │   │       ├── llm/          # LLM integration
-│   │       └── market/       # Market data fetchers
-│   ├── components/
+│   │       │   ├── client.ts     # OpenAI client
+│   │       │   ├── schemas.ts    # Response schemas
+│   │       │   └── ...       # Prompt engineering
+│   │       └── services/     # Market data fetchers
+│   │           ├── marketData.ts    # Price data
+│   │           ├── newsService.ts   # News aggregation
+│   │           └── ...       # Sentiment, sector data
+│   │
+│   ├── components/           # React components
+│   │   ├── README.md         # Component documentation
 │   │   ├── atoms/            # Basic UI components
+│   │   │   ├── Badge.tsx
+│   │   │   ├── Button.tsx
+│   │   │   ├── Card.tsx
+│   │   │   ├── Input.tsx
+│   │   │   ├── LoadingSpinner.tsx
+│   │   │   └── ...           # 12 atomic components
 │   │   ├── molecules/        # Composite components
+│   │   │   ├── MarketSignalsCard.tsx
+│   │   │   ├── MarketSummaryCard.tsx
+│   │   │   ├── RegimeComponentsCard.tsx
+│   │   │   ├── VolatilityCard.tsx
+│   │   │   └── ...           # 11 molecular components
 │   │   └── organisms/        # Complex feature components
+│   │       ├── LambdaCronRunner.tsx
+│   │       ├── ProfessionalInsights.tsx
+│   │       ├── SentinelExplainToday.tsx
+│   │       ├── WhatThisMeans.tsx
+│   │       └── ...           # 20 organism components
+│   │
 │   ├── hooks/                # Custom React hooks
+│   │   ├── useMarketData.tsx
+│   │   └── useWatchlist.tsx
+│   │
 │   ├── lib/                  # Utilities and helpers
+│   │   ├── cacheManager.ts   # Redis caching
+│   │   ├── eventDetector.ts  # Market event detection
+│   │   ├── eventsDb.ts       # Event database
+│   │   ├── explainCache.ts   # Explanation caching
+│   │   ├── macroNews.ts      # Macro news fetcher
+│   │   ├── marketData.ts     # Market data utils
+│   │   ├── news.ts           # News aggregation
+│   │   ├── openai.ts         # OpenAI integration
+│   │   ├── schwabAuth.ts     # Schwab OAuth
+│   │   ├── smartAlerts.ts    # Alert system
+│   │   ├── summary.ts        # Market summaries
+│   │   ├── summaryCache.ts   # Summary caching
+│   │   ├── tickerMappings.ts # Ticker utilities
+│   │   └── utils.ts          # General utilities
+│   │
 │   ├── prisma/               # Database schema and migrations
+│   │   ├── migrations/       # Database migrations
+│   │   └── schema.prisma     # Prisma schema
+│   │
 │   └── public/               # Static assets
+│       ├── icons/            # Icon files
+│       └── images/           # Image assets
 │
 ├── quant/                     # Quantitative trading system
-│   ├── backtest/             # Backtesting engines
-│   ├── paper_trading/        # Live paper trading
-│   ├── dashboards/           # Streamlit dashboards
-│   ├── scripts/              # CLI utilities
-│   ├── lambda/               # AWS Lambda function
-│   │   ├── lambda_handler.py # Orchestrator function
-│   │   ├── predictions.py    # Prediction generation
-│   │   ├── forecasting.py    # Distributional forecasts
+│   ├── .env                   # Environment variables
+│   ├── .gitignore             # Git ignore rules
+│   ├── requirements.txt       # Python dependencies
+│   ├── setup.py               # Package setup
+│   ├── serverless.yml         # Serverless config (legacy)
+│   ├── SYSTEM_SPEC.yaml       # System specifications
+│   ├── schwab_token.json      # Schwab OAuth token
+│   │
+│   ├── lambda/               # AWS Lambda orchestrator
+│   │   ├── .gitignore        # Lambda ignore rules
 │   │   ├── Dockerfile        # Lambda container config
-│   │   └── deploy_lambda.sh  # Deployment script
-│   ├── src/                  # Core library
-│   │   ├── data/            # Data loading & processing
-│   │   └── models/          # ML model implementations
-│   ├── data/                 # Data storage
-│   └── outputs/              # Models & results
+│   │   ├── requirements.txt  # Lambda dependencies
+│   │   ├── deploy_lambda.sh  # Deployment script
+│   │   ├── lambda_handler.py # Main orchestrator function
+│   │   ├── predictions.py    # Prediction generation logic
+│   │   ├── forecasting.py    # Distributional forecasts logic
+│   │   └── tickers.py        # Ticker list configuration
+│   │
+│   ├── logs/                 # Log files (generated)
+│   │
+│   ├── models/               # Saved ML models (generated)
+│   │
+│   ├── outputs/              # Training outputs
+│   │   ├── backtests/        # Backtest results
+│   │   ├── predictions/      # Generated predictions
+│   │   └── reports/          # Analysis reports
+│   │
+│   ├── sagemaker/            # SageMaker inference endpoint
+│   │   ├── .gitignore        # SageMaker ignore rules
+│   │   ├── Dockerfile        # SageMaker container config
+│   │   ├── requirements.txt  # SageMaker dependencies
+│   │   ├── deploy.py         # Deployment utility
+│   │   ├── deploy_sagemaker.sh  # Deployment script
+│   │   ├── inference.py      # Inference handler
+│   │   ├── serve             # Serve script
+│   │   ├── wsgi.py           # WSGI application
+│   │   └── models/           # Model artifacts (copied at build)
+│   │
+│   ├── scripts/              # CLI utilities
+│   │   ├── cleanup.py        # Data cleanup
+│   │   ├── compare_ensemble_strategies.py
+│   │   ├── eval_multiclass_trading.py
+│   │   ├── generate_distributional_forecasts.py
+│   │   ├── generate_predictions.py
+│   │   ├── prep_data.py      # Data preparation
+│   │   ├── setup_schwab_auth.py  # Schwab authentication
+│   │   └── train_model.py    # Model training
+│   │
+│   └── src/                  # Core library
+│       ├── data/             # Data processing
+│       │   ├── __init__.py
+│       │   ├── schwab_data.py    # Schwab API client
+│       │   ├── features/     # Feature engineering
+│       │   │   ├── __init__.py
+│       │   │   ├── FEATURE_DICTIONARY.md
+│       │   │   ├── curated_features.py
+│       │   │   └── feature_engine.py
+│       │   ├── labels/       # Label generation
+│       │   │   ├── __init__.py
+│       │   │   ├── binary_labeler.py
+│       │   │   └── multiclass_labeler.py
+│       │   └── preprocessing/  # Data preprocessing
+│       │       ├── __init__.py
+│       │       └── scaler.py
+│       │
+│       └── models/           # ML model implementations
+│           ├── __init__.py
+│           ├── ensemble_classifier.py  # Ensemble model
+│           ├── hyperparameter_tuner.py # Optuna tuning
+│           ├── xgb_hyperparameter_tuner.py
+│           ├── base/         # Base models
+│           │   ├── __init__.py
+│           │   ├── lgbm_classifier.py  # LightGBM
+│           │   └── xgb_classifier.py   # XGBoost
+│           └── deep_learning/  # Deep learning models
+│               ├── __init__.py
+│               ├── lstm_classifier.py      # LSTM
+│               └── transformer_classifier.py  # Transformer
 │
 └── infrastructure/            # Cloud infrastructure
-    ├── terraform/            # Infrastructure as Code
-    │   ├── lambda.tf        # Lambda function config
-    │   ├── sagemaker.tf     # SageMaker endpoint config
-    │   ├── scheduler.tf     # EventBridge cron job
-    │   ├── secrets.tf       # Secrets Manager config
-    │   ├── variables.tf     # Terraform variables
-    │   └── terraform.tfvars # Configuration values
-    └── scripts/             # Management utilities
-        └── manage_scheduler.sh  # Cron job management
+    ├── scripts/              # Management utilities
+    │   ├── deploy_lambda.sh  # Lambda deployment
+    │   ├── manage_scheduler.sh  # Cron job management
+    │   ├── setup.sh          # Initial setup
+    │   ├── teardown.sh       # Infrastructure teardown
+    │   ├── upload_schwab_token.sh  # Token upload
+    │   └── view_cron_history.sh    # View cron logs
+    │
+    └── terraform/            # Infrastructure as Code
+        ├── main.tf           # Main configuration
+        ├── variables.tf      # Variable definitions
+        ├── terraform.tfvars  # Variable values
+        ├── outputs.tf        # Output definitions
+        ├── ecr.tf            # ECR repositories
+        ├── iam.tf            # IAM roles and policies
+        ├── lambda.tf         # Lambda function config
+        ├── sagemaker.tf      # SageMaker endpoint config
+        ├── scheduler.tf      # EventBridge cron job
+        └── secrets.tf        # Secrets Manager config
 ```
 
 ---
@@ -813,7 +998,14 @@ cd ../scripts && ./manage_scheduler.sh test
 
 ---
 
-## �📚 Additional Resources
+## 📚 Additional Resources
+
+### Architecture Diagrams
+
+- **System Architecture:** [View on Mermaid Chart](https://www.mermaidchart.com/d/b04d8bc2-1ebc-4be4-9af3-4521d3f75e5b)
+- **Daily Cron Flow:** [View on Mermaid Chart](https://www.mermaidchart.com/d/3fb4ddc5-c176-4488-987a-cbc01cf20c96)
+
+### Code & Configuration
 
 - **System Specification:** [quant/SYSTEM_SPEC.yaml](quant/SYSTEM_SPEC.yaml)
 - **Prisma Schema:** [webapp/prisma/schema.prisma](webapp/prisma/schema.prisma)

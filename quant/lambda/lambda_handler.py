@@ -184,14 +184,16 @@ def fetch_market_data():
         "rolling_vol", "neutral_thresh", "strong_thresh", "dyn_thresh"
     ]
 
+    from_date = (datetime.now() - timedelta(days=365*20)).strftime("%Y-%m-%d")
+    to_date = datetime.now().strftime("%Y-%m-%d")
+
     for ticker in TICKERS:
         try:
             df = schwab_client.fetch_aggregates(
                 ticker=ticker,
                 timespan="day",
-                from_date=(datetime.now() - timedelta(days=365*20)
-                           ).strftime("%Y-%m-%d"),
-                to_date=datetime.now().strftime("%Y-%m-%d")
+                from_date=from_date,
+                to_date=to_date
             )
 
             if df.empty:
