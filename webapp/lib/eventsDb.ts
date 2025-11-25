@@ -3,26 +3,10 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 
 /**
- * Database-backed event storage with in-memory caching
- * - Database: Persistent storage for events
- * - Memory cache: 24-hour TTL to minimize DB queries
- *
- * Events only refetch from external APIs once per day max
+ * Database-backed event storage
+ * - Database: Persistent storage for events with timestamps
+ * - Events only refetch from external APIs once per 24 hours based on DB updated_at
  */
-
-// In-memory cache layer (24-hour TTL)
-const CACHE_TTL = 24 * 60 * 60 * 1000;
-const tickerCache = new Map<string, { lastFetch: number }>();
-let macroCacheTimestamp = 0;
-
-setInterval(() => {
-  const now = Date.now();
-  for (const [symbol, entry] of tickerCache.entries()) {
-    if (now - entry.lastFetch > CACHE_TTL) {
-      tickerCache.delete(symbol);
-    }
-  }
-}, 60 * 60 * 1000);
 
 export type StockEvent = {
   symbol: string;
@@ -208,85 +192,88 @@ export async function cleanExpiredEventsFromDb(): Promise<number> {
 
 /**
  * Check if we should fetch ticker events from API
- * Uses in-memory cache to prevent refetching within 24 hours
+ * Checks DB updated_at timestamp - refetch if older than 24 hours
  */
 export async function shouldFetchTickerEvents(
   symbol: string
 ): Promise<boolean> {
   const upper = symbol.toUpperCase();
-  const now = Date.now();
+  const today = new Date().toISOString().split("T")[0];
 
-  // Check memory cache first (instant)
-  const cached = tickerCache.get(upper);
-  if (cached && now - cached.lastFetch < CACHE_TTL) {
+  // Get most recent event for this symbol
+  const recentEvent = await prisma.tickerEvent.findFirst({
+    where: {
+      symbol: upper,
+      date: { gte: today },
+    },
+    orderBy: {
+      updatedAt: "desc",
+    },
+  });
+
+  if (!recentEvent) {
+    console.log(`[Events][DB] ${upper} not in DB, will fetch from API`);
+    return true;
+  }
+
+  const age = Date.now() - recentEvent.updatedAt.getTime();
+  const ageHours = age / (1000 * 60 * 60);
+
+  if (ageHours < 24) {
     console.log(
-      `[Events][Cache] ${upper} cached (age: ${Math.floor(
-        (now - cached.lastFetch) / 1000 / 60
-      )}min)`
+      `[Events][DB] ${upper} updated ${ageHours.toFixed(
+        1
+      )}h ago, skipping fetch`
     );
-    return false; // Don't refetch
-  }
-
-  // Check if we have data in DB
-  const hasData = await hasTickerEventsInDb(upper);
-
-  if (hasData) {
-    // Mark as fetched in memory cache
-    tickerCache.set(upper, { lastFetch: now });
-    console.log(`[Events][DB] ${upper} found in DB, caching for 24h`);
-    return false; // Don't refetch
-  }
-
-  console.log(`[Events][API] ${upper} not in cache or DB, will fetch from API`);
-  return true; // Need to fetch from API
-}
-
-/**
- * Check if we should fetch macro events from API
- * Uses in-memory cache to prevent refetching within 24 hours
- */
-export async function shouldFetchMacroEvents(): Promise<boolean> {
-  const now = Date.now();
-
-  // Check memory cache first
-  if (macroCacheTimestamp > 0 && now - macroCacheTimestamp < CACHE_TTL) {
-    console.log(
-      `[Events][Cache] Macro events cached (age: ${Math.floor(
-        (now - macroCacheTimestamp) / 1000 / 60
-      )}min)`
-    );
-    return false;
-  }
-
-  // Check if we have data in DB
-  const hasData = await hasMacroEventsInDb();
-
-  if (hasData) {
-    // Mark as fetched in memory cache
-    macroCacheTimestamp = now;
-    console.log(`[Events][DB] Macro events found in DB, caching for 24h`);
     return false;
   }
 
   console.log(
-    `[Events][API] Macro events not in cache or DB, will fetch from API`
+    `[Events][DB] ${upper} updated ${ageHours.toFixed(1)}h ago, will refetch`
   );
   return true;
 }
 
 /**
- * Mark ticker events as fetched (updates memory cache)
+ * Check if we should fetch macro events from API
+ * Checks DB updated_at timestamp - refetch if older than 24 hours
  */
-export function markTickerEventsFetched(symbol: string): void {
-  const upper = symbol.toUpperCase();
-  tickerCache.set(upper, { lastFetch: Date.now() });
-}
+export async function shouldFetchMacroEvents(): Promise<boolean> {
+  const today = new Date().toISOString().split("T")[0];
 
-/**
- * Mark macro events as fetched (updates memory cache)
- */
-export function markMacroEventsFetched(): void {
-  macroCacheTimestamp = Date.now();
+  // Get most recent macro event
+  const recentEvent = await prisma.macroEvent.findFirst({
+    where: {
+      date: { gte: today },
+    },
+    orderBy: {
+      updatedAt: "desc",
+    },
+  });
+
+  if (!recentEvent) {
+    console.log(`[Events][DB] No macro events in DB, will fetch from API`);
+    return true;
+  }
+
+  const age = Date.now() - recentEvent.updatedAt.getTime();
+  const ageHours = age / (1000 * 60 * 60);
+
+  if (ageHours < 24) {
+    console.log(
+      `[Events][DB] Macro events updated ${ageHours.toFixed(
+        1
+      )}h ago, skipping fetch`
+    );
+    return false;
+  }
+
+  console.log(
+    `[Events][DB] Macro events updated ${ageHours.toFixed(
+      1
+    )}h ago, will refetch`
+  );
+  return true;
 }
 
 /**

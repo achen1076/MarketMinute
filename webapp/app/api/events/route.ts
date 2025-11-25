@@ -9,8 +9,6 @@ import {
   cleanExpiredEventsFromDb,
   shouldFetchTickerEvents,
   shouldFetchMacroEvents,
-  markTickerEventsFetched,
-  markMacroEventsFetched,
   type StockEvent,
   type MacroEvent,
 } from "@/lib/eventsDb";
@@ -391,10 +389,8 @@ export async function GET(request: Request) {
 
         const fetchPromises = symbolsToFetch.map(async (symbol) => {
           const events = await fetchTickerEvents(symbol);
-          // Store in database
+          // Store in database (updated_at timestamp tracks when fetched)
           await setTickerEventsInDb(symbol, events);
-          // Mark as fetched in memory cache (24h)
-          markTickerEventsFetched(symbol);
           return events;
         });
 
@@ -411,8 +407,8 @@ export async function GET(request: Request) {
       } else {
         console.log("[Events][API] Fetching macro events (generated)");
         macroEvents = await fetchMacroEvents();
+        // Store in database (updated_at timestamp tracks when fetched)
         await setMacroEventsInDb(macroEvents);
-        markMacroEventsFetched();
       }
 
       // Sort by date
