@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSnapshotsForSymbols } from "@/lib/marketData";
+import { getCachedSnapshots } from "@/lib/tickerCache";
 
 const TICKER_SYMBOLS = [
   { symbol: "$SPX", name: "S&P 500" },
@@ -19,7 +19,7 @@ const TICKER_SYMBOLS = [
 export async function GET() {
   try {
     const symbols = TICKER_SYMBOLS.map((t) => t.symbol);
-    const snapshots = await getSnapshotsForSymbols(symbols);
+    const { snapshots, cacheStats } = await getCachedSnapshots(symbols);
 
     const tickers = snapshots.map((snapshot) => {
       const tickerInfo = TICKER_SYMBOLS.find(
@@ -33,7 +33,16 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ tickers });
+    return NextResponse.json(
+      { tickers },
+      {
+        headers: {
+          "X-Cache-Hits": String(cacheStats.hits),
+          "X-Cache-Misses": String(cacheStats.misses),
+          "Cache-Control": "public, max-age=2",
+        },
+      }
+    );
   } catch (error) {
     console.error("Failed to fetch market ticker data:", error);
     return NextResponse.json(

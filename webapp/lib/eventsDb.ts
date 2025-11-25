@@ -3,15 +3,33 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 
 /**
- * Database-backed event storage
- * Replaces in-memory cache with persistent PostgreSQL storage
+ * Database-backed event storage with in-memory caching
+ * - Database: Persistent storage for events
+ * - Memory cache: 24-hour TTL to minimize DB queries
+ *
+ * Events only refetch from external APIs once per day max
  */
+
+// In-memory cache layer (24-hour TTL)
+const CACHE_TTL = 24 * 60 * 60 * 1000;
+const tickerCache = new Map<string, { lastFetch: number }>();
+const macroCache: { lastFetch: number } | null = null;
+let macroCacheTimestamp = 0;
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [symbol, entry] of tickerCache.entries()) {
+    if (now - entry.lastFetch > CACHE_TTL) {
+      tickerCache.delete(symbol);
+    }
+  }
+}, 60 * 60 * 1000);
 
 export type StockEvent = {
   symbol: string;
   type: "earnings" | "dividend" | "conference" | "other";
   title: string;
-  date: string; // ISO date string
+  date: string;
   description?: string;
   source?: "api" | "news";
 };
@@ -19,7 +37,7 @@ export type StockEvent = {
 export type MacroEvent = {
   type: "fomc" | "cpi" | "jobs" | "gdp" | "other";
   title: string;
-  date: string; // ISO date string
+  date: string;
   description?: string;
 };
 
@@ -37,7 +55,7 @@ export async function getTickerEventsFromDb(
     where: {
       symbol: upper,
       date: {
-        gte: today, // Only future events
+        gte: today,
       },
     },
     orderBy: {
@@ -126,9 +144,7 @@ export async function getMacroEventsFromDb(): Promise<MacroEvent[]> {
  * Store macro events in database
  * Uses upsert to avoid duplicates
  */
-export async function setMacroEventsInDb(
-  events: MacroEvent[]
-): Promise<void> {
+export async function setMacroEventsInDb(events: MacroEvent[]): Promise<void> {
   // Use transactions for atomic upserts
   await prisma.$transaction(
     events.map((event) =>
@@ -192,6 +208,89 @@ export async function cleanExpiredEventsFromDb(): Promise<number> {
 }
 
 /**
+ * Check if we should fetch ticker events from API
+ * Uses in-memory cache to prevent refetching within 24 hours
+ */
+export async function shouldFetchTickerEvents(
+  symbol: string
+): Promise<boolean> {
+  const upper = symbol.toUpperCase();
+  const now = Date.now();
+
+  // Check memory cache first (instant)
+  const cached = tickerCache.get(upper);
+  if (cached && now - cached.lastFetch < CACHE_TTL) {
+    console.log(
+      `[Events][Cache] ${upper} cached (age: ${Math.floor(
+        (now - cached.lastFetch) / 1000 / 60
+      )}min)`
+    );
+    return false; // Don't refetch
+  }
+
+  // Check if we have data in DB
+  const hasData = await hasTickerEventsInDb(upper);
+
+  if (hasData) {
+    // Mark as fetched in memory cache
+    tickerCache.set(upper, { lastFetch: now });
+    console.log(`[Events][DB] ${upper} found in DB, caching for 24h`);
+    return false; // Don't refetch
+  }
+
+  console.log(`[Events][API] ${upper} not in cache or DB, will fetch from API`);
+  return true; // Need to fetch from API
+}
+
+/**
+ * Check if we should fetch macro events from API
+ * Uses in-memory cache to prevent refetching within 24 hours
+ */
+export async function shouldFetchMacroEvents(): Promise<boolean> {
+  const now = Date.now();
+
+  // Check memory cache first
+  if (macroCacheTimestamp > 0 && now - macroCacheTimestamp < CACHE_TTL) {
+    console.log(
+      `[Events][Cache] Macro events cached (age: ${Math.floor(
+        (now - macroCacheTimestamp) / 1000 / 60
+      )}min)`
+    );
+    return false;
+  }
+
+  // Check if we have data in DB
+  const hasData = await hasMacroEventsInDb();
+
+  if (hasData) {
+    // Mark as fetched in memory cache
+    macroCacheTimestamp = now;
+    console.log(`[Events][DB] Macro events found in DB, caching for 24h`);
+    return false;
+  }
+
+  console.log(
+    `[Events][API] Macro events not in cache or DB, will fetch from API`
+  );
+  return true;
+}
+
+/**
+ * Mark ticker events as fetched (updates memory cache)
+ */
+export function markTickerEventsFetched(symbol: string): void {
+  const upper = symbol.toUpperCase();
+  tickerCache.set(upper, { lastFetch: Date.now() });
+}
+
+/**
+ * Mark macro events as fetched (updates memory cache)
+ */
+export function markMacroEventsFetched(): void {
+  macroCacheTimestamp = Date.now();
+}
+
+/**
  * Check if events exist for a symbol in the database
  */
 export async function hasTickerEventsInDb(symbol: string): Promise<boolean> {
@@ -207,7 +306,9 @@ export async function hasTickerEventsInDb(symbol: string): Promise<boolean> {
     },
   });
 
-  console.log(`[Events][DB] Check for ${upper}: found ${count} events (today: ${today})`);
+  console.log(
+    `[Events][DB] Check for ${upper}: found ${count} events (today: ${today})`
+  );
   return count > 0;
 }
 

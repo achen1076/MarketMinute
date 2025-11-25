@@ -20,7 +20,6 @@ export function TickerListClient({
   const [explanations, setExplanations] = useState<Record<string, string>>({});
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Update snapshots when initialSnapshots change (e.g., watchlist switch or page refresh)
   useEffect(() => {
     setSnapshots(initialSnapshots);
   }, [initialSnapshots]);
@@ -41,6 +40,14 @@ export function TickerListClient({
       setIsRefreshing(false);
     }
   };
+
+  useEffect(() => {
+    if (!watchlistId) return;
+
+    handleRefresh();
+    const interval = setInterval(handleRefresh, 5000);
+    return () => clearInterval(interval);
+  }, [watchlistId]);
 
   async function handleExplainToggle(s: TickerSnapshot) {
     const hasExplanation = !!explanations[s.symbol];

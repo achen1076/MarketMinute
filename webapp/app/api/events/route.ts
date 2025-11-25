@@ -7,8 +7,10 @@ import {
   getMacroEventsFromDb,
   setMacroEventsInDb,
   cleanExpiredEventsFromDb,
-  hasTickerEventsInDb,
-  hasMacroEventsInDb,
+  shouldFetchTickerEvents,
+  shouldFetchMacroEvents,
+  markTickerEventsFetched,
+  markMacroEventsFetched,
   type StockEvent,
   type MacroEvent,
 } from "@/lib/eventsDb";
@@ -336,11 +338,11 @@ export async function GET(request: Request) {
     const stockEvents: StockEvent[] = [];
     const symbolsToFetch: string[] = [];
 
-    // Check database for each symbol
+    // Check cache + database for each symbol (24-hour caching)
     for (const symbol of symbols) {
-      const hasEvents = await hasTickerEventsInDb(symbol);
-      if (hasEvents) {
-        console.log(`[Events] DB hit for ${symbol}`);
+      const shouldFetch = await shouldFetchTickerEvents(symbol);
+      if (!shouldFetch) {
+        // Already cached or in DB - retrieve from DB
         const events = await getTickerEventsFromDb(symbol);
         stockEvents.push(...events);
       } else {
@@ -348,14 +350,18 @@ export async function GET(request: Request) {
       }
     }
 
-    // Fetch uncached tickers
+    // Fetch uncached tickers from external API (max once per day)
     if (symbolsToFetch.length > 0) {
-      console.log(`[Events] Fetching events for: ${symbolsToFetch.join(", ")}`);
+      console.log(
+        `[Events][API] Fetching from FMP: ${symbolsToFetch.join(", ")}`
+      );
 
       const fetchPromises = symbolsToFetch.map(async (symbol) => {
         const events = await fetchTickerEvents(symbol);
         // Store in database
         await setTickerEventsInDb(symbol, events);
+        // Mark as fetched in memory cache (24h)
+        markTickerEventsFetched(symbol);
         return events;
       });
 
@@ -363,17 +369,17 @@ export async function GET(request: Request) {
       stockEvents.push(...results.flat());
     }
 
-    // Fetch macro events from DB or API
-    const hasMacroEvents = await hasMacroEventsInDb();
+    // Fetch macro events (24-hour caching)
     let macroEvents: MacroEvent[];
-    
-    if (hasMacroEvents) {
-      console.log("[Events] Using DB macro events");
+    const shouldFetchMacro = await shouldFetchMacroEvents();
+
+    if (!shouldFetchMacro) {
       macroEvents = await getMacroEventsFromDb();
     } else {
-      console.log("[Events] Fetching macro events from API");
+      console.log("[Events][API] Fetching macro events (generated)");
       macroEvents = await fetchMacroEvents();
       await setMacroEventsInDb(macroEvents);
+      markMacroEventsFetched();
     }
 
     // Sort by date

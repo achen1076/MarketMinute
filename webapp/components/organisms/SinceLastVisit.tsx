@@ -65,9 +65,6 @@ export function SinceLastVisit({ watchlistId, userId }: Props) {
         const result = await response.json();
         setData(result);
 
-        // Create a snapshot for next time
-        // - On first visit (no snapshot): create initial snapshot
-        // - On subsequent visits (has snapshot): create new snapshot after comparison
         await fetch("/api/visit-snapshot", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -131,7 +128,9 @@ export function SinceLastVisit({ watchlistId, userId }: Props) {
 
           <div className="mt-3">
             <div className="flex items-baseline gap-2">
-              <span className="text-sm text-slate-400">Watchlist:</span>
+              <span className="text-sm text-slate-400">
+                Watchlist Average Move:
+              </span>
               <span
                 className={`text-lg font-semibold ${
                   isFlat

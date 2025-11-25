@@ -19,7 +19,10 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className="min-h-screen" style={{ backgroundColor: COLORS.bg.body, color: COLORS.text.main }}>
+      <body
+        className="min-h-screen"
+        style={{ backgroundColor: COLORS.bg.body, color: COLORS.text.main }}
+      >
         {/* Sidebar handles its own responsive behavior */}
         <Sidebar user={session?.user} />
 

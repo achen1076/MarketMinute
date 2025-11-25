@@ -100,7 +100,7 @@ export default async function DashboardPage() {
       </Stack>
 
       {/* Admin Settings */}
-      <AdminSettings />
+      {session?.user?.email === "achen1076@gmail.com" && <AdminSettings />}
     </>
   );
 }

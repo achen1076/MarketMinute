@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { getSnapshotsForSymbols } from "@/lib/marketData";
+import { getCachedSnapshots } from "@/lib/tickerCache";
 
 export async function GET(request: Request) {
   const session = await auth();
@@ -13,7 +13,10 @@ export async function GET(request: Request) {
   const watchlistId = searchParams.get("watchlistId");
 
   if (!watchlistId) {
-    return NextResponse.json({ error: "watchlistId required" }, { status: 400 });
+    return NextResponse.json(
+      { error: "watchlistId required" },
+      { status: 400 }
+    );
   }
 
   const watchlist = await prisma.watchlist.findUnique({
@@ -26,7 +29,21 @@ export async function GET(request: Request) {
   }
 
   const symbols = watchlist.items.map((i) => i.symbol);
-  const snapshots = symbols.length > 0 ? await getSnapshotsForSymbols(symbols) : [];
 
-  return NextResponse.json({ snapshots });
+  if (symbols.length === 0) {
+    return NextResponse.json({ snapshots: [] });
+  }
+
+  const { snapshots, cacheStats } = await getCachedSnapshots(symbols);
+
+  return NextResponse.json(
+    { snapshots },
+    {
+      headers: {
+        "X-Cache-Hits": String(cacheStats.hits),
+        "X-Cache-Misses": String(cacheStats.misses),
+        "X-Watchlist-Size": String(symbols.length),
+      },
+    }
+  );
 }

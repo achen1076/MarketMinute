@@ -10,6 +10,12 @@ import {
 } from "@/lib/explainCache";
 import { computeSmartAlerts, SmartAlert } from "@/lib/smartAlerts";
 import { getSnapshotsForSymbols } from "@/lib/marketData";
+import {
+  checkRateLimit,
+  RateLimitPresets,
+  createRateLimitResponse,
+  getRateLimitHeaders,
+} from "@/lib/rateLimit";
 
 type ExplainPayload = {
   symbol: string;
@@ -30,6 +36,16 @@ export async function POST(req: Request) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
+  const rateLimitResult = checkRateLimit(
+    "explain",
+    session.user.email,
+    RateLimitPresets.AI_EXPLAIN
+  );
+
+  if (!rateLimitResult.allowed) {
+    return createRateLimitResponse(rateLimitResult);
+  }
+
   const body = await req.json();
   const { symbol, changePct, price, watchlistName } = body as {
     symbol: string;
@@ -38,16 +54,19 @@ export async function POST(req: Request) {
     watchlistName?: string;
   };
 
-  // Clean expired cache entries periodically
   cleanExpiredExplanations();
 
-  // Check cache first
   const cachedExplanation = getExplanationFromCache(symbol);
   if (cachedExplanation) {
-    return NextResponse.json({
-      explanation: cachedExplanation,
-      cached: true,
-    });
+    return NextResponse.json(
+      {
+        explanation: cachedExplanation,
+        cached: true,
+      },
+      {
+        headers: getRateLimitHeaders(rateLimitResult),
+      }
+    );
   }
 
   // Fetch news for this symbol (top 5 headlines)
@@ -136,8 +155,13 @@ export async function POST(req: Request) {
   // Cache the result
   setExplanationInCache(symbol, finalExplanation);
 
-  return NextResponse.json({
-    explanation: finalExplanation,
-    cached: false,
-  });
+  return NextResponse.json(
+    {
+      explanation: finalExplanation,
+      cached: false,
+    },
+    {
+      headers: getRateLimitHeaders(rateLimitResult),
+    }
+  );
 }

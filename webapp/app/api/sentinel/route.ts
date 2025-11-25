@@ -2,13 +2,32 @@ import { NextResponse } from "next/server";
 import { runSentinelAgent } from "@/agents/sentinel/agent/loop";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import {
+  checkRateLimit,
+  RateLimitPresets,
+  createRateLimitResponse,
+  getRateLimitHeaders,
+} from "@/lib/rateLimit";
 
 export async function POST() {
   try {
-    const { context, report } = await runSentinelAgent();
-
-    // Get user session (optional)
+    // Get user session (required for rate limiting)
     const session = await auth();
+
+    // Rate limiting: 3 requests per 5 minutes per user
+    // Sentinel is expensive (multiple AI calls), so we limit it heavily
+    const identifier = session?.user?.email || "anonymous";
+    const rateLimitResult = checkRateLimit(
+      "sentinel",
+      identifier,
+      RateLimitPresets.AI_SENTINEL
+    );
+
+    if (!rateLimitResult.allowed) {
+      return createRateLimitResponse(rateLimitResult);
+    }
+
+    const { context, report } = await runSentinelAgent();
 
     // Save to database
     const savedReport = await prisma.sentinelReport.create({
@@ -36,12 +55,17 @@ export async function POST() {
       },
     });
 
-    return NextResponse.json({
-      ok: true,
-      report,
-      reportId: savedReport.id,
-      timestamp: new Date().toISOString(),
-    });
+    return NextResponse.json(
+      {
+        ok: true,
+        report,
+        reportId: savedReport.id,
+        timestamp: new Date().toISOString(),
+      },
+      {
+        headers: getRateLimitHeaders(rateLimitResult),
+      }
+    );
   } catch (err) {
     console.error("[Sentinel] Error generating report:", err);
     return NextResponse.json(

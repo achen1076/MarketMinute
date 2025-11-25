@@ -44,7 +44,7 @@ export function MarketTicker() {
 
   useEffect(() => {
     fetchTickers();
-    const interval = setInterval(fetchTickers, 2000);
+    const interval = setInterval(fetchTickers, 5000);
     return () => clearInterval(interval);
   }, []);
 

@@ -3,11 +3,28 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getSnapshotsForSymbols } from "@/lib/marketData";
 import { buildSummary } from "@/lib/summary";
+import {
+  checkRateLimit,
+  RateLimitPresets,
+  createRateLimitResponse,
+  getRateLimitHeaders,
+} from "@/lib/rateLimit";
 
 export async function GET(req: Request) {
   const session = await auth();
   if (!session?.user?.email) {
     return new NextResponse("Unauthorized", { status: 401 });
+  }
+
+  // Rate limiting: 15 requests per minute per user
+  const rateLimitResult = checkRateLimit(
+    "summary",
+    session.user.email,
+    RateLimitPresets.AI_SUMMARY
+  );
+
+  if (!rateLimitResult.allowed) {
+    return createRateLimitResponse(rateLimitResult);
   }
 
   const user = await prisma.user.findUnique({
@@ -58,5 +75,7 @@ export async function GET(req: Request) {
   const snapshots = await getSnapshotsForSymbols(symbols);
   const summary = await buildSummary(watchlist.name, snapshots);
 
-  return NextResponse.json(summary);
+  return NextResponse.json(summary, {
+    headers: getRateLimitHeaders(rateLimitResult),
+  });
 }

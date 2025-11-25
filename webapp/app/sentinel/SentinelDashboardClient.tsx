@@ -83,14 +83,14 @@ export default function SentinelDashboardClient({
             </p>
           </div>
         </div>
-        <button
+        {/* <button
           onClick={runNewAnalysis}
           disabled={loading}
           className="px-6 py-3 bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-lg transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
         >
           <Sparkles size={18} />
           {loading ? "Analyzing..." : "Run New Analysis"}
-        </button>
+        </button> */}
       </div>
 
       {/* Professional 3-Column Grid Layout */}
@@ -257,9 +257,9 @@ export default function SentinelDashboardClient({
                           day: "numeric",
                         })}
                       </span>
-                      <span className="text-sm text-slate-200 font-medium">
+                      {/* <span className="text-sm text-slate-200 font-medium">
                         {regime} Day
-                      </span>
+                      </span> */}
                     </div>
                     <div className="flex items-center gap-2">
                       {report.vix && (
