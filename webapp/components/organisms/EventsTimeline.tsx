@@ -139,6 +139,13 @@ function formatDate(dateString: string): string {
   });
 }
 
+// Client-side cache (24-hour TTL, same as server)
+const CLIENT_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const clientCache = new Map<
+  string,
+  { data: UpcomingEvents; timestamp: number }
+>();
+
 export function EventsTimeline({ symbols }: Props) {
   const [events, setEvents] = useState<UpcomingEvents | null>(null);
   const [loading, setLoading] = useState(true);
@@ -153,6 +160,25 @@ export function EventsTimeline({ symbols }: Props) {
     async function fetchEvents() {
       try {
         setLoading(true);
+
+        // Check client cache first
+        const cacheKey = symbols.sort().join(",");
+        const now = Date.now();
+        const cached = clientCache.get(cacheKey);
+
+        if (cached && now - cached.timestamp < CLIENT_CACHE_TTL) {
+          console.log(
+            `[Events] Client cache hit (age: ${Math.floor(
+              (now - cached.timestamp) / 1000 / 60
+            )}min)`
+          );
+          setEvents(cached.data);
+          setError(null);
+          setLoading(false);
+          return;
+        }
+
+        // Fetch from server
         const res = await fetch(`/api/events?symbols=${symbols.join(",")}`);
 
         if (!res.ok) {
@@ -160,6 +186,10 @@ export function EventsTimeline({ symbols }: Props) {
         }
 
         const data = await res.json();
+
+        // Update client cache
+        clientCache.set(cacheKey, { data, timestamp: now });
+
         setEvents(data);
         setError(null);
       } catch (err) {

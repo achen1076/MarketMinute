@@ -1,0 +1,130 @@
+# GitHub Actions workflow for deploying MarketMinute infrastructure
+# Uses OIDC for secure AWS authentication (no long-lived credentials)
+
+name: Deploy Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "infrastructure/**"
+      - "quant/**"
+      - ".github/workflows/deploy-infrastructure.yml"
+
+  workflow_dispatch:
+    inputs:
+      skip_docker:
+        description: "Skip Docker builds"
+        required: false
+        type: boolean
+        default: false
+      skip_sagemaker:
+        description: "Skip SageMaker build"
+        required: false
+        type: boolean
+        default: false
+      skip_lambda:
+        description: "Skip Lambda build"
+        required: false
+        type: boolean
+        default: false
+
+env:
+  AWS_REGION: us-east-1
+
+# Required GitHub secrets:
+#   AWS_ROLE_ARN: arn:aws:iam::ACCOUNT_ID:role/marketminute-dev-github-actions
+
+jobs:
+  deploy:
+    name: Deploy to AWS
+    runs-on: ubuntu-latest
+
+    # Permission to request OIDC token
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHubActions-Deploy
+
+      - name: Verify AWS identity
+        run: |
+          aws sts get-caller-identity
+          echo "✅ Authenticated as: $(aws sts get-caller-identity --query Arn --output text)"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Build deployment flags
+        id: flags
+        run: |
+          FLAGS=""
+          if [ "${{ github.event.inputs.skip_docker }}" == "true" ]; then
+            FLAGS="$FLAGS --skip-docker"
+          fi
+          if [ "${{ github.event.inputs.skip_sagemaker }}" == "true" ]; then
+            FLAGS="$FLAGS --skip-sagemaker"
+          fi
+          if [ "${{ github.event.inputs.skip_lambda }}" == "true" ]; then
+            FLAGS="$FLAGS --skip-lambda"
+          fi
+          echo "flags=$FLAGS" >> $GITHUB_OUTPUT
+
+      - name: Deploy infrastructure
+        working-directory: infrastructure
+        run: |
+          ./deploy-pipeline.sh \
+            --auto-approve \
+            ${{ steps.flags.outputs.flags }}
+
+      - name: Get deployment outputs
+        if: success()
+        working-directory: infrastructure/terraform
+        run: |
+          echo "## Deployment Successful! 🎉" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployed Resources" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          terraform output >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Test Lambda endpoint
+        if: success()
+        run: |
+          LAMBDA_URL=$(cd infrastructure/terraform && terraform output -raw lambda_function_url)
+          echo "Testing Lambda at: $LAMBDA_URL"
+
+          RESPONSE=$(curl -s -X POST "$LAMBDA_URL" \
+            -H 'Content-Type: application/json' \
+            -d '{"task":"health_check"}' \
+            --max-time 10 || echo "timeout")
+
+          echo "Response: $RESPONSE"
+
+          if [ "$RESPONSE" != "timeout" ]; then
+            echo "✅ Lambda is responding"
+          else
+            echo "⚠️  Lambda took >10s (expected for cold start)"
+          fi
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "## Deployment Failed ❌" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the logs above for details." >> $GITHUB_STEP_SUMMARY

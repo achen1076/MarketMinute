@@ -310,6 +310,23 @@ function generateJobsReportDates(): string[] {
   return dates;
 }
 
+// Request deduplication cache (prevents duplicate calls within 1 second)
+const requestCache = new Map<
+  string,
+  { promise: Promise<NextResponse>; timestamp: number }
+>();
+const REQUEST_CACHE_TTL = 1000; // 1 second
+
+// Cleanup old request cache entries
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of requestCache.entries()) {
+    if (now - entry.timestamp > REQUEST_CACHE_TTL) {
+      requestCache.delete(key);
+    }
+  }
+}, 5000);
+
 export async function GET(request: Request) {
   const session = await auth();
   if (!session?.user?.email) {
@@ -332,67 +349,89 @@ export async function GET(request: Request) {
       .map((s) => s.trim().toUpperCase())
       .filter(Boolean);
 
-    // Clean expired events from database
-    await cleanExpiredEventsFromDb();
+    // Request deduplication: if same request within 1 second, return cached promise
+    const cacheKey = `${session.user.email}:${symbols.sort().join(",")}`;
+    const now = Date.now();
+    const cached = requestCache.get(cacheKey);
 
-    const stockEvents: StockEvent[] = [];
-    const symbolsToFetch: string[] = [];
-
-    // Check cache + database for each symbol (24-hour caching)
-    for (const symbol of symbols) {
-      const shouldFetch = await shouldFetchTickerEvents(symbol);
-      if (!shouldFetch) {
-        // Already cached or in DB - retrieve from DB
-        const events = await getTickerEventsFromDb(symbol);
-        stockEvents.push(...events);
-      } else {
-        symbolsToFetch.push(symbol);
-      }
-    }
-
-    // Fetch uncached tickers from external API (max once per day)
-    if (symbolsToFetch.length > 0) {
+    if (cached && now - cached.timestamp < REQUEST_CACHE_TTL) {
       console.log(
-        `[Events][API] Fetching from FMP: ${symbolsToFetch.join(", ")}`
+        `[Events] Deduplicating request for: ${symbols
+          .slice(0, 3)
+          .join(", ")}...`
       );
-
-      const fetchPromises = symbolsToFetch.map(async (symbol) => {
-        const events = await fetchTickerEvents(symbol);
-        // Store in database
-        await setTickerEventsInDb(symbol, events);
-        // Mark as fetched in memory cache (24h)
-        markTickerEventsFetched(symbol);
-        return events;
-      });
-
-      const results = await Promise.all(fetchPromises);
-      stockEvents.push(...results.flat());
+      return cached.promise;
     }
 
-    // Fetch macro events (24-hour caching)
-    let macroEvents: MacroEvent[];
-    const shouldFetchMacro = await shouldFetchMacroEvents();
+    // Create new request promise
+    const requestPromise = (async () => {
+      // Clean expired events from database
+      await cleanExpiredEventsFromDb();
 
-    if (!shouldFetchMacro) {
-      macroEvents = await getMacroEventsFromDb();
-    } else {
-      console.log("[Events][API] Fetching macro events (generated)");
-      macroEvents = await fetchMacroEvents();
-      await setMacroEventsInDb(macroEvents);
-      markMacroEventsFetched();
-    }
+      const stockEvents: StockEvent[] = [];
+      const symbolsToFetch: string[] = [];
 
-    // Sort by date
-    stockEvents.sort((a, b) => a.date.localeCompare(b.date));
-    macroEvents.sort((a, b) => a.date.localeCompare(b.date));
+      // Check cache + database for each symbol (24-hour caching)
+      for (const symbol of symbols) {
+        const shouldFetch = await shouldFetchTickerEvents(symbol);
+        if (!shouldFetch) {
+          // Already cached or in DB - retrieve from DB
+          const events = await getTickerEventsFromDb(symbol);
+          stockEvents.push(...events);
+        } else {
+          symbolsToFetch.push(symbol);
+        }
+      }
 
-    const response: UpcomingEventsResponse = {
-      stockEvents,
-      macroEvents,
-      fetchedAt: Date.now(),
-    };
+      // Fetch uncached tickers from external API (max once per day)
+      if (symbolsToFetch.length > 0) {
+        console.log(
+          `[Events][API] Fetching from FMP: ${symbolsToFetch.join(", ")}`
+        );
 
-    return NextResponse.json(response);
+        const fetchPromises = symbolsToFetch.map(async (symbol) => {
+          const events = await fetchTickerEvents(symbol);
+          // Store in database
+          await setTickerEventsInDb(symbol, events);
+          // Mark as fetched in memory cache (24h)
+          markTickerEventsFetched(symbol);
+          return events;
+        });
+
+        const results = await Promise.all(fetchPromises);
+        stockEvents.push(...results.flat());
+      }
+
+      // Fetch macro events (24-hour caching)
+      let macroEvents: MacroEvent[];
+      const shouldFetchMacro = await shouldFetchMacroEvents();
+
+      if (!shouldFetchMacro) {
+        macroEvents = await getMacroEventsFromDb();
+      } else {
+        console.log("[Events][API] Fetching macro events (generated)");
+        macroEvents = await fetchMacroEvents();
+        await setMacroEventsInDb(macroEvents);
+        markMacroEventsFetched();
+      }
+
+      // Sort by date
+      stockEvents.sort((a, b) => a.date.localeCompare(b.date));
+      macroEvents.sort((a, b) => a.date.localeCompare(b.date));
+
+      const response: UpcomingEventsResponse = {
+        stockEvents,
+        macroEvents,
+        fetchedAt: Date.now(),
+      };
+
+      return NextResponse.json(response);
+    })();
+
+    // Cache the request promise
+    requestCache.set(cacheKey, { promise: requestPromise, timestamp: now });
+
+    return requestPromise;
   } catch (error) {
     console.error("[Events] Error fetching events:", error);
     return NextResponse.json(

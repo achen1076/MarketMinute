@@ -6,27 +6,43 @@ from pathlib import Path
 
 MODEL_DIR = "/opt/ml/model"
 
+# Global model cache for lazy loading
+_model_cache = {}
+
 
 def model_fn(model_dir):
-    """Load all LGBM models for different stocks"""
-    models = {}
+    """
+    Returns model directory path for lazy loading.
+    Models are loaded on-demand in predict_fn to save memory.
+    """
     model_path = Path(MODEL_DIR)
+    available_models = [f.stem.replace("_lgbm", "")
+                        for f in model_path.glob("*_lgbm.pkl")]
 
-    # Load all .pkl files
-    for model_file in model_path.glob("*_lgbm.pkl"):
-        ticker = model_file.stem.replace("_lgbm", "")
-        try:
-            models[ticker] = joblib.load(model_file)
-            print(f"Loaded model for {ticker}")
-        except Exception as e:
-            print(f"Failed to load model for {ticker}: {e}")
+    print(
+        f"Model directory ready with {len(available_models)} models available")
+    print(f"Memory optimization: Models will be lazy-loaded on demand")
 
-    if not models:
-        print("WARNING: No models found!")
-    else:
-        print(f"Successfully loaded {len(models)} models")
+    return model_path
 
-    return models
+
+def load_model(ticker):
+    """Lazy-load a model only when needed"""
+    if ticker in _model_cache:
+        return _model_cache[ticker]
+
+    model_path = Path(MODEL_DIR) / f"{ticker}_lgbm.pkl"
+    if not model_path.exists():
+        return None
+
+    try:
+        model = joblib.load(model_path)
+        _model_cache[ticker] = model  # Cache for reuse
+        print(f"Lazy-loaded model for {ticker}")
+        return model
+    except Exception as e:
+        print(f"Failed to load model for {ticker}: {e}")
+        return None
 
 
 def input_fn(request_body, request_content_type):
@@ -50,8 +66,8 @@ def input_fn(request_body, request_content_type):
             "Unsupported content type: {}".format(request_content_type))
 
 
-def predict_fn(input_data, models):
-    """Generate predictions for requested tickers with probabilities"""
+def predict_fn(input_data, model_path):
+    """Generate predictions for requested tickers with probabilities (lazy-loaded)"""
     predictions = {}
 
     # Single ticker prediction
@@ -59,10 +75,11 @@ def predict_fn(input_data, models):
         ticker = input_data["ticker"]
         features = np.array(input_data["features"])
 
-        if ticker in models:
+        model = load_model(ticker)
+        if model:
             # Return both class prediction and probabilities
-            pred_class = models[ticker].predict(features).tolist()
-            pred_proba = models[ticker].predict_proba(features).tolist()
+            pred_class = model.predict(features).tolist()
+            pred_proba = model.predict_proba(features).tolist()
             predictions[ticker] = {
                 "class": pred_class,
                 "probabilities": pred_proba
@@ -70,36 +87,29 @@ def predict_fn(input_data, models):
         else:
             predictions[ticker] = {"error": f"No model available for {ticker}"}
 
-    # Multiple tickers prediction
+    # Multiple tickers prediction (batch)
     elif "tickers" in input_data:
         for ticker in input_data["tickers"]:
-            if ticker in models and ticker in input_data.get("features", {}):
-                features = np.array(input_data["features"][ticker])
-                # Return both class prediction and probabilities
-                pred_class = models[ticker].predict(features).tolist()
-                pred_proba = models[ticker].predict_proba(features).tolist()
-                predictions[ticker] = {
-                    "class": pred_class,
-                    "probabilities": pred_proba
-                }
-            else:
-                predictions[ticker] = {
-                    "error": f"No model or features for {ticker}"}
-
-    # Default: predict for all available models
-    else:
-        features = np.array(input_data.get("features", []))
-        if len(features) > 0:
-            for ticker, model in models.items():
-                try:
+            if ticker in input_data.get("features", {}):
+                model = load_model(ticker)
+                if model:
+                    features = np.array(input_data["features"][ticker])
+                    # Return both class prediction and probabilities
                     pred_class = model.predict(features).tolist()
                     pred_proba = model.predict_proba(features).tolist()
                     predictions[ticker] = {
                         "class": pred_class,
                         "probabilities": pred_proba
                     }
-                except Exception as e:
-                    predictions[ticker] = {"error": str(e)}
+                else:
+                    predictions[ticker] = {
+                        "error": f"No model available for {ticker}"}
+            else:
+                predictions[ticker] = {"error": f"No features for {ticker}"}
+
+    # Not supported: predicting for all models (would load 223 models!)
+    else:
+        return {"error": "Must specify 'ticker' or 'tickers' in request"}
 
     return predictions
 

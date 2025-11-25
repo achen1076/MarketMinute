@@ -3,16 +3,19 @@ import inference
 
 app = Flask(__name__)
 
-# Load models on startup
-print("Loading models...")
-models = inference.model_fn("/opt/ml/model")
-print(f"Models loaded: {len(models)} models")
+# Initialize model directory for lazy loading
+print("Initializing model directory...")
+model_path = inference.model_fn("/opt/ml/model")
+# Count available models without loading them
+available_models = len(list(model_path.glob("*_lgbm.pkl")))
+print(
+    f"Model directory ready: {available_models} models available for lazy loading")
 
 
 @app.route('/ping', methods=['GET'])
 def ping():
     """Health check endpoint"""
-    return jsonify({'status': 'healthy', 'models_loaded': len(models)})
+    return jsonify({'status': 'healthy', 'models_available': available_models})
 
 
 @app.route('/invocations', methods=['POST'])
@@ -27,7 +30,7 @@ def invocations():
         input_data = inference.input_fn(request.data, content_type)
 
         # Generate predictions
-        predictions = inference.predict_fn(input_data, models)
+        predictions = inference.predict_fn(input_data, model_path)
 
         # Format response
         response = inference.output_fn(predictions, content_type)

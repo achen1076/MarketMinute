@@ -10,16 +10,13 @@ resource "aws_sagemaker_model" "quant" {
 }
 
 resource "aws_sagemaker_endpoint_configuration" "quant" {
-  name = "${var.project_name}-${var.environment}-serverless-config"
+  name = "${var.project_name}-${var.environment}-realtime-config"
 
   production_variants {
-    variant_name = "AllTraffic"
-    model_name   = aws_sagemaker_model.quant.name
-
-    serverless_config {
-      memory_size_in_mb = var.sagemaker_memory_mb
-      max_concurrency   = var.sagemaker_max_concurrency
-    }
+    variant_name           = "AllTraffic"
+    model_name             = aws_sagemaker_model.quant.name
+    instance_type          = "ml.t2.medium"
+    initial_instance_count = 1
   }
 }
 

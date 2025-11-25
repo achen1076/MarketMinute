@@ -47,8 +47,8 @@ resource "aws_lambda_function" "quant_orchestrator" {
   package_type  = "Image"
   image_uri     = var.lambda_image_uri
   role          = aws_iam_role.lambda_execution.arn
-  timeout       = 300
-  memory_size   = 1024
+  timeout       = 900  
+  memory_size   = 3008 
   
   # Natural rate limiting: 32-second execution time + CORS restrictions
   # Reserved concurrency not needed for low-frequency workload (daily cron + occasional manual triggers)

@@ -1,0 +1,888 @@
+{
+  "version": 4,
+  "terraform_version": "1.14.0",
+  "serial": 227,
+  "lineage": "2064ba50-5af7-4709-456a-7e4ec82209ff",
+  "outputs": {
+    "eventbridge_rule_arn": {
+      "value": "arn:aws:events:us-east-1:767397974418:rule/marketminute-dev-daily-analysis",
+      "type": "string"
+    },
+    "eventbridge_schedule": {
+      "value": "cron(5 21 ? * MON-FRI *)",
+      "type": "string"
+    },
+    "github_actions_role_arn": {
+      "value": "OIDC not enabled",
+      "type": "string"
+    },
+    "lambda_function_url": {
+      "value": "https://3onvm3pew7n3ool6vy447f2ze40uwdrw.lambda-url.us-east-1.on.aws/",
+      "type": "string"
+    },
+    "sagemaker_endpoint_arn": {
+      "value": "arn:aws:sagemaker:us-east-1:767397974418:endpoint/marketminute-dev-endpoint",
+      "type": "string"
+    },
+    "sagemaker_endpoint_name": {
+      "value": "marketminute-dev-endpoint",
+      "type": "string"
+    },
+    "sagemaker_model_name": {
+      "value": "marketminute-dev-model",
+      "type": "string"
+    },
+    "schwab_token_secret_name": {
+      "value": "marketminute-dev-schwab-token",
+      "type": "string"
+    }
+  },
+  "resources": [
+    {
+      "mode": "data",
+      "type": "aws_ecr_repository",
+      "name": "lambda",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:ecr:us-east-1:767397974418:repository/marketminute-lambda",
+            "encryption_configuration": [
+              {
+                "encryption_type": "AES256",
+                "kms_key": ""
+              }
+            ],
+            "id": "marketminute-lambda",
+            "image_scanning_configuration": [
+              {
+                "scan_on_push": true
+              }
+            ],
+            "image_tag_mutability": "MUTABLE",
+            "most_recent_image_tags": [
+              "latest"
+            ],
+            "name": "marketminute-lambda",
+            "registry_id": "767397974418",
+            "repository_url": "767397974418.dkr.ecr.us-east-1.amazonaws.com/marketminute-lambda",
+            "tags": {}
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0
+        }
+      ]
+    },
+    {
+      "mode": "data",
+      "type": "aws_ecr_repository",
+      "name": "sagemaker",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:ecr:us-east-1:767397974418:repository/marketminute-sagemaker",
+            "encryption_configuration": [
+              {
+                "encryption_type": "AES256",
+                "kms_key": ""
+              }
+            ],
+            "id": "marketminute-sagemaker",
+            "image_scanning_configuration": [
+              {
+                "scan_on_push": false
+              }
+            ],
+            "image_tag_mutability": "MUTABLE",
+            "most_recent_image_tags": [
+              "latest"
+            ],
+            "name": "marketminute-sagemaker",
+            "registry_id": "767397974418",
+            "repository_url": "767397974418.dkr.ecr.us-east-1.amazonaws.com/marketminute-sagemaker",
+            "tags": {}
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_cloudwatch_event_rule",
+      "name": "daily_analysis",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:events:us-east-1:767397974418:rule/marketminute-dev-daily-analysis",
+            "description": "Trigger daily market analysis every weekday at 4:05 PM EST",
+            "event_bus_name": "default",
+            "event_pattern": null,
+            "force_destroy": false,
+            "id": "marketminute-dev-daily-analysis",
+            "is_enabled": true,
+            "name": "marketminute-dev-daily-analysis",
+            "name_prefix": "",
+            "role_arn": "",
+            "schedule_expression": "cron(5 21 ? * MON-FRI *)",
+            "state": "ENABLED",
+            "tags": {},
+            "tags_all": {}
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJzY2hlbWFfdmVyc2lvbiI6IjEifQ=="
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_cloudwatch_event_target",
+      "name": "lambda",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "appsync_target": [],
+            "arn": "arn:aws:lambda:us-east-1:767397974418:function:marketminute-dev-orchestrator",
+            "batch_target": [],
+            "dead_letter_config": [],
+            "ecs_target": [],
+            "event_bus_name": "default",
+            "force_destroy": false,
+            "http_target": [],
+            "id": "marketminute-dev-daily-analysis-lambda",
+            "input": "{\"task\":\"daily_analysis\"}",
+            "input_path": "",
+            "input_transformer": [],
+            "kinesis_target": [],
+            "redshift_target": [],
+            "retry_policy": [],
+            "role_arn": "",
+            "rule": "marketminute-dev-daily-analysis",
+            "run_command_targets": [],
+            "sagemaker_pipeline_target": [],
+            "sqs_target": [],
+            "target_id": "lambda"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJzY2hlbWFfdmVyc2lvbiI6IjEifQ==",
+          "dependencies": [
+            "aws_cloudwatch_event_rule.daily_analysis",
+            "aws_iam_role.lambda_execution",
+            "aws_iam_role.sagemaker_execution",
+            "aws_lambda_function.quant_orchestrator",
+            "aws_sagemaker_endpoint.quant",
+            "aws_sagemaker_endpoint_configuration.quant",
+            "aws_sagemaker_model.quant"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_ecr_repository_policy",
+      "name": "sagemaker_pull",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "marketminute-sagemaker",
+            "policy": "{\"Statement\":[{\"Action\":[\"ecr:GetDownloadUrlForLayer\",\"ecr:BatchGetImage\",\"ecr:BatchCheckLayerAvailability\"],\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"sagemaker.amazonaws.com\"},\"Sid\":\"AllowSageMakerPull\"}],\"Version\":\"2012-10-17\"}",
+            "registry_id": "767397974418",
+            "repository": "marketminute-sagemaker"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "data.aws_ecr_repository.sagemaker"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_openid_connect_provider",
+      "name": "github",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": []
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "github_actions",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": []
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "lambda_execution",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::767397974418:role/marketminute-dev-lambda-role",
+            "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"lambda.amazonaws.com\"}}],\"Version\":\"2012-10-17\"}",
+            "create_date": "2025-11-23T05:25:19Z",
+            "description": "",
+            "force_detach_policies": false,
+            "id": "marketminute-dev-lambda-role",
+            "inline_policy": [
+              {
+                "name": "marketminute-dev-lambda-sagemaker-policy",
+                "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Action\":[\"sagemaker:InvokeEndpoint\"],\"Effect\":\"Allow\",\"Resource\":\"arn:aws:sagemaker:us-east-1:767397974418:endpoint/marketminute-dev-endpoint\"}]}"
+              },
+              {
+                "name": "marketminute-dev-lambda-secrets-policy",
+                "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Action\":[\"secretsmanager:GetSecretValue\",\"secretsmanager:PutSecretValue\",\"secretsmanager:DescribeSecret\"],\"Effect\":\"Allow\",\"Resource\":\"arn:aws:secretsmanager:us-east-1:767397974418:secret:marketminute-dev-schwab-token-b8naQ4\"}]}"
+              }
+            ],
+            "managed_policy_arns": [
+              "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+            ],
+            "max_session_duration": 3600,
+            "name": "marketminute-dev-lambda-role",
+            "name_prefix": "",
+            "path": "/",
+            "permissions_boundary": "",
+            "tags": {},
+            "tags_all": {},
+            "unique_id": "AROA3FLD32GJAWH33OGTX"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "sagemaker_execution",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::767397974418:role/marketminute-dev-sagemaker-execution-role",
+            "assume_role_policy": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"sagemaker.amazonaws.com\"}}],\"Version\":\"2012-10-17\"}",
+            "create_date": "2025-11-23T05:25:19Z",
+            "description": "",
+            "force_detach_policies": false,
+            "id": "marketminute-dev-sagemaker-execution-role",
+            "inline_policy": [],
+            "managed_policy_arns": [
+              "arn:aws:iam::aws:policy/AmazonSageMakerFullAccess"
+            ],
+            "max_session_duration": 3600,
+            "name": "marketminute-dev-sagemaker-execution-role",
+            "name_prefix": "",
+            "path": "/",
+            "permissions_boundary": "",
+            "tags": {},
+            "tags_all": {},
+            "unique_id": "AROA3FLD32GJKJZM6ZU2S"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_role_policy",
+      "name": "github_actions_deploy",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": []
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_role_policy",
+      "name": "lambda_sagemaker",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "marketminute-dev-lambda-role:marketminute-dev-lambda-sagemaker-policy",
+            "name": "marketminute-dev-lambda-sagemaker-policy",
+            "name_prefix": "",
+            "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Action\":[\"sagemaker:InvokeEndpoint\"],\"Effect\":\"Allow\",\"Resource\":\"arn:aws:sagemaker:us-east-1:767397974418:endpoint/marketminute-dev-endpoint\"}]}",
+            "role": "marketminute-dev-lambda-role"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.lambda_execution",
+            "aws_iam_role.sagemaker_execution",
+            "aws_sagemaker_endpoint.quant",
+            "aws_sagemaker_endpoint_configuration.quant",
+            "aws_sagemaker_model.quant"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_role_policy",
+      "name": "lambda_secrets",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "id": "marketminute-dev-lambda-role:marketminute-dev-lambda-secrets-policy",
+            "name": "marketminute-dev-lambda-secrets-policy",
+            "name_prefix": "",
+            "policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Action\":[\"secretsmanager:GetSecretValue\",\"secretsmanager:PutSecretValue\",\"secretsmanager:DescribeSecret\"],\"Effect\":\"Allow\",\"Resource\":\"arn:aws:secretsmanager:us-east-1:767397974418:secret:marketminute-dev-schwab-token-b8naQ4\"}]}",
+            "role": "marketminute-dev-lambda-role"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.lambda_execution",
+            "aws_secretsmanager_secret.schwab_token"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_role_policy_attachment",
+      "name": "lambda_basic",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "marketminute-dev-lambda-role-20251123052520331700000001",
+            "policy_arn": "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+            "role": "marketminute-dev-lambda-role"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.lambda_execution"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_iam_role_policy_attachment",
+      "name": "sagemaker_full_access",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "marketminute-dev-sagemaker-execution-role-20251123052520370700000002",
+            "policy_arn": "arn:aws:iam::aws:policy/AmazonSageMakerFullAccess",
+            "role": "marketminute-dev-sagemaker-execution-role"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.sagemaker_execution"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_lambda_function",
+      "name": "quant_orchestrator",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "architectures": [
+              "x86_64"
+            ],
+            "arn": "arn:aws:lambda:us-east-1:767397974418:function:marketminute-dev-orchestrator",
+            "code_sha256": "52b495852cf3bde59b67e125a861c468d8822bd8afced0ee22598166b47c84e4",
+            "code_signing_config_arn": "",
+            "dead_letter_config": [],
+            "description": "",
+            "environment": [
+              {
+                "variables": {
+                  "ENVIRONMENT": "dev",
+                  "PROJECT_NAME": "marketminute",
+                  "SAGEMAKER_ENDPOINT_NAME": "marketminute-dev-endpoint",
+                  "SCHWAB_APP_KEY": "SCYH47PZh4CETY611utgP6oMNEQkbHG57wy9tJduzFv1FGN2",
+                  "SCHWAB_APP_SECRET": "gCZfqAR8Fr8z6ixCoYQGFJtErVBnfSekHrqsBhoGGRdZ2lySxfz05Q3dH0sm2QLs",
+                  "WEBAPP_URL": "https://market-minute.vercel.app"
+                }
+              }
+            ],
+            "ephemeral_storage": [
+              {
+                "size": 512
+              }
+            ],
+            "file_system_config": [],
+            "filename": null,
+            "function_name": "marketminute-dev-orchestrator",
+            "handler": "",
+            "id": "marketminute-dev-orchestrator",
+            "image_config": [],
+            "image_uri": "767397974418.dkr.ecr.us-east-1.amazonaws.com/marketminute-lambda:latest",
+            "invoke_arn": "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:767397974418:function:marketminute-dev-orchestrator/invocations",
+            "kms_key_arn": "",
+            "last_modified": "2025-11-25T05:01:50.000+0000",
+            "layers": [],
+            "logging_config": [
+              {
+                "application_log_level": "",
+                "log_format": "Text",
+                "log_group": "/aws/lambda/marketminute-dev-orchestrator",
+                "system_log_level": ""
+              }
+            ],
+            "memory_size": 3008,
+            "package_type": "Image",
+            "publish": false,
+            "qualified_arn": "arn:aws:lambda:us-east-1:767397974418:function:marketminute-dev-orchestrator:$LATEST",
+            "qualified_invoke_arn": "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:767397974418:function:marketminute-dev-orchestrator:$LATEST/invocations",
+            "replace_security_groups_on_destroy": null,
+            "replacement_security_group_ids": null,
+            "reserved_concurrent_executions": -1,
+            "role": "arn:aws:iam::767397974418:role/marketminute-dev-lambda-role",
+            "runtime": "",
+            "s3_bucket": null,
+            "s3_key": null,
+            "s3_object_version": null,
+            "signing_job_arn": "",
+            "signing_profile_version_arn": "",
+            "skip_destroy": false,
+            "snap_start": [],
+            "source_code_hash": "",
+            "source_code_size": 0,
+            "tags": {},
+            "tags_all": {},
+            "timeout": 900,
+            "timeouts": null,
+            "tracing_config": [
+              {
+                "mode": "PassThrough"
+              }
+            ],
+            "version": "$LATEST",
+            "vpc_config": []
+          },
+          "sensitive_attributes": [
+            [
+              {
+                "type": "get_attr",
+                "value": "environment"
+              },
+              {
+                "type": "index",
+                "value": {
+                  "value": 0,
+                  "type": "number"
+                }
+              },
+              {
+                "type": "get_attr",
+                "value": "variables"
+              },
+              {
+                "type": "index",
+                "value": {
+                  "value": "SCHWAB_APP_KEY",
+                  "type": "string"
+                }
+              }
+            ],
+            [
+              {
+                "type": "get_attr",
+                "value": "environment"
+              },
+              {
+                "type": "index",
+                "value": {
+                  "value": 0,
+                  "type": "number"
+                }
+              },
+              {
+                "type": "get_attr",
+                "value": "variables"
+              },
+              {
+                "type": "index",
+                "value": {
+                  "value": "SCHWAB_APP_SECRET",
+                  "type": "string"
+                }
+              }
+            ]
+          ],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6NjAwMDAwMDAwMDAwLCJ1cGRhdGUiOjYwMDAwMDAwMDAwMH19",
+          "dependencies": [
+            "aws_iam_role.lambda_execution",
+            "aws_iam_role.sagemaker_execution",
+            "aws_sagemaker_endpoint.quant",
+            "aws_sagemaker_endpoint_configuration.quant",
+            "aws_sagemaker_model.quant"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_lambda_function_url",
+      "name": "quant_orchestrator",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "authorization_type": "NONE",
+            "cors": [
+              {
+                "allow_credentials": false,
+                "allow_headers": [
+                  "content-type",
+                  "x-api-key"
+                ],
+                "allow_methods": [
+                  "POST"
+                ],
+                "allow_origins": [
+                  "http://localhost:3000",
+                  "http://localhost:3001",
+                  "https://market-minute.vercel.app"
+                ],
+                "expose_headers": [],
+                "max_age": 86400
+              }
+            ],
+            "function_arn": "arn:aws:lambda:us-east-1:767397974418:function:marketminute-dev-orchestrator",
+            "function_name": "marketminute-dev-orchestrator",
+            "function_url": "https://3onvm3pew7n3ool6vy447f2ze40uwdrw.lambda-url.us-east-1.on.aws/",
+            "id": "marketminute-dev-orchestrator",
+            "invoke_mode": "BUFFERED",
+            "qualifier": "",
+            "timeouts": null,
+            "url_id": "3onvm3pew7n3ool6vy447f2ze40uwdrw"
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDB9fQ==",
+          "dependencies": [
+            "aws_iam_role.lambda_execution",
+            "aws_iam_role.sagemaker_execution",
+            "aws_lambda_function.quant_orchestrator",
+            "aws_sagemaker_endpoint.quant",
+            "aws_sagemaker_endpoint_configuration.quant",
+            "aws_sagemaker_model.quant"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_lambda_permission",
+      "name": "allow_eventbridge",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "action": "lambda:InvokeFunction",
+            "event_source_token": null,
+            "function_name": "marketminute-dev-orchestrator",
+            "function_url_auth_type": null,
+            "id": "AllowExecutionFromEventBridge",
+            "principal": "events.amazonaws.com",
+            "principal_org_id": null,
+            "qualifier": "",
+            "source_account": null,
+            "source_arn": "arn:aws:events:us-east-1:767397974418:rule/marketminute-dev-daily-analysis",
+            "statement_id": "AllowExecutionFromEventBridge",
+            "statement_id_prefix": ""
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_cloudwatch_event_rule.daily_analysis",
+            "aws_iam_role.lambda_execution",
+            "aws_iam_role.sagemaker_execution",
+            "aws_lambda_function.quant_orchestrator",
+            "aws_sagemaker_endpoint.quant",
+            "aws_sagemaker_endpoint_configuration.quant",
+            "aws_sagemaker_model.quant"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_lambda_permission",
+      "name": "allow_function_url",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "action": "lambda:InvokeFunctionUrl",
+            "event_source_token": "",
+            "function_name": "marketminute-dev-orchestrator",
+            "function_url_auth_type": "NONE",
+            "id": "AllowPublicInvoke",
+            "principal": "*",
+            "principal_org_id": "",
+            "qualifier": "",
+            "source_account": "",
+            "source_arn": null,
+            "statement_id": "AllowPublicInvoke",
+            "statement_id_prefix": ""
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.lambda_execution",
+            "aws_iam_role.sagemaker_execution",
+            "aws_lambda_function.quant_orchestrator",
+            "aws_sagemaker_endpoint.quant",
+            "aws_sagemaker_endpoint_configuration.quant",
+            "aws_sagemaker_model.quant"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_sagemaker_endpoint",
+      "name": "quant",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "status": "tainted",
+          "schema_version": 0,
+          "attributes": {
+            "arn": null,
+            "deployment_config": [],
+            "endpoint_config_name": "marketminute-dev-serverless-config",
+            "id": "marketminute-dev-endpoint",
+            "name": "marketminute-dev-endpoint",
+            "tags": null,
+            "tags_all": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.sagemaker_execution",
+            "aws_sagemaker_endpoint_configuration.quant",
+            "aws_sagemaker_model.quant"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_sagemaker_endpoint_configuration",
+      "name": "quant",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:sagemaker:us-east-1:767397974418:endpoint-config/marketminute-dev-serverless-config",
+            "async_inference_config": [],
+            "data_capture_config": [],
+            "id": "marketminute-dev-serverless-config",
+            "kms_key_arn": "",
+            "name": "marketminute-dev-serverless-config",
+            "name_prefix": "",
+            "production_variants": [
+              {
+                "accelerator_type": "",
+                "container_startup_health_check_timeout_in_seconds": 0,
+                "core_dump_config": [],
+                "enable_ssm_access": false,
+                "inference_ami_version": "",
+                "initial_instance_count": 0,
+                "initial_variant_weight": 1,
+                "instance_type": "",
+                "managed_instance_scaling": [],
+                "model_data_download_timeout_in_seconds": 0,
+                "model_name": "marketminute-dev-model",
+                "routing_config": [],
+                "serverless_config": [
+                  {
+                    "max_concurrency": 5,
+                    "memory_size_in_mb": 3072,
+                    "provisioned_concurrency": 0
+                  }
+                ],
+                "variant_name": "AllTraffic",
+                "volume_size_in_gb": 5
+              }
+            ],
+            "shadow_production_variants": [],
+            "tags": {},
+            "tags_all": {}
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.sagemaker_execution",
+            "aws_sagemaker_model.quant"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_sagemaker_model",
+      "name": "quant",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:sagemaker:us-east-1:767397974418:model/marketminute-dev-model",
+            "container": [],
+            "enable_network_isolation": false,
+            "execution_role_arn": "arn:aws:iam::767397974418:role/marketminute-dev-sagemaker-execution-role",
+            "id": "marketminute-dev-model",
+            "inference_execution_config": [],
+            "name": "marketminute-dev-model",
+            "primary_container": [
+              {
+                "container_hostname": "inference",
+                "environment": {},
+                "image": "767397974418.dkr.ecr.us-east-1.amazonaws.com/marketminute-sagemaker:latest",
+                "image_config": [],
+                "inference_specification_name": "",
+                "mode": "SingleModel",
+                "model_data_source": [],
+                "model_data_url": "",
+                "model_package_name": "",
+                "multi_model_config": []
+              }
+            ],
+            "tags": {},
+            "tags_all": {},
+            "vpc_config": []
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_iam_role.sagemaker_execution"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_secretsmanager_secret",
+      "name": "schwab_token",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:secretsmanager:us-east-1:767397974418:secret:marketminute-dev-schwab-token-b8naQ4",
+            "description": "Schwab OAuth token for API access",
+            "force_overwrite_replica_secret": false,
+            "id": "arn:aws:secretsmanager:us-east-1:767397974418:secret:marketminute-dev-schwab-token-b8naQ4",
+            "kms_key_id": "",
+            "name": "marketminute-dev-schwab-token",
+            "name_prefix": "",
+            "policy": "",
+            "recovery_window_in_days": 7,
+            "replica": [],
+            "tags": {},
+            "tags_all": {}
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 0,
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_secretsmanager_secret_version",
+      "name": "schwab_token",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:secretsmanager:us-east-1:767397974418:secret:marketminute-dev-schwab-token-b8naQ4",
+            "has_secret_string_wo": null,
+            "id": "arn:aws:secretsmanager:us-east-1:767397974418:secret:marketminute-dev-schwab-token-b8naQ4|terraform-20251123144743882000000002",
+            "secret_binary": "",
+            "secret_id": "arn:aws:secretsmanager:us-east-1:767397974418:secret:marketminute-dev-schwab-token-b8naQ4",
+            "secret_string": "{}",
+            "secret_string_wo": null,
+            "secret_string_wo_version": null,
+            "version_id": "terraform-20251123144743882000000002",
+            "version_stages": []
+          },
+          "sensitive_attributes": [
+            [
+              {
+                "type": "get_attr",
+                "value": "secret_binary"
+              }
+            ],
+            [
+              {
+                "type": "get_attr",
+                "value": "secret_string"
+              }
+            ],
+            [
+              {
+                "type": "get_attr",
+                "value": "secret_string_wo"
+              }
+            ]
+          ],
+          "identity_schema_version": 0,
+          "private": "bnVsbA==",
+          "dependencies": [
+            "aws_secretsmanager_secret.schwab_token"
+          ]
+        }
+      ]
+    }
+  ],
+  "check_results": null
+}

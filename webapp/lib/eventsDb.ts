@@ -13,7 +13,6 @@ import { prisma } from "@/lib/prisma";
 // In-memory cache layer (24-hour TTL)
 const CACHE_TTL = 24 * 60 * 60 * 1000;
 const tickerCache = new Map<string, { lastFetch: number }>();
-const macroCache: { lastFetch: number } | null = null;
 let macroCacheTimestamp = 0;
 
 setInterval(() => {

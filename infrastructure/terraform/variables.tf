@@ -57,3 +57,15 @@ variable "webapp_url" {
   type        = string
   default     = ""
 }
+
+variable "enable_github_oidc" {
+  description = "Enable GitHub OIDC provider for CI/CD (eliminates need for AWS keys in GitHub)"
+  type        = bool
+  default     = false
+}
+
+variable "github_repo" {
+  description = "GitHub repository in format 'owner/repo' (e.g., 'achen1076/MarketMinute')"
+  type        = string
+  default     = ""
+}

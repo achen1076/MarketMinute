@@ -55,12 +55,6 @@ export default function LambdaCronRunner() {
           <Play className="h-4 w-4" />
           {loading ? "Running Analysis..." : "Trigger Cron Job"}
         </button>
-
-        {loading && (
-          <span className="text-sm text-slate-400 animate-pulse">
-            This may take 30-60 seconds...
-          </span>
-        )}
       </div>
 
       {/* Success Result */}
