@@ -1,4 +1,3 @@
-// webapp/lib/eventsDb.ts
 import "server-only";
 import { prisma } from "@/lib/prisma";
 
@@ -25,6 +24,53 @@ export type MacroEvent = {
 };
 
 /**
+ * Get ticker events from database for multiple symbols (BATCH)
+ * Returns events grouped by symbol
+ */
+export async function getBatchTickerEventsFromDb(
+  symbols: string[]
+): Promise<Map<string, StockEvent[]>> {
+  const today = new Date().toISOString().split("T")[0];
+  const upperSymbols = symbols.map((s) => s.toUpperCase());
+
+  const events = await prisma.tickerEvent.findMany({
+    where: {
+      symbol: {
+        in: upperSymbols,
+      },
+      date: {
+        gte: today,
+      },
+    },
+    orderBy: {
+      date: "asc",
+    },
+  });
+
+  // Group events by symbol
+  const grouped = new Map<string, StockEvent[]>();
+  for (const event of events) {
+    if (event.title === "No upcoming events") continue;
+
+    const stockEvent: StockEvent = {
+      symbol: event.symbol,
+      type: event.type as StockEvent["type"],
+      title: event.title,
+      date: event.date,
+      description: event.description ?? undefined,
+      source: (event.source as StockEvent["source"]) ?? undefined,
+    };
+
+    if (!grouped.has(event.symbol)) {
+      grouped.set(event.symbol, []);
+    }
+    grouped.get(event.symbol)!.push(stockEvent);
+  }
+
+  return grouped;
+}
+
+/**
  * Get ticker events from database
  * Returns events for the specified symbol that haven't expired
  */
@@ -47,7 +93,7 @@ export async function getTickerEventsFromDb(
   });
 
   return events
-    .filter((e) => e.title !== "No upcoming events") // Filter out sentinel records
+    .filter((e) => e.title !== "No upcoming events")
     .map((e) => ({
       symbol: e.symbol,
       type: e.type as StockEvent["type"],
@@ -69,11 +115,9 @@ export async function setTickerEventsInDb(
   const upper = symbol.toUpperCase();
 
   if (events.length === 0) {
-    // No events found - store a sentinel record so we know we've checked
-    // This prevents refetching from API repeatedly
     const sentinelDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
       .toISOString()
-      .split("T")[0]; // 1 year in future
+      .split("T")[0];
 
     await prisma.tickerEvent.upsert({
       where: {
@@ -230,6 +274,55 @@ export async function cleanExpiredEventsFromDb(): Promise<number> {
     deletedExpired.count + deletedOldSentinels.count + deletedMacro.count;
 
   return totalDeleted;
+}
+
+/**
+ * Check which symbols need fresh data from API (BATCH)
+ * Returns set of symbols that need fetching
+ */
+export async function getSymbolsNeedingFetch(
+  symbols: string[]
+): Promise<Set<string>> {
+  const today = new Date().toISOString().split("T")[0];
+  const upperSymbols = symbols.map((s) => s.toUpperCase());
+
+  // Get most recent event for each symbol
+  const recentEvents = await prisma.tickerEvent.findMany({
+    where: {
+      symbol: {
+        in: upperSymbols,
+      },
+      date: { gte: today },
+    },
+    orderBy: {
+      updatedAt: "desc",
+    },
+    distinct: ["symbol"],
+  });
+
+  const symbolsWithData = new Set<string>();
+  const staleSymbols = new Set<string>();
+
+  for (const event of recentEvents) {
+    symbolsWithData.add(event.symbol);
+
+    const age = Date.now() - event.updatedAt.getTime();
+    const ageHours = age / (1000 * 60 * 60);
+
+    if (ageHours >= 24) {
+      staleSymbols.add(event.symbol);
+    }
+  }
+
+  // Symbols that need fetching: either not in DB or stale
+  const needFetching = new Set<string>();
+  for (const symbol of upperSymbols) {
+    if (!symbolsWithData.has(symbol) || staleSymbols.has(symbol)) {
+      needFetching.add(symbol);
+    }
+  }
+
+  return needFetching;
 }
 
 /**

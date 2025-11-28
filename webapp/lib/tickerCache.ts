@@ -13,16 +13,14 @@
 import { getSnapshotsForSymbols, TickerSnapshot } from "@/lib/marketData";
 import { redis } from "@/lib/redis";
 
-const CACHE_TTL_SECONDS = 5; // 5 seconds for Redis TTL
-const CACHE_TTL_MS = CACHE_TTL_SECONDS * 1000; // 5 seconds for in-memory cache
+const CACHE_TTL_SECONDS = 30; // 30 seconds for Redis TTL
+const CACHE_TTL_MS = CACHE_TTL_SECONDS * 1000; // 30 seconds for in-memory cache
 
-// In-memory fallback cache (used when Redis is not available)
 const tickerCache = new Map<
   string,
   { snapshot: TickerSnapshot; timestamp: number }
 >();
 
-// Cleanup expired entries every minute (only for in-memory cache)
 if (!redis) {
   setInterval(() => {
     const now = Date.now();
@@ -37,7 +35,7 @@ if (!redis) {
 /**
  * Get snapshots for symbols with intelligent caching
  *
- * - Uses Redis cache when available (5 second TTL)
+ * - Uses Redis cache when available (30 second TTL)
  * - Falls back to in-memory cache
  * - Only fetches uncached/stale tickers from FMP API
  * - Returns combined cached + fresh data
@@ -87,14 +85,16 @@ export async function getCachedSnapshots(symbols: string[]): Promise<{
     fresh = await getSnapshotsForSymbols(toFetch);
 
     if (redis) {
-      for (const snapshot of fresh) {
-        try {
-          const cacheKey = `ticker:${snapshot.symbol}`;
-          await redis.setex(cacheKey, CACHE_TTL_SECONDS, snapshot);
-        } catch (error) {
-          console.error(`[Redis] Error caching ${snapshot.symbol}:`, error);
-        }
-      }
+      const redisClient = redis;
+      const writePromises = fresh.map((snapshot) => {
+        const cacheKey = `ticker:${snapshot.symbol}`;
+        return redisClient
+          .setex(cacheKey, CACHE_TTL_SECONDS, snapshot)
+          .catch((error) => {
+            console.error(`[Redis] Error caching ${snapshot.symbol}:`, error);
+          });
+      });
+      await Promise.all(writePromises);
     } else {
       const now = Date.now();
       for (const snapshot of fresh) {

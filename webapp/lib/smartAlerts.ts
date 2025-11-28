@@ -17,23 +17,26 @@ export type SmartAlertFlags = {
 
 /**
  * Compute smart alert flags for a symbol
+ * Pure computation - no async operations needed
  */
-export async function computeSmartAlerts(
+export function computeSmartAlerts(
   symbol: string,
   changePct: number,
   price: number,
   high52w?: number,
   low52w?: number,
   earningsDate?: string
-): Promise<SmartAlertFlags> {
+): SmartAlertFlags {
   const alerts: SmartAlert[] = [];
-  
+
   // Check for significant price move (±3%)
   const hit_3pct_today = Math.abs(changePct) >= 3;
   if (hit_3pct_today) {
     alerts.push({
       type: "price_move",
-      message: `${symbol} moved ${changePct >= 0 ? "+" : ""}${changePct.toFixed(2)}% today`,
+      message: `${symbol} moved ${changePct >= 0 ? "+" : ""}${changePct.toFixed(
+        2
+      )}% today`,
       severity: Math.abs(changePct) >= 5 ? "critical" : "warning",
     });
   }
@@ -43,11 +46,13 @@ export async function computeSmartAlerts(
   if (high52w && price > 0) {
     const distanceFromHigh = ((high52w - price) / high52w) * 100;
     within_2pct_52w_high = distanceFromHigh <= 2 && distanceFromHigh >= 0;
-    
+
     if (within_2pct_52w_high) {
       alerts.push({
         type: "near_52w_high",
-        message: `${symbol} is within ${distanceFromHigh.toFixed(1)}% of its 52-week high ($${high52w.toFixed(2)})`,
+        message: `${symbol} is within ${distanceFromHigh.toFixed(
+          1
+        )}% of its 52-week high ($${high52w.toFixed(2)})`,
         severity: "info",
       });
     }
@@ -58,11 +63,13 @@ export async function computeSmartAlerts(
   if (low52w && price > 0) {
     const distanceFromLow = ((price - low52w) / low52w) * 100;
     within_2pct_52w_low = distanceFromLow <= 2 && distanceFromLow >= 0;
-    
+
     if (within_2pct_52w_low) {
       alerts.push({
         type: "near_52w_low",
-        message: `${symbol} is within ${distanceFromLow.toFixed(1)}% of its 52-week low ($${low52w.toFixed(2)})`,
+        message: `${symbol} is within ${distanceFromLow.toFixed(
+          1
+        )}% of its 52-week low ($${low52w.toFixed(2)})`,
         severity: "warning",
       });
     }
@@ -76,13 +83,15 @@ export async function computeSmartAlerts(
     const diffDays = Math.ceil(
       (earnings.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
     );
-    
+
     earnings_within_5_days = diffDays >= 0 && diffDays <= 5;
-    
+
     if (earnings_within_5_days) {
       alerts.push({
         type: "earnings_soon",
-        message: `${symbol} reports earnings in ${diffDays} day${diffDays === 1 ? "" : "s"}`,
+        message: `${symbol} reports earnings in ${diffDays} day${
+          diffDays === 1 ? "" : "s"
+        }`,
         severity: "info",
       });
     }
@@ -100,7 +109,9 @@ export async function computeSmartAlerts(
 /**
  * Generate a summary line for dashboard about alerts across all symbols
  */
-export function summarizeAlerts(symbolAlerts: Map<string, SmartAlertFlags>): string {
+export function summarizeAlerts(
+  symbolAlerts: Map<string, SmartAlertFlags>
+): string {
   let big_movers = 0;
   let near_highs = 0;
   let near_lows = 0;
@@ -114,19 +125,19 @@ export function summarizeAlerts(symbolAlerts: Map<string, SmartAlertFlags>): str
   }
 
   const parts: string[] = [];
-  
+
   if (big_movers > 0) {
     parts.push(`${big_movers} hit ±3% moves`);
   }
-  
+
   if (near_highs > 0) {
     parts.push(`${near_highs} near 52-week highs`);
   }
-  
+
   if (near_lows > 0) {
     parts.push(`${near_lows} near 52-week lows`);
   }
-  
+
   if (earnings_soon > 0) {
     parts.push(`${earnings_soon} with earnings this week`);
   }

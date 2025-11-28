@@ -27,56 +27,58 @@ export async function getSnapshotsForSymbols(
   // Import earnings calendar
   const earningsCalendar = await getEarningsCalendar();
 
-  // FMP free tier requires individual requests per symbol
-  const results = await Promise.all(
-    symbols.map(async (symbol) => {
-      try {
-        const url = new URL("https://financialmodelingprep.com/stable/quote");
-        url.searchParams.set("symbol", symbol);
-        url.searchParams.set("apikey", apiKey);
+  try {
+    const symbolsParam = symbols.join(",");
+    const url = new URL("https://financialmodelingprep.com/stable/batch-quote");
+    url.searchParams.set("symbols", symbolsParam);
+    url.searchParams.set("apikey", apiKey);
 
-        const res = await fetch(url.toString(), {
-          next: { revalidate: 30 },
-        });
+    const res = await fetch(url.toString(), {
+      next: { revalidate: 30 },
+    });
 
-        if (!res.ok) {
-          console.error(`[FMP] Quote error for ${symbol}:`, res.status);
-          return {
-            symbol: symbol.toUpperCase(),
-            price: 0,
-            changePct: 0,
-          };
-        }
+    if (!res.ok) {
+      console.error(`[FMP] Batch quote error:`, res.status);
+      return symbols.map((symbol) => ({
+        symbol: symbol.toUpperCase(),
+        price: 0,
+        changePct: 0,
+      }));
+    }
 
-        const data = await res.json();
-        const quote = Array.isArray(data) && data.length > 0 ? data[0] : {};
+    const data = await res.json();
 
-        const key = symbol.toUpperCase();
-        const price = quote.price ?? 0;
-        const changePct = quote.changePercentage ?? 0;
-        const high52w = quote.yearHigh;
-        const low52w = quote.yearLow;
+    if (!Array.isArray(data)) {
+      console.error("[FMP] Invalid batch quote response:", data);
+      return symbols.map((symbol) => ({
+        symbol: symbol.toUpperCase(),
+        price: 0,
+        changePct: 0,
+      }));
+    }
 
-        return {
-          symbol: key,
-          price: Number(price) || 0,
-          changePct: Number(changePct) || 0,
-          high52w: high52w ? Number(high52w) : undefined,
-          low52w: low52w ? Number(low52w) : undefined,
-          earningsDate: earningsCalendar[key],
-        };
-      } catch (error) {
-        console.error(`[FMP] Error fetching ${symbol}:`, error);
-        return {
-          symbol: symbol.toUpperCase(),
-          price: 0,
-          changePct: 0,
-        };
-      }
-    })
-  );
+    // Map response to TickerSnapshot format
+    const results = data.map((quote: any) => {
+      const key = quote.symbol.toUpperCase();
+      return {
+        symbol: key,
+        price: Number(quote.price) || 0,
+        changePct: Number(quote.changePercentage) || 0,
+        high52w: quote.yearHigh ? Number(quote.yearHigh) : undefined,
+        low52w: quote.yearLow ? Number(quote.yearLow) : undefined,
+        earningsDate: earningsCalendar[key],
+      };
+    });
 
-  return results;
+    return results;
+  } catch (error) {
+    console.error(`[FMP] Error fetching batch quotes:`, error);
+    return symbols.map((symbol) => ({
+      symbol: symbol.toUpperCase(),
+      price: 0,
+      changePct: 0,
+    }));
+  }
 }
 
 /**

@@ -30,6 +30,7 @@ export async function GET(req: Request) {
       .map((s) => s.trim().toUpperCase())
       .filter(Boolean);
 
+    // Batch fetch all ticker data in one call
     const { snapshots } = await getCachedSnapshots(symbols);
 
     let bigMovers = 0;
@@ -39,8 +40,9 @@ export async function GET(req: Request) {
 
     const details = [];
 
+    // Process alerts (synchronous computation, no database calls)
     for (const snapshot of snapshots) {
-      const alertFlags = await computeSmartAlerts(
+      const alertFlags = computeSmartAlerts(
         snapshot.symbol,
         snapshot.changePct,
         snapshot.price,

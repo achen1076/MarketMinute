@@ -22,7 +22,7 @@ const SECTOR_SYMBOLS = [
 ];
 
 /*
-  Fetch quotes from FMP (individual requests per symbol for free tier).
+  Fetch quotes from FMP using batch-quote endpoint (premium tier).
 */
 async function fetchFMPQuotes(symbols: string[]): Promise<MarketIndex[]> {
   const apiKey = process.env.FMP_API_KEY;
@@ -31,49 +31,55 @@ async function fetchFMPQuotes(symbols: string[]): Promise<MarketIndex[]> {
     throw new Error("FMP API key not configured");
   }
 
-  // FMP free tier requires individual requests per symbol
-  const results = await Promise.all(
-    symbols.map(async (symbol) => {
-      try {
-        const url = new URL("https://financialmodelingprep.com/stable/quote");
-        url.searchParams.set("symbol", symbol);
-        url.searchParams.set("apikey", apiKey);
+  try {
+    const symbolsParam = symbols.join(",");
+    const url = new URL("https://financialmodelingprep.com/stable/batch-quote");
+    url.searchParams.set("symbols", symbolsParam);
+    url.searchParams.set("apikey", apiKey);
 
-        const res = await fetch(url.toString());
+    const res = await fetch(url.toString());
 
-        if (!res.ok) {
-          console.error(`[Sentinel] FMP error for ${symbol}:`, res.status);
-          return {
-            symbol: symbol.toUpperCase(),
-            changePct: 0,
-            price: null,
-          };
-        }
+    if (!res.ok) {
+      console.error(`[Sentinel] FMP batch quote error:`, res.status);
+      return symbols.map((symbol) => ({
+        symbol: symbol.toUpperCase(),
+        changePct: 0,
+        price: null,
+      }));
+    }
 
-        const data = (await res.json()) as any[];
-        const quote = Array.isArray(data) && data.length > 0 ? data[0] : {};
+    const data = (await res.json()) as any[];
 
-        const key = symbol.toUpperCase();
-        const price = quote.price ?? null;
-        const changePct = quote.changePercentage ?? 0;
+    if (!Array.isArray(data)) {
+      console.error("[Sentinel] Invalid batch quote response:", data);
+      return symbols.map((symbol) => ({
+        symbol: symbol.toUpperCase(),
+        changePct: 0,
+        price: null,
+      }));
+    }
 
-        return {
-          symbol: key,
-          changePct: Number(changePct) || 0,
-          price: price ? Number(price) : null,
-        };
-      } catch (error) {
-        console.error(`[Sentinel] Error fetching ${symbol}:`, error);
-        return {
-          symbol: symbol.toUpperCase(),
-          changePct: 0,
-          price: null,
-        };
-      }
-    })
-  );
+    const results = data.map((quote: any) => {
+      const key = quote.symbol.toUpperCase();
+      const price = quote.price ?? null;
+      const changePct = quote.changePercentage ?? 0;
 
-  return results;
+      return {
+        symbol: key,
+        changePct: Number(changePct) || 0,
+        price: price ? Number(price) : null,
+      };
+    });
+
+    return results;
+  } catch (error) {
+    console.error(`[Sentinel] Error fetching batch quotes:`, error);
+    return symbols.map((symbol) => ({
+      symbol: symbol.toUpperCase(),
+      changePct: 0,
+      price: null,
+    }));
+  }
 }
 
 /*

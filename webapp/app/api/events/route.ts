@@ -2,12 +2,12 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import {
-  getTickerEventsFromDb,
+  getBatchTickerEventsFromDb,
   setTickerEventsInDb,
   getMacroEventsFromDb,
   setMacroEventsInDb,
   cleanExpiredEventsFromDb,
-  shouldFetchTickerEvents,
+  getSymbolsNeedingFetch,
   shouldFetchMacroEvents,
   type StockEvent,
   type MacroEvent,
@@ -361,20 +361,20 @@ export async function GET(request: Request) {
       // Clean expired events from database
       await cleanExpiredEventsFromDb();
 
-      const stockEvents: StockEvent[] = [];
-      const symbolsToFetch: string[] = [];
+      // BATCH: Check which symbols need fresh data (1 query instead of N)
+      const symbolsToFetch = Array.from(await getSymbolsNeedingFetch(symbols));
 
-      // Check cache + database for each symbol (24-hour caching)
-      for (const symbol of symbols) {
-        const shouldFetch = await shouldFetchTickerEvents(symbol);
-        if (!shouldFetch) {
-          const events = await getTickerEventsFromDb(symbol);
-          stockEvents.push(...events);
-        } else {
-          symbolsToFetch.push(symbol);
-        }
+      // BATCH: Get cached events for all symbols (1 query instead of N)
+      const cachedEventsMap = await getBatchTickerEventsFromDb(symbols);
+
+      const stockEvents: StockEvent[] = [];
+
+      // Add cached events
+      for (const [symbol, events] of cachedEventsMap.entries()) {
+        stockEvents.push(...events);
       }
 
+      // Fetch fresh events for symbols that need it
       if (symbolsToFetch.length > 0) {
         const fetchPromises = symbolsToFetch.map(async (symbol) => {
           const events = await fetchTickerEvents(symbol);

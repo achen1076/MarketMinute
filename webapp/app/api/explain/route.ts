@@ -76,8 +76,8 @@ export async function POST(req: Request) {
   const { snapshots } = await getCachedSnapshots([symbol]);
   const snapshot = snapshots[0];
 
-  // Compute smart alerts with full data
-  const alertFlags = await computeSmartAlerts(
+  // Compute smart alerts with full data (synchronous computation)
+  const alertFlags = computeSmartAlerts(
     symbol,
     changePct,
     price || 0,
