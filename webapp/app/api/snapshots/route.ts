@@ -36,8 +36,20 @@ export async function GET(request: Request) {
 
   const { snapshots, cacheStats } = await getCachedSnapshots(symbols);
 
+  // Enrich snapshots with favorite status and item IDs
+  const enrichedSnapshots = snapshots.map((snapshot) => {
+    const item = watchlist.items.find(
+      (i) => i.symbol.toUpperCase() === snapshot.symbol.toUpperCase()
+    );
+    return {
+      ...snapshot,
+      isFavorite: (item as any)?.isFavorite ?? false,
+      itemId: item?.id ?? null,
+    };
+  });
+
   return NextResponse.json(
-    { snapshots },
+    { snapshots: enrichedSnapshots },
     {
       headers: {
         "X-Cache-Hits": String(cacheStats.hits),

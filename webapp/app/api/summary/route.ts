@@ -72,8 +72,15 @@ export async function GET(req: Request) {
   }
 
   const symbols = watchlist.items.map((i) => i.symbol);
+  const favoritedSymbols = watchlist.items
+    .filter((i) => (i as any).isFavorite)
+    .map((i) => i.symbol);
   const { snapshots, cacheStats } = await getCachedSnapshots(symbols);
-  const summary = await buildSummary(watchlist.name, snapshots);
+  const summary = await buildSummary(
+    watchlist.name,
+    snapshots,
+    favoritedSymbols
+  );
 
   return NextResponse.json(summary, {
     headers: {

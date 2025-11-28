@@ -4,11 +4,16 @@ import { useState, useEffect, useMemo } from "react";
 import type { TickerSnapshot } from "@/lib/marketData";
 import Card from "@/components/atoms/Card";
 import Button from "@/components/atoms/Button";
-import { RefreshCw, Search } from "lucide-react";
+import { RefreshCw, Search, Star } from "lucide-react";
 import { CACHE_TTL_MS } from "@/lib/constants";
 
+type EnrichedSnapshot = TickerSnapshot & {
+  isFavorite?: boolean;
+  itemId?: string | null;
+};
+
 type Props = {
-  snapshots: TickerSnapshot[];
+  snapshots: EnrichedSnapshot[];
   watchlistId?: string | null;
 };
 
@@ -21,6 +26,9 @@ export function TickerListClient({
   const [explanations, setExplanations] = useState<Record<string, string>>({});
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [favoriteTogglingId, setFavoriteTogglingId] = useState<string | null>(
+    null
+  );
   const [sortMode, setSortMode] = useState<
     "a-z" | "highest-gain" | "highest-loss"
   >("a-z");
@@ -55,7 +63,38 @@ export function TickerListClient({
     return () => clearInterval(interval);
   }, [watchlistId]);
 
-  async function handleExplainToggle(s: TickerSnapshot) {
+  const handleFavoriteToggle = async (snapshot: EnrichedSnapshot) => {
+    if (!snapshot.itemId || favoriteTogglingId) return;
+
+    setFavoriteTogglingId(snapshot.itemId);
+    try {
+      const res = await fetch("/api/watchlist-items/favorite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          itemId: snapshot.itemId,
+          isFavorite: !snapshot.isFavorite,
+        }),
+      });
+
+      if (res.ok) {
+        // Optimistically update the UI
+        setSnapshots((prev) =>
+          prev.map((s) =>
+            s.symbol === snapshot.symbol
+              ? { ...s, isFavorite: !s.isFavorite }
+              : s
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Failed to toggle favorite:", error);
+    } finally {
+      setFavoriteTogglingId(null);
+    }
+  };
+
+  async function handleExplainToggle(s: EnrichedSnapshot) {
     const hasExplanation = !!explanations[s.symbol];
 
     if (hasExplanation) {
@@ -110,6 +149,13 @@ export function TickerListClient({
         filtered.sort((a, b) => a.changePct - b.changePct);
         break;
     }
+
+    // Always sort favorited stocks to the top
+    filtered.sort((a, b) => {
+      if (a.isFavorite && !b.isFavorite) return -1;
+      if (!a.isFavorite && b.isFavorite) return 1;
+      return 0;
+    });
 
     return filtered;
   }, [snapshots, searchQuery, sortMode]);
@@ -171,15 +217,44 @@ export function TickerListClient({
             return (
               <div
                 key={s.symbol}
-                className="flex flex-col rounded-lg bg-slate-900/60 px-3 py-3 transition-all"
+                className={`flex flex-col rounded-lg px-3 py-3 transition-all ${
+                  s.isFavorite
+                    ? "bg-amber-500/10 border border-amber-500/20"
+                    : "bg-slate-900/60"
+                }`}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-slate-100 mb-1">
-                      {s.symbol}
-                    </div>
-                    <div className="text-md text-slate-200">
-                      ${s.price.toFixed(2)}
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <button
+                      onClick={() => handleFavoriteToggle(s)}
+                      disabled={favoriteTogglingId === s.itemId}
+                      className="shrink-0 p-1 rounded hover:bg-slate-800/50 transition-colors disabled:opacity-50"
+                      title={s.isFavorite ? "Unfavorite" : "Favorite"}
+                    >
+                      <Star
+                        size={16}
+                        className={`transition-colors cursor-pointer ${
+                          s.isFavorite
+                            ? "fill-amber-400 text-amber-400"
+                            : "text-slate-500 hover:text-amber-400"
+                        }`}
+                      />
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-slate-100 mb-1">
+                        {s.symbol}
+                        {s.isFavorite && (
+                          <span className="ml-2 text-xs text-amber-400">★</span>
+                        )}
+                      </div>
+                      <div className="text-md text-slate-200">
+                        ${s.price.toFixed(2)}
+                      </div>
+                      {s.isFavorite && s.earningsDate && (
+                        <div className="text-xs text-amber-400/80 mt-1">
+                          📅 Earnings: {s.earningsDate}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div

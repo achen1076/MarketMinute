@@ -48,8 +48,20 @@ export default async function DashboardPage() {
 
   const symbols =
     activeWatchlist?.items.map((i: { symbol: string }) => i.symbol) ?? [];
-  const snapshots =
+  const rawSnapshots =
     symbols.length > 0 ? await getSnapshotsForSymbols(symbols) : [];
+
+  // Enrich snapshots with favorite status and item IDs from database
+  const snapshots = rawSnapshots.map((snapshot) => {
+    const item = activeWatchlist?.items.find(
+      (i: any) => i.symbol.toUpperCase() === snapshot.symbol.toUpperCase()
+    );
+    return {
+      ...snapshot,
+      isFavorite: item?.isFavorite ?? false,
+      itemId: item?.id ?? null,
+    };
+  });
 
   return (
     <>
@@ -93,7 +105,12 @@ export default async function DashboardPage() {
 
           {/* Right Sidebar */}
           <Stack spacing="xl" className="xl:w-96">
-            {snapshots.length > 0 && <TickerListClient snapshots={snapshots} />}
+            {snapshots.length > 0 && (
+              <TickerListClient
+                snapshots={snapshots}
+                watchlistId={activeWatchlistId ?? null}
+              />
+            )}
           </Stack>
         </Box>
       </Stack>

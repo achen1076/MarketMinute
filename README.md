@@ -48,7 +48,6 @@ MarketMinute is a full-stack financial intelligence platform that combines real-
 - **⚡ Smart Summary Polling** - Summary only loads on page load/watchlist change (not every 5s)
 - **📰 Tiered News Fetching** - Adaptive news loading: 5 items/symbol for small lists, top movers only for 50+ symbols
 - **🔐 AWS Secrets Manager** - Secure FMP API key storage instead of environment variables
-- **⚙️ Centralized Config** - Cache TTL managed in single constants file (30s default)
 
 ---
 

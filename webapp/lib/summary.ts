@@ -25,7 +25,8 @@ export type MarketMinuteSummary = {
 
 export async function buildSummary(
   listName: string,
-  snapshots: TickerSnapshot[]
+  snapshots: TickerSnapshot[],
+  favoritedSymbols: string[] = []
 ): Promise<MarketMinuteSummary> {
   if (snapshots.length === 0) {
     return {
@@ -67,28 +68,53 @@ export async function buildSummary(
     snapshots.reduce((sum, s) => sum + s.changePct, 0) / snapshots.length;
 
   // Tiered news fetching strategy based on watchlist size
+  // ALWAYS prioritize favorited stocks for detailed news
   const totalSymbols = snapshots.length;
+  const favoritedSet = new Set(favoritedSymbols.map((s) => s.toUpperCase()));
+  const favoritedSnapshots = snapshots.filter((s) =>
+    favoritedSet.has(s.symbol.toUpperCase())
+  );
+
   let newsItemsPerSymbol: number;
   let symbolsToFetchNewsFor: TickerSnapshot[];
 
   if (totalSymbols <= 10) {
+    // Small watchlist: fetch news for all symbols (5 items each)
     newsItemsPerSymbol = 5;
     symbolsToFetchNewsFor = snapshots;
   } else if (totalSymbols <= 20) {
+    // Medium watchlist: fetch news for all symbols (3 items each)
     newsItemsPerSymbol = 3;
     symbolsToFetchNewsFor = snapshots;
   } else if (totalSymbols <= 50) {
+    // Large watchlist: fetch news for favorited stocks + top movers
     newsItemsPerSymbol = 3;
     const sorted = [...snapshots].sort(
       (a, b) => Math.abs(b.changePct) - Math.abs(a.changePct)
     );
-    symbolsToFetchNewsFor = sorted.slice(0, Math.min(10, totalSymbols));
+    // Get top movers that aren't already favorited
+    const topMovers = sorted.filter(
+      (s) => !favoritedSet.has(s.symbol.toUpperCase())
+    );
+    const remainingSlots = Math.max(0, 10 - favoritedSnapshots.length);
+    symbolsToFetchNewsFor = [
+      ...favoritedSnapshots,
+      ...topMovers.slice(0, remainingSlots),
+    ];
   } else {
+    // Very large watchlist: fetch news for favorited stocks + fewer top movers
     newsItemsPerSymbol = 2;
     const sorted = [...snapshots].sort(
       (a, b) => Math.abs(b.changePct) - Math.abs(a.changePct)
     );
-    symbolsToFetchNewsFor = sorted.slice(0, Math.min(8, totalSymbols));
+    const topMovers = sorted.filter(
+      (s) => !favoritedSet.has(s.symbol.toUpperCase())
+    );
+    const remainingSlots = Math.max(0, 8 - favoritedSnapshots.length);
+    symbolsToFetchNewsFor = [
+      ...favoritedSnapshots,
+      ...topMovers.slice(0, remainingSlots),
+    ];
   }
 
   // Fetch news only for selected symbols in parallel
@@ -106,6 +132,7 @@ export async function buildSummary(
     {
       changePct: number;
       price: number;
+      isFavorite: boolean;
       news: Array<{
         title: string;
         summary: string;
@@ -114,12 +141,13 @@ export async function buildSummary(
     }
   > = {};
 
-  // Map news to symbols that we fetched for
+  // Map news to symbols that we fetched for, marking favorited stocks
   symbolsToFetchNewsFor.forEach((snapshot, index) => {
     const newsForSymbol = allNewsArrays[index] || [];
     symbolsWithNews[snapshot.symbol] = {
       changePct: Number(snapshot.changePct.toFixed(2)),
       price: snapshot.price,
+      isFavorite: favoritedSet.has(snapshot.symbol.toUpperCase()),
       news: newsForSymbol.map((n) => ({
         title: n.title,
         summary: n.summary,
@@ -197,6 +225,7 @@ export async function buildSummary(
         Important: News is grouped BY TICKER. Each symbol has its own news array. Do not mix news between tickers.
         Important: Use macroContext news to explain market-wide trends. High-impact macro news (Fed decisions, CPI, jobs) often drives all stocks in a direction.
         Important: For large watchlists, focus your narrative on the symbolsWithDetailedNews (top movers). You can reference overall watchlist trends but prioritize stocks with news.
+        Important: FAVORITED STOCKS are marked with isFavorite: true. ALWAYS prioritize mentioning favorited stocks in your summary, even if their moves are smaller than other stocks.
 
         Your task is to write a market recap for this watchlist.
 
@@ -230,7 +259,7 @@ export async function buildSummary(
         - All company names should be capitalized properly.
         - No em dash or en dash.
         - Do not use meta-commentary about the headlines or news (no "these items", "these news items", "this coverage", etc.). Always talk directly about the company and events.
-
+        - Do not mention "favorite" stocks when talking about them.
         Return ONLY the narrative text, no JSON, no preamble.
 
 `.trim();
