@@ -4,6 +4,7 @@ import Sidebar from "@/components/organisms/sidebar";
 import { MarketTicker } from "@/components/organisms/MarketTicker";
 import { auth } from "@/auth";
 import { COLORS } from "@/lib/colors";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata = {
   title: "MarketMinute",
@@ -35,6 +36,7 @@ export default async function RootLayout({
             {children}
           </main>
         </div>
+        <Analytics />
       </body>
     </html>
   );

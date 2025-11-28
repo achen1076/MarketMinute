@@ -79,25 +79,25 @@ export function calculateSignalMetrics(pred: Prediction): EnhancedSignal {
 
   const tradingInterpretation = (() => {
     if (quantScore >= 70 && edge > 0.15) {
-      return "Strong statistical edge detected — highest conviction setup.";
+      return "The model detects a strong statistical edge with high internal confidence.";
     } else if (quantScore >= 60 && regime === "trending") {
-      return "Clear directional momentum — favored for trend-following strategies.";
+      return "The model identifies a clear trend within the current regime.";
     } else if (quantScore >= 50 && regime === "high-vol breakout") {
-      return "Elevated volatility with directional bias — suitable for active monitoring.";
+      return "The model detects elevated volatility with a potential directional bias.";
     } else if (quantScore >= 40) {
-      return "Modest edge present, but requires confirmation from other analysis tools.";
+      return "The model finds a moderate edge but not a strong directional signal.";
     } else if (quantScore >= 30 && volatility < 0.015) {
-      return `Weak ${
+      return `The model notes a weak ${
         directionalBias > 0 ? "bullish" : "bearish"
-      } lean, but low volatility dampens conviction.`;
+      } leaning, while overall volatility remains low.`;
     } else if (quantScore >= 25 && regime === "reverting") {
-      return "Mean-reversion setup detected — consider waiting for clearer signals.";
+      return "The model identifies a reverting regime with limited directional structure.";
     } else if (regime === "low-vol chop") {
-      return "Model sees low/neutral chop — intraday traders may prefer to wait.";
+      return "The model characterizes conditions as low volatility with limited structure.";
     } else if (edge < 0.03) {
-      return "No clear edge — staying on sidelines recommended.";
+      return "The model does not detect a meaningful statistical edge.";
     } else {
-      return "Mixed signals with low conviction — better opportunities likely elsewhere.";
+      return "The model shows mixed or low conviction signals.";
     }
   })();
 
