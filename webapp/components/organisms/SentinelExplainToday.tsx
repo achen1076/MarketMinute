@@ -38,7 +38,8 @@ export default function SentinelExplainToday() {
     setReport(null);
 
     try {
-      const res = await fetch("/api/sentinel", {
+      // Use preview endpoint - doesn't save to database
+      const res = await fetch("/api/sentinel/preview", {
         method: "POST",
       });
 
@@ -69,7 +70,12 @@ export default function SentinelExplainToday() {
             <Brain className="w-6 h-6 text-indigo-400" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-100">🧠 Sentinel</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-bold text-slate-100">Sentinel</h2>
+              <span className="px-2 py-0.5 text-xs font-medium bg-slate-700/50 text-slate-400 rounded">
+                Preview
+              </span>
+            </div>
             <p className="text-sm text-slate-400">AI Market Intelligence</p>
           </div>
         </div>
@@ -96,10 +102,9 @@ export default function SentinelExplainToday() {
           {/* Call to Action */}
           {!report && !loading && (
             <div className="space-y-4">
-              <p className="text-slate-300">
-                Get an AI-powered explanation of today&apos;s market moves,
-                including anomaly detection, sector rotation analysis, and
-                volatility insights.
+              <p className="text-slate-300 mt-4">
+                Get a quick AI-powered snapshot of today&apos;s market moves.
+                This preview won&apos;t be saved to your dashboard history.
               </p>
               <button
                 onClick={explainToday}
@@ -107,7 +112,7 @@ export default function SentinelExplainToday() {
                 className="w-full px-6 py-3 bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 <Sparkles size={18} />
-                Explain Today
+                Generate Preview
               </button>
             </div>
           )}
@@ -188,7 +193,7 @@ export default function SentinelExplainToday() {
                 className="w-full px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 <Sparkles size={16} />
-                Refresh Analysis
+                Refresh Preview
               </button>
             </div>
           )}

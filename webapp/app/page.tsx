@@ -67,15 +67,14 @@ export default async function DashboardPage() {
             {activeWatchlistId && (
               <MarketMinuteSummary watchlistId={activeWatchlistId} />
             )}
-
+            {/* Sentinel Explain Today */}
+            <SentinelExplainToday />
+            {/* Upcoming Events */}
+            {snapshots.length > 0 && <EventsTimeline symbols={symbols} />}
             {/* Smart Alerts */}
             {snapshots.length > 0 && <SmartAlertsBar symbols={symbols} />}
 
-            {/* Upcoming Events */}
-            {snapshots.length > 0 && <EventsTimeline symbols={symbols} />}
-
             {/* Sentinel Intelligence Panel */}
-            <SentinelExplainToday />
 
             {user?.watchlists.length === 0 && (
               <Card className="p-8 text-center">

@@ -62,7 +62,7 @@ export function EnhancedPredictionCard({ signal }: { signal: EnhancedSignal }) {
       </div>
 
       {/* Signal Description */}
-      <div className="mb-4 p-3 rounded-lg bg-slate-800/40 border border-slate-700">
+      <div className="mb-4 p-3 rounded-lg bg-slate-800/40 border border-slate-700 min-h-[88px] flex flex-col justify-center">
         <p className="text-sm text-slate-300 mb-2">{signalDescription}</p>
         <p className="text-xs text-slate-400 italic">{tradingInterpretation}</p>
       </div>

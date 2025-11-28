@@ -617,7 +617,7 @@ export default function WatchlistsClient({
                   </DndContext>
                 ) : (
                   <div className="flex flex-wrap gap-2">
-                    {w.items.map((item) => (
+                    {w.items.slice(0, 25).map((item) => (
                       <span
                         key={item.id}
                         className="group flex items-center gap-1.5 rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-100"
@@ -625,6 +625,11 @@ export default function WatchlistsClient({
                         {item.symbol}
                       </span>
                     ))}
+                    {w.items.length > 25 && (
+                      <span className="flex items-center gap-1.5 rounded-full bg-slate-700/50 px-3 py-1 text-xs text-slate-400">
+                        +{w.items.length - 25} more
+                      </span>
+                    )}
                   </div>
                 )}
 
