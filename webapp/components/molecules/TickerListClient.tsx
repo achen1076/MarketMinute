@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import type { TickerSnapshot } from "@/lib/marketData";
 import Card from "@/components/atoms/Card";
 import Button from "@/components/atoms/Button";
+import { MiniSparkline } from "@/components/atoms/MiniSparkline";
 import { RefreshCw, Search, Star } from "lucide-react";
 import { CACHE_TTL_MS } from "@/lib/constants";
 
@@ -32,8 +33,48 @@ export function TickerListClient({
   const [sortMode, setSortMode] = useState<
     "a-z" | "highest-gain" | "highest-loss"
   >("a-z");
+  const [flashingSymbols, setFlashingSymbols] = useState<Set<string>>(
+    new Set()
+  );
+  const [previousPrices, setPreviousPrices] = useState<Record<string, number>>(
+    {}
+  );
+  const [priceHistory, setPriceHistory] = useState<Record<string, number[]>>(
+    {}
+  );
 
   useEffect(() => {
+    // Track price changes and trigger flash animations
+    const changedSymbols = new Set<string>();
+    initialSnapshots.forEach((snapshot) => {
+      const prevPrice = previousPrices[snapshot.symbol];
+      if (prevPrice && prevPrice !== snapshot.price) {
+        changedSymbols.add(snapshot.symbol);
+      }
+    });
+
+    if (changedSymbols.size > 0) {
+      setFlashingSymbols(changedSymbols);
+      setTimeout(() => setFlashingSymbols(new Set()), 600);
+    }
+
+    // Update prices and history
+    const newPrices: Record<string, number> = {};
+    const newHistory: Record<string, number[]> = { ...priceHistory };
+
+    initialSnapshots.forEach((s) => {
+      newPrices[s.symbol] = s.price;
+
+      // Maintain last 10 price points for sparkline
+      if (!newHistory[s.symbol]) {
+        newHistory[s.symbol] = [s.price];
+      } else {
+        newHistory[s.symbol] = [...newHistory[s.symbol], s.price].slice(-10);
+      }
+    });
+
+    setPreviousPrices(newPrices);
+    setPriceHistory(newHistory);
     setSnapshots(initialSnapshots);
   }, [initialSnapshots]);
 
@@ -178,29 +219,31 @@ export function TickerListClient({
       </div>
 
       {/* Search and Sort Controls */}
-      <div className="mb-3 space-y-2 shrink-0">
-        {/* Search Input */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search symbols..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-slate-900/60 border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-600"
-          />
-        </div>
+      <div className="mb-3 shrink-0">
+        <div className="bg-slate-900/40 border border-slate-700/50 rounded-lg p-3 space-y-2">
+          {/* Search Input */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search symbols..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-600"
+            />
+          </div>
 
-        {/* Sort Dropdown */}
-        <select
-          value={sortMode}
-          onChange={(e) => setSortMode(e.target.value as any)}
-          className="w-full px-3 py-2 bg-slate-900/60 border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-slate-600"
-        >
-          <option value="a-z">Sort: A-Z</option>
-          <option value="highest-gain">Sort: Highest Gain</option>
-          <option value="highest-loss">Sort: Highest Loss</option>
-        </select>
+          {/* Sort Dropdown */}
+          <select
+            value={sortMode}
+            onChange={(e) => setSortMode(e.target.value as any)}
+            className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-slate-600"
+          >
+            <option value="a-z">A-Z</option>
+            <option value="highest-gain">Highest Gain</option>
+            <option value="highest-loss">Highest Loss</option>
+          </select>
+        </div>
       </div>
 
       <div className="flex flex-col gap-3 overflow-y-auto pr-1">
@@ -214,15 +257,25 @@ export function TickerListClient({
           filteredAndSortedSnapshots.map((s) => {
             const hasExplanation = !!explanations[s.symbol];
 
+            const isFlashing = flashingSymbols.has(s.symbol);
+            const priceChangeClass =
+              s.changePct > 0 ? "from-emerald-500/20" : "from-rose-500/20";
+
             return (
               <div
                 key={s.symbol}
-                className={`flex flex-col rounded-lg px-3 py-3 transition-all ${
+                className={`flex flex-col rounded-lg px-3 py-3 transition-all relative overflow-hidden ${
                   s.isFavorite
                     ? "bg-amber-500/10 border border-amber-500/20"
                     : "bg-slate-900/60"
                 }`}
               >
+                {isFlashing && (
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-r ${priceChangeClass} to-transparent animate-pulse pointer-events-none`}
+                    style={{ animation: "pulse 0.6s ease-out" }}
+                  />
+                )}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <button
@@ -241,13 +294,33 @@ export function TickerListClient({
                       />
                     </button>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-slate-100 mb-1">
-                        {s.symbol}
-                        {s.isFavorite && (
-                          <span className="ml-2 text-xs text-amber-400">★</span>
-                        )}
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="font-medium text-slate-100">
+                          {s.symbol}
+                          {s.isFavorite && (
+                            <span className="ml-2 text-xs text-amber-400">
+                              ★
+                            </span>
+                          )}
+                        </div>
+                        {priceHistory[s.symbol] &&
+                          priceHistory[s.symbol].length >= 2 && (
+                            <MiniSparkline
+                              data={priceHistory[s.symbol]}
+                              width={40}
+                              height={16}
+                            />
+                          )}
                       </div>
-                      <div className="text-md text-slate-200">
+                      <div
+                        className={`text-md text-slate-200 transition-all ${
+                          isFlashing
+                            ? s.changePct > 0
+                              ? "text-emerald-400"
+                              : "text-rose-400"
+                            : ""
+                        }`}
+                      >
                         ${s.price.toFixed(2)}
                       </div>
                       {s.isFavorite && s.earningsDate && (
@@ -272,19 +345,17 @@ export function TickerListClient({
                 </div>
 
                 <div className="mt-2">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="w-1/3 px-3 py-1 text-xs"
+                  <button
                     onClick={() => handleExplainToggle(s)}
                     disabled={loadingSymbol === s.symbol}
+                    className="text-sm py-1 px-2 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 text-slate-300 hover:text-slate-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-slate-700/50"
                   >
                     {loadingSymbol === s.symbol
                       ? "Explaining..."
                       : hasExplanation
                       ? "Close"
                       : "Explain move"}
-                  </Button>
+                  </button>
                 </div>
 
                 {hasExplanation && (

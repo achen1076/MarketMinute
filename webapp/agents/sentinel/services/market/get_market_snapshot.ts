@@ -22,7 +22,8 @@ const SECTOR_SYMBOLS = [
 ];
 
 /*
-  Fetch quotes from FMP using batch-quote endpoint (premium tier).
+  Fetch quotes from FMP.
+  Uses individual calls via v3/quote which works for all symbol types (ETFs, indices).
 */
 async function fetchFMPQuotes(symbols: string[]): Promise<MarketIndex[]> {
   const apiKey = process.env.FMP_API_KEY;
@@ -31,55 +32,75 @@ async function fetchFMPQuotes(symbols: string[]): Promise<MarketIndex[]> {
     throw new Error("FMP API key not configured");
   }
 
-  try {
-    const symbolsParam = symbols.join(",");
-    const url = new URL("https://financialmodelingprep.com/stable/batch-quote");
-    url.searchParams.set("symbols", symbolsParam);
-    url.searchParams.set("apikey", apiKey);
+  const results: MarketIndex[] = [];
 
-    const res = await fetch(url.toString());
+  for (const symbol of symbols) {
+    try {
+      // Use stable endpoint with query parameter (NOT path parameter)
+      const url = new URL("https://financialmodelingprep.com/stable/quote");
+      url.searchParams.set("symbol", symbol);
+      url.searchParams.set("apikey", apiKey);
 
-    if (!res.ok) {
-      console.error(`[Sentinel] FMP batch quote error:`, res.status);
-      return symbols.map((symbol) => ({
-        symbol: symbol.toUpperCase(),
-        changePct: 0,
-        price: null,
-      }));
-    }
+      const res = await fetch(url.toString());
 
-    const data = (await res.json()) as any[];
+      if (!res.ok) {
+        const errorBody = await res
+          .text()
+          .catch(() => "Unable to read error body");
 
-    if (!Array.isArray(data)) {
-      console.error("[Sentinel] Invalid batch quote response:", data);
-      return symbols.map((symbol) => ({
-        symbol: symbol.toUpperCase(),
-        changePct: 0,
-        price: null,
-      }));
-    }
+        if (res.status === 402) {
+          console.error(
+            `[Sentinel] 402 Payment Required for ${symbol} - API limit reached.\n` +
+              `Check your FMP account at: https://site.financialmodelingprep.com/developer/docs/pricing\n` +
+              `Response: ${errorBody}`
+          );
+        } else {
+          console.error(
+            `[Sentinel] FMP quote error for ${symbol}: ${res.status}\n` +
+              `Response: ${errorBody}`
+          );
+        }
 
-    const results = data.map((quote: any) => {
-      const key = quote.symbol.toUpperCase();
+        results.push({
+          symbol: symbol.toUpperCase(),
+          changePct: 0,
+          price: null,
+        });
+        continue;
+      }
+
+      const data = await res.json();
+
+      if (!Array.isArray(data) || data.length === 0) {
+        console.error(`[Sentinel] Invalid quote response for ${symbol}:`, data);
+        results.push({
+          symbol: symbol.toUpperCase(),
+          changePct: 0,
+          price: null,
+        });
+        continue;
+      }
+
+      const quote = data[0];
       const price = quote.price ?? null;
-      const changePct = quote.changePercentage ?? 0;
+      const changePct = quote.changesPercentage ?? quote.changePercentage ?? 0;
 
-      return {
-        symbol: key,
+      results.push({
+        symbol: symbol.toUpperCase(),
         changePct: Number(changePct) || 0,
         price: price ? Number(price) : null,
-      };
-    });
-
-    return results;
-  } catch (error) {
-    console.error(`[Sentinel] Error fetching batch quotes:`, error);
-    return symbols.map((symbol) => ({
-      symbol: symbol.toUpperCase(),
-      changePct: 0,
-      price: null,
-    }));
+      });
+    } catch (error) {
+      console.error(`[Sentinel] Error fetching quote for ${symbol}:`, error);
+      results.push({
+        symbol: symbol.toUpperCase(),
+        changePct: 0,
+        price: null,
+      });
+    }
   }
+
+  return results;
 }
 
 /*

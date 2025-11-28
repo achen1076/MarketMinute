@@ -27,48 +27,142 @@ export async function getSnapshotsForSymbols(
   // Import earnings calendar
   const earningsCalendar = await getEarningsCalendar();
 
+  // Split indices (^) from regular symbols - indices must be fetched individually
+  const indices = symbols.filter((s) => s.startsWith("^"));
+  const regularSymbols = symbols.filter((s) => !s.startsWith("^"));
+
   try {
-    const symbolsParam = symbols.join(",");
-    const url = new URL("https://financialmodelingprep.com/stable/batch-quote");
-    url.searchParams.set("symbols", symbolsParam);
-    url.searchParams.set("apikey", apiKey);
+    const results: TickerSnapshot[] = [];
 
-    const res = await fetch(url.toString(), {
-      next: { revalidate: 30 },
-    });
+    // Fetch regular symbols via batch endpoint
+    if (regularSymbols.length > 0) {
+      const symbolsParam = regularSymbols.join(",");
+      const url = new URL(
+        "https://financialmodelingprep.com/stable/batch-quote"
+      );
+      url.searchParams.set("symbols", symbolsParam);
+      url.searchParams.set("apikey", apiKey);
 
-    if (!res.ok) {
-      console.error(`[FMP] Batch quote error:`, res.status);
-      return symbols.map((symbol) => ({
-        symbol: symbol.toUpperCase(),
-        price: 0,
-        changePct: 0,
-      }));
+      const res = await fetch(url.toString(), {
+        next: { revalidate: 30 },
+      });
+
+      if (!res.ok) {
+        const errorBody = await res
+          .text()
+          .catch(() => "Unable to read error body");
+
+        if (res.status === 402) {
+          console.error(
+            `[FMP] 402 Payment Required - API limit reached or subscription issue.\n` +
+              `Check your FMP account at: https://site.financialmodelingprep.com/developer/docs/pricing\n` +
+              `Response: ${errorBody}`
+          );
+        } else {
+          console.error(
+            `[FMP] Batch quote error: ${res.status}\n` +
+              `Response: ${errorBody}`
+          );
+        }
+      } else {
+        const data = await res.json();
+
+        if (Array.isArray(data)) {
+          // Map response to TickerSnapshot format
+          const batchResults = data.map((quote: any) => {
+            const key = quote.symbol.toUpperCase();
+            return {
+              symbol: key,
+              price: Number(quote.price) || 0,
+              changePct: Number(quote.changePercentage) || 0,
+              high52w: quote.yearHigh ? Number(quote.yearHigh) : undefined,
+              low52w: quote.yearLow ? Number(quote.yearLow) : undefined,
+              earningsDate: earningsCalendar[key],
+            };
+          });
+          results.push(...batchResults);
+        } else {
+          console.error("[FMP] Invalid batch quote response:", data);
+        }
+      }
     }
 
-    const data = await res.json();
+    // Fetch indices individually (batch-quote doesn't support them)
+    // Map Yahoo-style symbols to FMP format
+    const indexMapping: Record<string, string> = {
+      "^GSPC": "^GSPC", // S&P 500
+      "^DJI": "^DJI", // Dow Jones
+      "^IXIC": "^IXIC", // Nasdaq
+    };
 
-    if (!Array.isArray(data)) {
-      console.error("[FMP] Invalid batch quote response:", data);
-      return symbols.map((symbol) => ({
-        symbol: symbol.toUpperCase(),
-        price: 0,
-        changePct: 0,
-      }));
+    for (const indexSymbol of indices) {
+      try {
+        const fmpSymbol = indexMapping[indexSymbol] || indexSymbol;
+        const url = new URL("https://financialmodelingprep.com/stable/quote");
+        url.searchParams.set("symbol", fmpSymbol);
+        url.searchParams.set("apikey", apiKey);
+
+        console.log(
+          `[FMP] Fetching index: ${indexSymbol} from ${url.toString()}`
+        );
+
+        const res = await fetch(url.toString(), {
+          next: { revalidate: 30 },
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          console.log(
+            `[FMP] Response for ${indexSymbol}:`,
+            JSON.stringify(data).substring(0, 200)
+          );
+
+          if (Array.isArray(data) && data.length > 0) {
+            const quote = data[0];
+            results.push({
+              symbol: indexSymbol.toUpperCase(),
+              price: Number(quote.price) || 0,
+              changePct:
+                Number(quote.changesPercentage || quote.changePercentage) || 0,
+              high52w: quote.yearHigh ? Number(quote.yearHigh) : undefined,
+              low52w: quote.yearLow ? Number(quote.yearLow) : undefined,
+            });
+            console.log(
+              `[FMP] Successfully fetched ${indexSymbol}: $${quote.price} (${
+                quote.changesPercentage || quote.changePercentage
+              }%)`
+            );
+          } else {
+            console.error(
+              `[FMP] Empty or invalid data for ${indexSymbol}:`,
+              data
+            );
+            results.push({
+              symbol: indexSymbol.toUpperCase(),
+              price: 0,
+              changePct: 0,
+            });
+          }
+        } else {
+          const errorText = await res.text();
+          console.error(
+            `[FMP] Failed to fetch index ${indexSymbol}: ${res.status}\nResponse: ${errorText}`
+          );
+          results.push({
+            symbol: indexSymbol.toUpperCase(),
+            price: 0,
+            changePct: 0,
+          });
+        }
+      } catch (error) {
+        console.error(`[FMP] Error fetching index ${indexSymbol}:`, error);
+        results.push({
+          symbol: indexSymbol.toUpperCase(),
+          price: 0,
+          changePct: 0,
+        });
+      }
     }
-
-    // Map response to TickerSnapshot format
-    const results = data.map((quote: any) => {
-      const key = quote.symbol.toUpperCase();
-      return {
-        symbol: key,
-        price: Number(quote.price) || 0,
-        changePct: Number(quote.changePercentage) || 0,
-        high52w: quote.yearHigh ? Number(quote.yearHigh) : undefined,
-        low52w: quote.yearLow ? Number(quote.yearLow) : undefined,
-        earningsDate: earningsCalendar[key],
-      };
-    });
 
     return results;
   } catch (error) {
