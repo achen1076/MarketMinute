@@ -24,11 +24,15 @@ export async function GET(request: Request) {
     // 1. Trigger AWS Lambda for ML Predictions & Forecasts
     try {
       console.log("[Cron] Triggering AWS Lambda for quant analysis...");
-      const lambdaRes = await fetch(process.env.AWS_LAMBDA_QUANT_URL!, {
+
+      if (!process.env.LAMBDA_FUNCTION_URL) {
+        throw new Error("LAMBDA_FUNCTION_URL not configured");
+      }
+
+      const lambdaRes = await fetch(process.env.LAMBDA_FUNCTION_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-api-key": process.env.AWS_LAMBDA_API_KEY!,
         },
         body: JSON.stringify({
           task: "daily_analysis",
@@ -37,8 +41,16 @@ export async function GET(request: Request) {
       });
 
       if (lambdaRes.ok) {
-        results.lambda = await lambdaRes.json();
-        console.log("[Cron] Lambda triggered successfully");
+        const data = await lambdaRes.json();
+        // Lambda returns data directly, not wrapped in statusCode/body
+        results.lambda = data.body ? JSON.parse(data.body) : data;
+        console.log("[Cron] Lambda triggered successfully:", {
+          tickers:
+            results.lambda.tickers_analyzed ||
+            results.lambda.live_predictions?.length ||
+            0,
+          predictions: results.lambda.live_predictions?.length || 0,
+        });
       } else {
         throw new Error(`Lambda returned ${lambdaRes.status}`);
       }
