@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { getSnapshotsForSymbols } from "@/lib/marketData";
+import { getCachedSnapshots } from "@/lib/tickerCache";
 import { buildSummary } from "@/lib/summary";
 import {
   checkRateLimit,
@@ -72,10 +72,14 @@ export async function GET(req: Request) {
   }
 
   const symbols = watchlist.items.map((i) => i.symbol);
-  const snapshots = await getSnapshotsForSymbols(symbols);
+  const { snapshots, cacheStats } = await getCachedSnapshots(symbols);
   const summary = await buildSummary(watchlist.name, snapshots);
 
   return NextResponse.json(summary, {
-    headers: getRateLimitHeaders(rateLimitResult),
+    headers: {
+      ...getRateLimitHeaders(rateLimitResult),
+      "X-Cache-Hits": String(cacheStats.hits),
+      "X-Cache-Misses": String(cacheStats.misses),
+    },
   });
 }

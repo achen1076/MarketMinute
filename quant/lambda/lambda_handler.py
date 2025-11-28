@@ -8,13 +8,13 @@ import pandas as pd
 import numpy as np
 
 # Local modules
-from src.data.schwab_data import SchwabDataFetcher
+from src.data.fmp_data import FMPDataFetcher
 from src.data.features.feature_engine import FeatureEngine
 from predictions import generate_live_predictions
 from forecasting import generate_distributional_forecasts, calculate_historical_volatility
 from tickers import TICKERS
 
-CODE_VERSION = "v1.2.0-real-probabilities"
+CODE_VERSION = "v1.3.0-fmp-data"
 print(f"[INIT] Lambda handler loaded - {CODE_VERSION}")
 
 sagemaker_runtime = boto3.client('sagemaker-runtime')
@@ -138,43 +138,9 @@ def handler(event, context):
         }
 
 
-def get_schwab_token():
-    """Retrieve Schwab OAuth token from AWS Secrets Manager"""
-    sm_client = boto3.client('secretsmanager', region_name='us-east-1')
-    secret_name = f"{os.environ.get('PROJECT_NAME', 'marketminute')}-{os.environ.get('ENVIRONMENT', 'dev')}-schwab-token"
-
-    response = sm_client.get_secret_value(SecretId=secret_name)
-    token_data = json.loads(response['SecretString'])
-
-    token_path = '/tmp/schwab_token.json'
-    with open(token_path, 'w') as f:
-        json.dump(token_data, f)
-
-    return token_path, secret_name
-
-
-def save_schwab_token(token_path, secret_name):
-    """Save refreshed Schwab token back to Secrets Manager"""
-    sm_client = boto3.client('secretsmanager', region_name='us-east-1')
-
-    with open(token_path, 'r') as f:
-        token_data = json.load(f)
-
-    sm_client.put_secret_value(
-        SecretId=secret_name,
-        SecretString=json.dumps(token_data)
-    )
-
-
 def fetch_market_data():
-    """Fetch market data from Schwab API and generate features"""
-    token_path, secret_name = get_schwab_token()
-
-    schwab_client = SchwabDataFetcher(
-        app_key=os.environ.get('SCHWAB_APP_KEY'),
-        app_secret=os.environ.get('SCHWAB_APP_SECRET'),
-        token_path=token_path
-    )
+    """Fetch market data from FMP API and generate features"""
+    fmp_client = FMPDataFetcher(api_key=os.environ.get('FMP_API_KEY'))
     feature_engine = FeatureEngine()
 
     features, prices, volatilities, raw_data = {}, {}, {}, {}
@@ -184,12 +150,15 @@ def fetch_market_data():
         "rolling_vol", "neutral_thresh", "strong_thresh", "dyn_thresh"
     ]
 
-    from_date = (datetime.now() - timedelta(days=365*20)).strftime("%Y-%m-%d")
+    # Fetch 5 years of historical data
+    from_date = (datetime.now() - timedelta(days=365*5)).strftime("%Y-%m-%d")
     to_date = datetime.now().strftime("%Y-%m-%d")
+
+    print(f"[Lambda] Fetching data from {from_date} to {to_date}")
 
     for ticker in TICKERS:
         try:
-            df = schwab_client.fetch_aggregates(
+            df = fmp_client.fetch_aggregates(
                 ticker=ticker,
                 timespan="day",
                 from_date=from_date,
@@ -197,6 +166,7 @@ def fetch_market_data():
             )
 
             if df.empty:
+                print(f"[Lambda] No data for {ticker}")
                 continue
 
             raw_data[ticker] = df
@@ -205,6 +175,7 @@ def fetch_market_data():
 
             df_features = feature_engine.calculate_all(df)
             if df_features.empty:
+                print(f"[Lambda] No features generated for {ticker}")
                 continue
 
             feature_cols = [
@@ -216,7 +187,7 @@ def fetch_market_data():
             print(f"[Lambda] Error processing {ticker}: {str(e)}")
             continue
 
-    save_schwab_token(token_path, secret_name)
+    print(f"[Lambda] Successfully processed {len(features)} tickers")
     return features, prices, volatilities, raw_data
 
 

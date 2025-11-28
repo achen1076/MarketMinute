@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { getCachedSnapshots } from "@/lib/tickerCache";
 
 const TICKER_SYMBOLS = [
-  { symbol: "$SPX", name: "S&P 500" },
-  { symbol: "$DJI", name: "Dow" },
-  { symbol: "$COMPX", name: "Nasdaq" },
+  { symbol: "^GSPC", name: "S&P 500" },
+  { symbol: "^DJI", name: "Dow" },
+  { symbol: "^IXIC", name: "Nasdaq" },
   { symbol: "TQQQ", name: "TQQQ" },
   { symbol: "SQQQ", name: "SQQQ" },
   { symbol: "AAPL", name: "Apple" },

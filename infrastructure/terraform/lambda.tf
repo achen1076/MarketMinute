@@ -56,8 +56,7 @@ resource "aws_lambda_function" "quant_orchestrator" {
   environment {
     variables = {
       SAGEMAKER_ENDPOINT_NAME = aws_sagemaker_endpoint.quant.name
-      SCHWAB_APP_KEY          = var.schwab_app_key
-      SCHWAB_APP_SECRET       = var.schwab_app_secret
+      FMP_API_KEY             = var.fmp_api_key
       PROJECT_NAME            = var.project_name
       ENVIRONMENT             = var.environment
       WEBAPP_URL              = var.webapp_url

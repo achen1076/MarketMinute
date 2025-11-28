@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { getSnapshotsForSymbols } from "@/lib/marketData";
+import { getCachedSnapshots } from "@/lib/tickerCache";
 
 /**
  * Create a snapshot of current watchlist state
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     }
 
     const symbols = watchlist.items.map((i) => i.symbol);
-    const snapshots = await getSnapshotsForSymbols(symbols);
+    const { snapshots } = await getCachedSnapshots(symbols);
 
     const avgChangePct =
       snapshots.length > 0
@@ -136,7 +136,7 @@ export async function GET(req: Request) {
     }
 
     const symbols = watchlist.items.map((i) => i.symbol);
-    const currentSnapshots = await getSnapshotsForSymbols(symbols);
+    const { snapshots: currentSnapshots } = await getCachedSnapshots(symbols);
 
     const lastData = JSON.parse(lastSnapshot.data) as {
       symbols: Array<{ symbol: string; price: number; changePct: number }>;

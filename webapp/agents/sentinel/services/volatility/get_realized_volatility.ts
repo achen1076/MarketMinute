@@ -1,38 +1,41 @@
 import { VolatilityData } from "../../agent/types";
 import { SENTINEL_ENV } from "../../config/env";
-import { getSchwabAccessToken } from "../schwab/auth";
 
 /*
-  Fetch daily historical bars from Schwab for SPY.
+  Fetch daily historical bars from FMP for SPY.
 */
-async function fetchSchwabDailyBars(
+async function fetchFMPDailyBars(
   symbol: string,
   days: number
 ): Promise<{ close: number }[]> {
-  const accessToken = await getSchwabAccessToken();
-  
-  // Schwab API expects periodType and frequency
-  // For daily data: periodType=month, frequencyType=daily, frequency=1
-  const url = `https://api.schwabapi.com/marketdata/v1/pricehistory?symbol=${symbol}&periodType=month&period=1&frequencyType=daily&frequency=1&needExtendedHoursData=false`;
+  const apiKey = process.env.FMP_API_KEY;
+  if (!apiKey) {
+    console.error("[Sentinel] FMP API key not configured");
+    return [];
+  }
 
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+  // Calculate date range (last N days)
+  const toDate = new Date().toISOString().split("T")[0];
+  const fromDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .split("T")[0];
+
+  const url = `https://financialmodelingprep.com/stable/historical-price-eod/full?symbol=${symbol}&from=${fromDate}&to=${toDate}&apikey=${apiKey}`;
+
+  const res = await fetch(url);
 
   if (!res.ok) {
     const text = await res.text();
-    console.error(`[Sentinel] Schwab price history error ${res.status}:`, text);
+    console.error(`[Sentinel] FMP price history error ${res.status}:`, text);
     return [];
   }
 
   const data: any = await res.json();
 
-  if (!data?.candles) return [];
+  if (!Array.isArray(data)) return [];
 
-  return data.candles.map((c: any) => ({
-    close: c.close,
+  return data.map((bar: any) => ({
+    close: bar.close,
   }));
 }
 
@@ -114,8 +117,8 @@ async function fetchFredVIXClose(): Promise<number | null> {
   Returns the full volatility structure consumed by Sentinel.
 */
 export async function get_realized_vol(): Promise<VolatilityData> {
-  const bars = await fetchSchwabDailyBars("SPY", 30);
-  const closePrices = bars.map((b) => b.close);
+  const bars = await fetchFMPDailyBars("SPY", 50);
+  const closePrices = bars.map((b: { close: number }) => b.close);
 
   const realized = computeRealizedVol(closePrices.slice(-20));
   const realizedPrev = computeRealizedVol(closePrices.slice(-40, -20));

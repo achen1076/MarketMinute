@@ -68,7 +68,7 @@ The system uses a serverless architecture with three main components:
 **Daily Automated Flow:**
 
 - **4:05 PM EST (Mon-Fri)**: EventBridge triggers Lambda function
-- **Lambda**: Fetches 20 years of market data from Schwab API
+- **Lambda**: Fetches 5 years of market data from Financial Modeling Prep API
 - **Lambda**: Calls SageMaker endpoint for ML predictions
 - **Lambda**: Generates distributional forecasts and trading signals
 - **Lambda**: Saves results to PostgreSQL database
@@ -88,7 +88,7 @@ The system uses a serverless architecture with three main components:
   - Sector rotation detection and analysis
   - Macro event integration and surprise detection
   - Historical report tracking with expandable insights
-- **Real-time Market Data** - Live quotes and price updates via Schwab API
+- **Real-time Market Data** - Live quotes and price updates via Financial Modeling Prep API
 - **AI Market Summaries** - Natural language summaries powered by LangChain & OpenAI
 - **Smart Alerts** - Automated notifications for price movements, volume spikes, and 52-week highs
 - **Events Timeline** - Track upcoming earnings dates and key market events
@@ -120,7 +120,7 @@ The system uses a serverless architecture with three main components:
 - **EventBridge Scheduler** - Automated cron job (Mon-Fri, 4:05 PM EST)
 - **Docker Deployment** - Containerized Lambda and SageMaker models
 - **Infrastructure as Code** - Terraform configuration for reproducible deployments
-- **Secrets Management** - AWS Secrets Manager for Schwab OAuth tokens
+- **Simple API Authentication** - FMP API key for data access (no OAuth required)
 - **Database Integration** - Lambda saves results directly to production database
 
 ### 🎨 User Experience
@@ -160,11 +160,11 @@ The system uses a serverless architecture with three main components:
 - **Validation:** Great Expectations, Pytest
 - **MLOps:** MLflow, Weights & Biases, TensorBoard
 - **Visualization:** Streamlit, Plotly
-- **Market Data:** Schwab API (schwab-py)
+- **Market Data:** Financial Modeling Prep API (REST)
 
 ### Infrastructure & Cloud
 
-- **Market Data Provider:** Schwab API
+- **Market Data Provider:** Financial Modeling Prep API
 - **Web Deployment:** Vercel (Next.js production hosting)
 - **ML Infrastructure:** AWS Lambda + SageMaker (serverless inference)
 - **Orchestration:** AWS EventBridge (cron scheduler)
@@ -192,7 +192,7 @@ The system uses a serverless architecture with three main components:
 ### Utilities
 
 - `cacheManager` - Server-side caching with revalidation
-- `schwabAuth` - Schwab API OAuth flow
+- `fmpData` - FMP API data fetching
 - `marketData` - Market data fetching and transformation
 - `eventDetector` - Macro event detection logic
 
@@ -206,7 +206,7 @@ The Sentinel AI Agent is an autonomous market intelligence system that provides 
 
 **Multi-Stage Pipeline:**
 
-1. **Market Snapshot** - Fetches real-time data from Schwab API
+1. **Market Snapshot** - Fetches real-time data from Financial Modeling Prep API
    - Index prices (SPY, QQQ, IWM)
    - Sector performance (11 sectors)
    - Individual stock snapshots
@@ -399,7 +399,6 @@ MarketMinute/
 ├── .gitignore                 # Git ignore rules
 ├── README.md                  # Project documentation
 ├── deploy.sh                  # Main deployment script
-├── schwab_token.json          # Schwab OAuth token
 │
 ├── webapp/                    # Next.js web application
 │   ├── .env                   # Environment variables
@@ -421,7 +420,6 @@ MarketMinute/
 │   │   │   ├── auth/         # Authentication endpoints
 │   │   │   ├── quant/        # Quant data endpoints
 │   │   │   ├── sentinel/     # Sentinel agent endpoints
-│   │   │   ├── schwab/       # Schwab API proxy
 │   │   │   ├── watchlist/    # Watchlist endpoints
 │   │   │   └── ...           # Market data, news, etc.
 │   │   ├── forecasts/        # ML forecasts page
@@ -493,10 +491,11 @@ MarketMinute/
 │   │   ├── eventsDb.ts       # Event database
 │   │   ├── explainCache.ts   # Explanation caching
 │   │   ├── macroNews.ts      # Macro news fetcher
-│   │   ├── marketData.ts     # Market data utils
+│   │   ├── marketData.ts     # Market data utils (FMP API)
 │   │   ├── news.ts           # News aggregation
 │   │   ├── openai.ts         # OpenAI integration
-│   │   ├── schwabAuth.ts     # Schwab OAuth
+│   │   ├── redis.ts          # Redis caching client
+│   │   ├── tickerCache.ts    # Ticker data caching
 │   │   ├── smartAlerts.ts    # Alert system
 │   │   ├── summary.ts        # Market summaries
 │   │   ├── summaryCache.ts   # Summary caching
@@ -518,7 +517,6 @@ MarketMinute/
 │   ├── setup.py               # Package setup
 │   ├── serverless.yml         # Serverless config (legacy)
 │   ├── SYSTEM_SPEC.yaml       # System specifications
-│   ├── schwab_token.json      # Schwab OAuth token
 │   │
 │   ├── lambda/               # AWS Lambda orchestrator
 │   │   ├── .gitignore        # Lambda ignore rules
@@ -556,14 +554,13 @@ MarketMinute/
 │   │   ├── eval_multiclass_trading.py
 │   │   ├── generate_distributional_forecasts.py
 │   │   ├── generate_predictions.py
-│   │   ├── prep_data.py      # Data preparation
-│   │   ├── setup_schwab_auth.py  # Schwab authentication
+│   │   ├── prep_data.py      # Data preparation (FMP API)
 │   │   └── train_model.py    # Model training
 │   │
 │   └── src/                  # Core library
 │       ├── data/             # Data processing
 │       │   ├── __init__.py
-│       │   ├── schwab_data.py    # Schwab API client
+│       │   ├── fmp_data.py       # FMP API client
 │       │   ├── features/     # Feature engineering
 │       │   │   ├── __init__.py
 │       │   │   ├── FEATURE_DICTIONARY.md
@@ -597,7 +594,6 @@ MarketMinute/
     │   ├── manage_scheduler.sh  # Cron job management
     │   ├── setup.sh          # Initial setup
     │   ├── teardown.sh       # Infrastructure teardown
-    │   ├── upload_schwab_token.sh  # Token upload
     │   └── view_cron_history.sh    # View cron logs
     │
     └── terraform/            # Infrastructure as Code
@@ -622,7 +618,7 @@ MarketMinute/
 - Node.js 20+
 - Python 3.10+
 - PostgreSQL
-- Schwab API credentials
+- Financial Modeling Prep API key (get free at https://financialmodelingprep.com/)
 
 ### Web Application Setup
 
@@ -639,8 +635,7 @@ cp .env.example .env.local
 # - DATABASE_URL (PostgreSQL)
 # - NEXTAUTH_SECRET
 # - OPENAI_API_KEY
-# - SCHWAB_APP_KEY
-# - SCHWAB_APP_SECRET
+# - FMP_API_KEY
 
 # Initialize database
 npx prisma migrate dev
@@ -665,8 +660,7 @@ pip install -r requirements.txt
 # Set up environment
 pip install -e .
 
-# Setup Schwab authentication
-python3 scripts/setup_schwab_auth.py
+# FMP requires only an API key (no authentication script needed)
 
 # Prepare data
 python3 scripts/prep_data.py
@@ -767,7 +761,7 @@ cd ../scripts
 
 The Lambda function will:
 
-1. Fetch market data via Schwab API
+1. Fetch market data via Financial Modeling Prep API
 2. Generate features for 21 tech tickers
 3. Call SageMaker endpoint for predictions
 4. Generate distributional forecasts
@@ -960,8 +954,7 @@ This is a private project. For questions or access, contact the repository owner
    - `NEXTAUTH_SECRET` - Authentication secret
    - `NEXTAUTH_URL` - `https://market-minute.vercel.app`
    - `OPENAI_API_KEY` - OpenAI API key
-   - `SCHWAB_CLIENT_ID` - Schwab API client ID
-   - `SCHWAB_CLIENT_SECRET` - Schwab API secret
+   - `FMP_API_KEY` - Financial Modeling Prep API key
    - `LAMBDA_FUNCTION_URL` - AWS Lambda function URL
 
 **Deploy:**
@@ -1024,11 +1017,9 @@ cd ../scripts && ./manage_scheduler.sh test
 npx prisma generate
 ```
 
-**Schwab API 401 errors:**
+**FMP API errors:**
 
-```bash
-python3 scripts/setup_schwab_auth.py
-```
+Ensure your `FMP_API_KEY` is valid and has sufficient quota. Free tier includes 250 requests/day.
 
 **Database connection issues:**
 

@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { getSnapshotsForSymbols } from "@/lib/marketData";
+import { getCachedSnapshots } from "@/lib/tickerCache";
 import { computeSmartAlerts } from "@/lib/smartAlerts";
 
 /**
@@ -30,7 +30,7 @@ export async function GET(req: Request) {
       .map((s) => s.trim().toUpperCase())
       .filter(Boolean);
 
-    const snapshots = await getSnapshotsForSymbols(symbols);
+    const { snapshots } = await getCachedSnapshots(symbols);
 
     let bigMovers = 0;
     let nearHighs = 0;

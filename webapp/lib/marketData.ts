@@ -1,5 +1,4 @@
 import "server-only";
-import { getSchwabAccessToken } from "@/lib/schwabAuth";
 
 export type TickerSnapshot = {
   symbol: string;
@@ -15,32 +14,9 @@ export async function getSnapshotsForSymbols(
 ): Promise<TickerSnapshot[]> {
   if (!symbols.length) return [];
 
-  const accessToken = await getSchwabAccessToken();
-
-  const url = new URL("https://api.schwabapi.com/marketdata/v1/quotes");
-  url.searchParams.set("symbols", symbols.join(","));
-
-  let res = await fetch(url.toString(), {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-    next: { revalidate: 30 },
-  });
-
-  if (res.status === 401) {
-    console.warn("[Schwab] 401 from quotes, forcing token refresh + retry");
-    const newAccessToken = await getSchwabAccessToken();
-    res = await fetch(url.toString(), {
-      headers: {
-        Authorization: `Bearer ${newAccessToken}`,
-      },
-      next: { revalidate: 30 },
-    });
-  }
-
-  if (!res.ok) {
-    const text = await res.text();
-    console.error("Schwab quotes error:", res.status, text);
+  const apiKey = process.env.FMP_API_KEY;
+  if (!apiKey) {
+    console.error("[FMP] API key not configured");
     return symbols.map((symbol) => ({
       symbol: symbol.toUpperCase(),
       price: 0,
@@ -48,51 +24,59 @@ export async function getSnapshotsForSymbols(
     }));
   }
 
-  const data = await res.json();
-
   // Import earnings calendar
   const earningsCalendar = await getEarningsCalendar();
 
-  return symbols.map((symbol) => {
-    const key = symbol.toUpperCase();
-    const q: any = data[key] ?? {};
-    const quote = q.quote ?? {};
-    const regular = q.regular ?? {};
-    const fundamental = q.fundamental ?? {};
+  // FMP free tier requires individual requests per symbol
+  const results = await Promise.all(
+    symbols.map(async (symbol) => {
+      try {
+        const url = new URL("https://financialmodelingprep.com/stable/quote");
+        url.searchParams.set("symbol", symbol);
+        url.searchParams.set("apikey", apiKey);
 
-    const price =
-      regular.regularMarketLastPrice ?? quote.lastPrice ?? quote.mark ?? 0;
+        const res = await fetch(url.toString(), {
+          next: { revalidate: 30 },
+        });
 
-    const rawPct =
-      regular.regularMarketPercentChange ??
-      quote.netPercentChange ??
-      quote.markPercentChange ??
-      0;
+        if (!res.ok) {
+          console.error(`[FMP] Quote error for ${symbol}:`, res.status);
+          return {
+            symbol: symbol.toUpperCase(),
+            price: 0,
+            changePct: 0,
+          };
+        }
 
-    const changePct = rawPct;
+        const data = await res.json();
+        const quote = Array.isArray(data) && data.length > 0 ? data[0] : {};
 
-    // Extract 52-week high/low from various possible fields
-    const high52w =
-      quote.fiftyTwoWeekHigh ??
-      quote["52WeekHigh"] ??
-      fundamental.high52 ??
-      regular.fiftyTwoWeekHigh;
+        const key = symbol.toUpperCase();
+        const price = quote.price ?? 0;
+        const changePct = quote.changePercentage ?? 0;
+        const high52w = quote.yearHigh;
+        const low52w = quote.yearLow;
 
-    const low52w =
-      quote.fiftyTwoWeekLow ??
-      quote["52WeekLow"] ??
-      fundamental.low52 ??
-      regular.fiftyTwoWeekLow;
+        return {
+          symbol: key,
+          price: Number(price) || 0,
+          changePct: Number(changePct) || 0,
+          high52w: high52w ? Number(high52w) : undefined,
+          low52w: low52w ? Number(low52w) : undefined,
+          earningsDate: earningsCalendar[key],
+        };
+      } catch (error) {
+        console.error(`[FMP] Error fetching ${symbol}:`, error);
+        return {
+          symbol: symbol.toUpperCase(),
+          price: 0,
+          changePct: 0,
+        };
+      }
+    })
+  );
 
-    return {
-      symbol: key,
-      price: Number(price) || 0,
-      changePct: Number(changePct) || 0,
-      high52w: high52w ? Number(high52w) : undefined,
-      low52w: low52w ? Number(low52w) : undefined,
-      earningsDate: earningsCalendar[key],
-    };
-  });
+  return results;
 }
 
 /**

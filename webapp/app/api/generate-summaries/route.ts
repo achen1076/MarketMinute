@@ -2,13 +2,13 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { getSnapshotsForSymbols } from "@/lib/marketData";
+import { getCachedSnapshots } from "@/lib/tickerCache";
 import { buildSummary } from "@/lib/summary";
 
 /**
  * Generate daily summaries for all watchlists
  * POST /api/generate-summaries?date=YYYY-MM-DD&secret=YOUR_SECRET
- * 
+ *
  * This can be called from a cron job
  */
 export async function POST(req: Request) {
@@ -41,14 +41,16 @@ export async function POST(req: Request) {
 
     for (const watchlist of watchlists) {
       if (watchlist.items.length === 0) {
-        console.log(`[GenerateSummaries] Skipping empty watchlist: ${watchlist.name}`);
+        console.log(
+          `[GenerateSummaries] Skipping empty watchlist: ${watchlist.name}`
+        );
         continue;
       }
 
       console.log(`[GenerateSummaries] Processing: ${watchlist.name}`);
 
       const symbols = watchlist.items.map((item) => item.symbol);
-      const snapshots = await getSnapshotsForSymbols(symbols);
+      const { snapshots } = await getCachedSnapshots(symbols);
 
       if (snapshots.length === 0) {
         console.log(`[GenerateSummaries] No snapshots for: ${watchlist.name}`);
@@ -121,7 +123,9 @@ export async function POST(req: Request) {
       });
 
       console.log(
-        `[GenerateSummaries] ✓ ${watchlist.name}: ${avgChangePct.toFixed(2)}% - ${summaryText}`
+        `[GenerateSummaries] ✓ ${watchlist.name}: ${avgChangePct.toFixed(
+          2
+        )}% - ${summaryText}`
       );
     }
 

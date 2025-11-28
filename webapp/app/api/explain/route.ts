@@ -9,7 +9,7 @@ import {
   cleanExpiredExplanations,
 } from "@/lib/explainCache";
 import { computeSmartAlerts, SmartAlert } from "@/lib/smartAlerts";
-import { getSnapshotsForSymbols } from "@/lib/marketData";
+import { getCachedSnapshots } from "@/lib/tickerCache";
 import {
   checkRateLimit,
   RateLimitPresets,
@@ -73,7 +73,7 @@ export async function POST(req: Request) {
   const newsItems = await getNewsForSymbol(symbol, 5);
 
   // Get full snapshot data for smart alerts
-  const snapshots = await getSnapshotsForSymbols([symbol]);
+  const { snapshots } = await getCachedSnapshots([symbol]);
   const snapshot = snapshots[0];
 
   // Compute smart alerts with full data

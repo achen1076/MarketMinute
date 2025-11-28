@@ -1,5 +1,4 @@
 import { MarketSnapshot, MarketIndex } from "../../agent/types";
-import { getSchwabAccessToken } from "../schwab/auth";
 
 /*
   List of index tickers to monitor for market-wide movement.
@@ -23,65 +22,72 @@ const SECTOR_SYMBOLS = [
 ];
 
 /*
-  Fetch quotes from Schwab for multiple symbols at once.
+  Fetch quotes from FMP (individual requests per symbol for free tier).
 */
-async function fetchSchwabQuotes(symbols: string[]): Promise<MarketIndex[]> {
-  const accessToken = await getSchwabAccessToken();
-
-  // Correct Schwab API endpoint
-  const url = new URL("https://api.schwabapi.com/marketdata/v1/quotes");
-  url.searchParams.set("symbols", symbols.join(","));
-
-  const res = await fetch(url.toString(), {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    console.error(`[Sentinel] Schwab API error ${res.status}:`, text);
-    throw new Error(`Schwab API failed: ${res.status}`);
+async function fetchFMPQuotes(symbols: string[]): Promise<MarketIndex[]> {
+  const apiKey = process.env.FMP_API_KEY;
+  if (!apiKey) {
+    console.error("[Sentinel] FMP API key not configured");
+    throw new Error("FMP API key not configured");
   }
 
-  const data = (await res.json()) as Record<string, any>;
+  // FMP free tier requires individual requests per symbol
+  const results = await Promise.all(
+    symbols.map(async (symbol) => {
+      try {
+        const url = new URL("https://financialmodelingprep.com/stable/quote");
+        url.searchParams.set("symbol", symbol);
+        url.searchParams.set("apikey", apiKey);
 
-  // Parse response structure: { "SPY": { quote: {...}, regular: {...} }, ... }
-  return symbols.map((symbol) => {
-    const key = symbol.toUpperCase();
-    const item = data[key] || {};
-    const quote = item.quote || {};
-    const regular = item.regular || {};
+        const res = await fetch(url.toString());
 
-    const price =
-      regular.regularMarketLastPrice ?? quote.lastPrice ?? quote.mark ?? null;
+        if (!res.ok) {
+          console.error(`[Sentinel] FMP error for ${symbol}:`, res.status);
+          return {
+            symbol: symbol.toUpperCase(),
+            changePct: 0,
+            price: null,
+          };
+        }
 
-    const changePct =
-      regular.regularMarketPercentChange ??
-      quote.netPercentChange ??
-      quote.markPercentChange ??
-      0;
+        const data = (await res.json()) as any[];
+        const quote = Array.isArray(data) && data.length > 0 ? data[0] : {};
 
-    return {
-      symbol: key,
-      changePct: Number(changePct) || 0,
-      price: price ? Number(price) : null,
-    };
-  });
+        const key = symbol.toUpperCase();
+        const price = quote.price ?? null;
+        const changePct = quote.changePercentage ?? 0;
+
+        return {
+          symbol: key,
+          changePct: Number(changePct) || 0,
+          price: price ? Number(price) : null,
+        };
+      } catch (error) {
+        console.error(`[Sentinel] Error fetching ${symbol}:`, error);
+        return {
+          symbol: symbol.toUpperCase(),
+          changePct: 0,
+          price: null,
+        };
+      }
+    })
+  );
+
+  return results;
 }
 
 /*
   Loads index performance for SPY, QQQ, IWM, DIA.
 */
 async function loadIndexData(): Promise<MarketIndex[]> {
-  return fetchSchwabQuotes(INDEX_SYMBOLS);
+  return fetchFMPQuotes(INDEX_SYMBOLS);
 }
 
 /*
   Loads sector ETF performance for XLK, XLF, XLE, etc.
 */
 async function loadSectorData(): Promise<MarketIndex[]> {
-  return fetchSchwabQuotes(SECTOR_SYMBOLS);
+  return fetchFMPQuotes(SECTOR_SYMBOLS);
 }
 
 /*

@@ -123,6 +123,27 @@ export function MarketMinuteSummary({ watchlistId }: Props) {
   const [isTTSLoading, setIsTTSLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const fetchSummary = async () => {
+    if (!watchlistId) {
+      setLoading(false);
+      setSummary(null);
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/summary?watchlistId=${watchlistId}`);
+      if (!res.ok) throw new Error("Failed to fetch summary");
+      const data: SummaryData = await res.json();
+      setSummary(data);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching summary:", err);
+      setError("Unable to load summary");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!watchlistId) {
       setLoading(false);
@@ -131,23 +152,14 @@ export function MarketMinuteSummary({ watchlistId }: Props) {
     }
 
     setLoading(true);
-    setError(null);
-    setSummary(null);
+    fetchSummary();
 
-    fetch(`/api/summary?watchlistId=${watchlistId}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch summary");
-        return res.json();
-      })
-      .then((data: SummaryData) => {
-        setSummary(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching summary:", err);
-        setError("Unable to load summary");
-        setLoading(false);
-      });
+    // Poll every 5 seconds for live price updates
+    const interval = setInterval(() => {
+      fetchSummary();
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, [watchlistId]);
 
   const handleTextToSpeech = async () => {

@@ -39,15 +39,8 @@ variable "lambda_image_uri" {
   default     = "none"
 }
 
-variable "schwab_app_key" {
-  description = "Schwab API app key"
-  type        = string
-  sensitive   = true
-  default     = "none"
-}
-
-variable "schwab_app_secret" {
-  description = "Schwab App Secret for authentication"
+variable "fmp_api_key" {
+  description = "Financial Modeling Prep API key"
   type        = string
   sensitive   = true
 }

@@ -38,7 +38,6 @@ lerna-debug.log*
 # env files
 .env*
 webapp/.env*
-webapp/schwab_token.json
 
 # vercel
 webapp/.vercel
@@ -51,10 +50,25 @@ webapp/next-env.d.ts
 webapp/lib/generated/prisma/
 **/node_modules/.prisma/
 
+# python
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.pytest_cache/
+*.log
+
+# quant outputs
+quant/logs/
+quant/data/
+quant/models/
+quant/outputs/*.csv
+quant/archive/
+
 # temporary files
 *.tmp
 .temp/
 tmp/
 .vercel
-
-schwab_token.json
