@@ -42,10 +42,11 @@ MarketMinute is a full-stack financial intelligence platform that combines real-
 ### Performance Optimizations (Nov 2025)
 
 - **⚡ Batch API Operations** - FMP Premium batch-quote endpoint for single-call ticker fetching
-- **🚀 Redis Caching** - 30-second TTL with Upstash Redis for shared cross-instance cache
+- **🚀 Redis Batch Operations** - Pipeline writes and mget reads (N calls → 1-2 calls per request)
 - **📊 Database Query Optimization** - Fixed N+1 queries in events API (430+ queries → 2 queries)
 - **💾 30-Year Historical Data** - Upgraded from 5 years to up to 30 years of training data (~7,560 days)
-- **🔄 Parallel Writes** - Promise.all for concurrent Redis operations
+- **⚡ Smart Summary Polling** - Summary only loads on page load/watchlist change (not every 5s)
+- **📰 Tiered News Fetching** - Adaptive news loading: 5 items/symbol for small lists, top movers only for 50+ symbols
 - **🔐 AWS Secrets Manager** - Secure FMP API key storage instead of environment variables
 
 ---

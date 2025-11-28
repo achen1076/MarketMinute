@@ -189,7 +189,8 @@ export default function TickerSearch({
             ) : (
               <div className="px-4 py-3">
                 <div className="text-sm text-slate-400">
-                  No stocks found. Press Enter to add "{searchQuery.toUpperCase()}" manually.
+                  No stocks found. Press Enter to add "
+                  {searchQuery.toUpperCase()}" manually.
                 </div>
               </div>
             )}
@@ -201,7 +202,9 @@ export default function TickerSearch({
       <p className="text-xs text-slate-500">
         {selectedSymbols.length === 0
           ? "Start typing to search for stocks, or press Enter to add symbols manually"
-          : `${selectedSymbols.length} symbol${selectedSymbols.length === 1 ? "" : "s"} selected`}
+          : `${selectedSymbols.length} symbol${
+              selectedSymbols.length === 1 ? "" : "s"
+            } selected`}
       </p>
     </div>
   );

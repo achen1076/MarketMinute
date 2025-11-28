@@ -3,11 +3,14 @@
  *
  * Caches individual ticker snapshots to prevent redundant FMP API calls.
  * Uses Redis for app-level shared cache when available, falls back to in-memory.
+ * Implements batch operations to minimize Redis round-trips:
+ * - Batch reads: 1 mget call instead of N get calls
+ * - Batch writes: 1 pipeline instead of N setex calls
  *
  * Example:
  * - User A views market ticker (fetches AAPL, MSFT, etc.)
  * - User B views watchlist with AAPL → Uses cached AAPL data from Redis
- * - Result: 1 FMP API call instead of 2, shared across all instances
+ * - Result: 1 FMP API call + 1 Redis mget instead of 2 FMP + N Redis gets
  */
 
 import { getSnapshotsForSymbols, TickerSnapshot } from "@/lib/marketData";
@@ -52,20 +55,23 @@ export async function getCachedSnapshots(symbols: string[]): Promise<{
   const toFetch: string[] = [];
 
   if (redis) {
-    for (const symbol of symbols) {
-      try {
-        const cacheKey = `ticker:${symbol}`;
-        const cachedData = await redis.get<TickerSnapshot>(cacheKey);
+    // Batch read from Redis using mget (1 call instead of N calls)
+    try {
+      const cacheKeys = symbols.map((s) => `ticker:${s}`);
+      const cachedResults = await redis.mget<TickerSnapshot[]>(...cacheKeys);
 
+      for (let i = 0; i < symbols.length; i++) {
+        const cachedData = cachedResults[i];
         if (cachedData) {
           cached.push(cachedData);
         } else {
-          toFetch.push(symbol);
+          toFetch.push(symbols[i]);
         }
-      } catch (error) {
-        console.error(`[Redis] Error fetching ${symbol}:`, error);
-        toFetch.push(symbol);
       }
+    } catch (error) {
+      console.error(`[Redis] Batch fetch error:`, error);
+      // On error, fetch all symbols from API
+      toFetch.push(...symbols);
     }
   } else {
     const now = Date.now();
@@ -85,16 +91,17 @@ export async function getCachedSnapshots(symbols: string[]): Promise<{
     fresh = await getSnapshotsForSymbols(toFetch);
 
     if (redis) {
-      const redisClient = redis;
-      const writePromises = fresh.map((snapshot) => {
-        const cacheKey = `ticker:${snapshot.symbol}`;
-        return redisClient
-          .setex(cacheKey, CACHE_TTL_SECONDS, snapshot)
-          .catch((error) => {
-            console.error(`[Redis] Error caching ${snapshot.symbol}:`, error);
-          });
-      });
-      await Promise.all(writePromises);
+      // Batch write to Redis using pipeline (1 round-trip instead of N)
+      try {
+        const pipeline = redis.pipeline();
+        for (const snapshot of fresh) {
+          const cacheKey = `ticker:${snapshot.symbol}`;
+          pipeline.setex(cacheKey, CACHE_TTL_SECONDS, snapshot);
+        }
+        await pipeline.exec();
+      } catch (error) {
+        console.error(`[Redis] Batch write error:`, error);
+      }
     } else {
       const now = Date.now();
       for (const snapshot of fresh) {
