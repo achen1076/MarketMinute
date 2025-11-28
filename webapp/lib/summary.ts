@@ -66,14 +66,41 @@ export async function buildSummary(
   const avgChange =
     snapshots.reduce((sum, s) => sum + s.changePct, 0) / snapshots.length;
 
-  // Fetch news for all symbols in parallel (top 5 headlines per symbol)
-  const newsPromises = snapshots.map((s) => getNewsForSymbol(s.symbol, 5));
+  // Tiered news fetching strategy based on watchlist size
+  const totalSymbols = snapshots.length;
+  let newsItemsPerSymbol: number;
+  let symbolsToFetchNewsFor: TickerSnapshot[];
+
+  if (totalSymbols <= 10) {
+    newsItemsPerSymbol = 5;
+    symbolsToFetchNewsFor = snapshots;
+  } else if (totalSymbols <= 20) {
+    newsItemsPerSymbol = 3;
+    symbolsToFetchNewsFor = snapshots;
+  } else if (totalSymbols <= 50) {
+    newsItemsPerSymbol = 3;
+    const sorted = [...snapshots].sort(
+      (a, b) => Math.abs(b.changePct) - Math.abs(a.changePct)
+    );
+    symbolsToFetchNewsFor = sorted.slice(0, Math.min(10, totalSymbols));
+  } else {
+    newsItemsPerSymbol = 2;
+    const sorted = [...snapshots].sort(
+      (a, b) => Math.abs(b.changePct) - Math.abs(a.changePct)
+    );
+    symbolsToFetchNewsFor = sorted.slice(0, Math.min(8, totalSymbols));
+  }
+
+  // Fetch news only for selected symbols in parallel
+  const newsPromises = symbolsToFetchNewsFor.map((s) =>
+    getNewsForSymbol(s.symbol, newsItemsPerSymbol)
+  );
   const allNewsArrays = await Promise.all(newsPromises);
 
   // Fetch macro economic news (top 5 items)
   const macroNews = await getMacroNews(5);
 
-  // Group news by ticker symbol instead of flattening
+  // Group news by ticker symbol - only include symbols we fetched news for
   const symbolsWithNews: Record<
     string,
     {
@@ -87,7 +114,8 @@ export async function buildSummary(
     }
   > = {};
 
-  snapshots.forEach((snapshot, index) => {
+  // Map news to symbols that we fetched for
+  symbolsToFetchNewsFor.forEach((snapshot, index) => {
     const newsForSymbol = allNewsArrays[index] || [];
     symbolsWithNews[snapshot.symbol] = {
       changePct: Number(snapshot.changePct.toFixed(2)),
@@ -100,8 +128,25 @@ export async function buildSummary(
     };
   });
 
+  // For large watchlists, also include basic info for symbols without detailed news
+  // This helps LLM understand full watchlist context
+  const symbolsWithoutDetailedNews: Record<
+    string,
+    { changePct: number; price: number }
+  > = {};
+  if (totalSymbols > 20) {
+    snapshots.forEach((snapshot) => {
+      if (!symbolsWithNews[snapshot.symbol]) {
+        symbolsWithoutDetailedNews[snapshot.symbol] = {
+          changePct: Number(snapshot.changePct.toFixed(2)),
+          price: snapshot.price,
+        };
+      }
+    });
+  }
+
   // Build context for LLM with ticker-grouped structure
-  const contextPayload = {
+  const contextPayload: any = {
     watchlistName: listName,
     totalSymbols: snapshots.length,
     upCount: up.length,
@@ -117,7 +162,7 @@ export async function buildSummary(
       changePct: Number(worst.changePct.toFixed(2)),
       price: worst.price,
     },
-    symbols: symbolsWithNews,
+    symbolsWithDetailedNews: symbolsWithNews,
     macroContext: {
       news: macroNews.map((n) => ({
         title: n.title,
@@ -128,33 +173,42 @@ export async function buildSummary(
     },
   };
 
+  // For large watchlists, add summary stats for other symbols
+  if (totalSymbols > 20) {
+    contextPayload.otherSymbols = symbolsWithoutDetailedNews;
+    contextPayload.note = `This is a large watchlist with ${totalSymbols} symbols. Detailed news is provided only for the top movers. Other symbols are listed with their price changes.`;
+  }
+
   const systemPrompt = `
        You are a financial analyst assistant that creates concise, news-driven summaries for a watchlist.
 
         The user will send you a JSON object with:
         - Watchlist name and basic statistics (number of symbols, up/down counts, average % move)
         - Best and worst performers with prices and % changes
-        - A "symbols" object where each ticker is a key, containing:
+        - A "symbolsWithDetailedNews" object where each ticker is a key, containing:
           - changePct: the stock's % change
           - price: current price
           - news: array of recent headlines (last 1–2 days) specific to that ticker
+        - For large watchlists (>20 symbols), an "otherSymbols" object with basic price/change data for symbols without detailed news
         - macroContext: object containing macro economic news with:
           - news: array of macro headlines with category (rates, inflation, employment, gdp, policy, geopolitical) and impact level (high, medium, low)
           - Use this to explain broader market moves and provide context for individual stock movements
 
         Important: News is grouped BY TICKER. Each symbol has its own news array. Do not mix news between tickers.
         Important: Use macroContext news to explain market-wide trends. High-impact macro news (Fed decisions, CPI, jobs) often drives all stocks in a direction.
+        Important: For large watchlists, focus your narrative on the symbolsWithDetailedNews (top movers). You can reference overall watchlist trends but prioritize stocks with news.
 
         Your task is to write a market recap for this watchlist.
 
-        Key Movers & News (1–2 short paragraphs)
-        - Focus ONLY on stocks that have both a noticeable move and at least one recent headline in their news array.
+        Key Movers & News (1–3 short paragraphs depending on watchlist size)
+        - Focus ONLY on stocks in symbolsWithDetailedNews that have both a noticeable move and at least one recent headline in their news array.
           Example style: "Nvidia rose 1.8% after headlines about [X]. Apple slipped 0.2% on reports of [Y]."
         - Do not talk about "these headlines" or "this coverage" in the abstract. Talk directly about the companies and what the news says.
         - Do not include news sources in the summary like SeekingAlpha or any other sources.
         - Only connect news to the ticker it belongs to. If NVDA's news array has 2 items, only use those for NVDA.
+        - For large watchlists, you may mention the overall trend (e.g., "Tech names were mostly higher") but focus details on top movers with news.
 
-        Market Context & Catalysts (1–2 short paragraphs)
+        Market Context & Catalysts (1–3 short paragraphs depending on watchlist size)
         - ALWAYS check macroContext.news first to explain broader market trends
         - If high-impact macro news exists (category: rates, inflation, employment), start with that context
           Example: "Markets moved lower today as the Fed signaled higher rates for longer" or "Stocks rallied after CPI came in below expectations"

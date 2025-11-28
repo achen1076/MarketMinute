@@ -116,7 +116,7 @@ export function TickerListClient({
     <Card className="p-4 text-sm h-full overflow-hidden flex flex-col">
       <div className="mb-3 flex items-center justify-between shrink-0">
         <h3 className="text-sm font-semibold text-slate-200">Your Symbols</h3>
-        <button
+        {/* <button
           onClick={handleRefresh}
           disabled={isRefreshing}
           className="p-1.5 rounded-md transition-colors hover:bg-slate-800/50 disabled:opacity-50"
@@ -126,7 +126,7 @@ export function TickerListClient({
             size={16}
             className={`text-slate-400 ${isRefreshing ? "animate-spin" : ""}`}
           />
-        </button>
+        </button> */}
       </div>
 
       {/* Search and Sort Controls */}

@@ -44,9 +44,9 @@ MarketMinute is a full-stack financial intelligence platform that combines real-
 - **⚡ Batch API Operations** - FMP Premium batch-quote endpoint for single-call ticker fetching
 - **🚀 Redis Caching** - 30-second TTL with Upstash Redis for shared cross-instance cache
 - **📊 Database Query Optimization** - Fixed N+1 queries in events API (430+ queries → 2 queries)
-- **💾 30-Year Historical Data** - Upgraded from 5 years to 30 years of training data (~7,560 days)
+- **💾 30-Year Historical Data** - Upgraded from 5 years to up to 30 years of training data (~7,560 days)
 - **🔄 Parallel Writes** - Promise.all for concurrent Redis operations
-- **📈 83% Redis Reduction** - Optimized cache strategy reduces operations from 50k/hour to ~8.5k/hour
+- **🔐 AWS Secrets Manager** - Secure FMP API key storage instead of environment variables
 
 ---
 
@@ -647,10 +647,9 @@ cp .env.example .env.local
 # - DATABASE_URL (PostgreSQL)
 # - NEXTAUTH_SECRET
 # - OPENAI_API_KEY
-# - FMP_API_KEY (Financial Modeling Prep - Premium tier)
+# - FMP_API_KEY (Financial Modeling Prep - Premium tier for quotes, news, and events)
 # - UPSTASH_REDIS_REST_URL (optional - Redis caching)
 # - UPSTASH_REDIS_REST_TOKEN (optional - Redis caching)
-# - FINNHUB_API_KEY (optional - news headlines)
 
 # Initialize database
 npx prisma migrate dev
