@@ -61,7 +61,7 @@ export default function LambdaCronRunner() {
       {result && !error && (
         <div className="p-4 border border-green-600/50 rounded-md bg-green-900/20">
           <div className="flex items-start gap-3">
-            <CheckCircle className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
+            <CheckCircle className="h-5 w-5 text-green-400 mt-0.5 shrink-0" />
             <div className="space-y-2 flex-1">
               <h3 className="text-lg font-semibold text-green-100">
                 Cron Job Completed Successfully
@@ -106,7 +106,7 @@ export default function LambdaCronRunner() {
       {error && (
         <div className="p-4 border border-red-600/50 rounded-md bg-red-900/20">
           <div className="flex items-start gap-3">
-            <XCircle className="h-5 w-5 text-red-400 mt-0.5 flex-shrink-0" />
+            <XCircle className="h-5 w-5 text-red-400 mt-0.5 shrink-0" />
             <div>
               <h3 className="text-lg font-semibold text-red-100 mb-1">
                 Error Triggering Cron Job

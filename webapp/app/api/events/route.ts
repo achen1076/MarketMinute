@@ -353,11 +353,6 @@ export async function GET(request: Request) {
     const cached = requestCache.get(cacheKey);
 
     if (cached && now - cached.timestamp < REQUEST_CACHE_TTL) {
-      console.log(
-        `[Events] Deduplicating request for: ${symbols
-          .slice(0, 3)
-          .join(", ")}...`
-      );
       return cached.promise;
     }
 
@@ -373,7 +368,6 @@ export async function GET(request: Request) {
       for (const symbol of symbols) {
         const shouldFetch = await shouldFetchTickerEvents(symbol);
         if (!shouldFetch) {
-          // Already cached or in DB - retrieve from DB
           const events = await getTickerEventsFromDb(symbol);
           stockEvents.push(...events);
         } else {
@@ -381,15 +375,9 @@ export async function GET(request: Request) {
         }
       }
 
-      // Fetch uncached tickers from external API (max once per day)
       if (symbolsToFetch.length > 0) {
-        console.log(
-          `[Events][API] Fetching from FMP: ${symbolsToFetch.join(", ")}`
-        );
-
         const fetchPromises = symbolsToFetch.map(async (symbol) => {
           const events = await fetchTickerEvents(symbol);
-          // Store in database (updated_at timestamp tracks when fetched)
           await setTickerEventsInDb(symbol, events);
           return events;
         });
@@ -405,7 +393,6 @@ export async function GET(request: Request) {
       if (!shouldFetchMacro) {
         macroEvents = await getMacroEventsFromDb();
       } else {
-        console.log("[Events][API] Fetching macro events (generated)");
         macroEvents = await fetchMacroEvents();
         // Store in database (updated_at timestamp tracks when fetched)
         await setMacroEventsInDb(macroEvents);

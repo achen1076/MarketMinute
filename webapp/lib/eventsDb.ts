@@ -46,14 +46,16 @@ export async function getTickerEventsFromDb(
     },
   });
 
-  return events.map((e) => ({
-    symbol: e.symbol,
-    type: e.type as StockEvent["type"],
-    title: e.title,
-    date: e.date,
-    description: e.description ?? undefined,
-    source: (e.source as StockEvent["source"]) ?? undefined,
-  }));
+  return events
+    .filter((e) => e.title !== "No upcoming events") // Filter out sentinel records
+    .map((e) => ({
+      symbol: e.symbol,
+      type: e.type as StockEvent["type"],
+      title: e.title,
+      date: e.date,
+      description: e.description ?? undefined,
+      source: (e.source as StockEvent["source"]) ?? undefined,
+    }));
 }
 
 /**
@@ -66,35 +68,70 @@ export async function setTickerEventsInDb(
 ): Promise<void> {
   const upper = symbol.toUpperCase();
 
+  if (events.length === 0) {
+    // No events found - store a sentinel record so we know we've checked
+    // This prevents refetching from API repeatedly
+    const sentinelDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0]; // 1 year in future
+
+    await prisma.tickerEvent.upsert({
+      where: {
+        symbol_type_date: {
+          symbol: upper,
+          type: "other",
+          date: sentinelDate,
+        },
+      },
+      create: {
+        symbol: upper,
+        type: "other",
+        title: `No upcoming events`,
+        date: sentinelDate,
+        description: "Checked API - no events in next 30 days",
+        source: "api",
+      },
+      update: {
+        // Just update timestamp by re-creating same record
+        title: `No upcoming events`,
+        description: "Checked API - no events in next 30 days",
+      },
+    });
+    return;
+  }
+
   // Use transactions for atomic upserts
-  await prisma.$transaction(
-    events.map((event) =>
-      prisma.tickerEvent.upsert({
-        where: {
-          symbol_type_date: {
+  try {
+    await prisma.$transaction(
+      events.map((event) =>
+        prisma.tickerEvent.upsert({
+          where: {
+            symbol_type_date: {
+              symbol: upper,
+              type: event.type,
+              date: event.date,
+            },
+          },
+          create: {
             symbol: upper,
             type: event.type,
+            title: event.title,
             date: event.date,
+            description: event.description,
+            source: event.source,
           },
-        },
-        create: {
-          symbol: upper,
-          type: event.type,
-          title: event.title,
-          date: event.date,
-          description: event.description,
-          source: event.source,
-        },
-        update: {
-          title: event.title,
-          description: event.description,
-          source: event.source,
-        },
-      })
-    )
-  );
-
-  console.log(`[Events][DB] Stored ${events.length} events for ${upper}`);
+          update: {
+            title: event.title,
+            description: event.description,
+            source: event.source,
+          },
+        })
+      )
+    );
+  } catch (error) {
+    console.error(`[Events][DB] Failed to store events for ${upper}:`, error);
+    throw error;
+  }
 }
 
 /**
@@ -151,8 +188,6 @@ export async function setMacroEventsInDb(events: MacroEvent[]): Promise<void> {
       })
     )
   );
-
-  console.log(`[Events][DB] Stored ${events.length} macro events`);
 }
 
 /**
@@ -161,31 +196,38 @@ export async function setMacroEventsInDb(events: MacroEvent[]): Promise<void> {
  */
 export async function cleanExpiredEventsFromDb(): Promise<number> {
   const today = new Date().toISOString().split("T")[0];
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-  const [deletedTicker, deletedMacro] = await prisma.$transaction([
-    prisma.tickerEvent.deleteMany({
-      where: {
-        date: {
-          lt: today,
+  const [deletedExpired, deletedOldSentinels, deletedMacro] =
+    await prisma.$transaction([
+      // Delete past events
+      prisma.tickerEvent.deleteMany({
+        where: {
+          date: {
+            lt: today,
+          },
         },
-      },
-    }),
-    prisma.macroEvent.deleteMany({
-      where: {
-        date: {
-          lt: today,
+      }),
+      // Delete old sentinel records (force refetch if >7 days old)
+      prisma.tickerEvent.deleteMany({
+        where: {
+          title: "No upcoming events",
+          updatedAt: {
+            lt: sevenDaysAgo,
+          },
         },
-      },
-    }),
-  ]);
+      }),
+      prisma.macroEvent.deleteMany({
+        where: {
+          date: {
+            lt: today,
+          },
+        },
+      }),
+    ]);
 
-  const totalDeleted = deletedTicker.count + deletedMacro.count;
-
-  if (totalDeleted > 0) {
-    console.log(
-      `[Events][DB] Cleaned ${totalDeleted} expired events (ticker: ${deletedTicker.count}, macro: ${deletedMacro.count})`
-    );
-  }
+  const totalDeleted =
+    deletedExpired.count + deletedOldSentinels.count + deletedMacro.count;
 
   return totalDeleted;
 }
@@ -211,27 +253,12 @@ export async function shouldFetchTickerEvents(
     },
   });
 
-  if (!recentEvent) {
-    console.log(`[Events][DB] ${upper} not in DB, will fetch from API`);
-    return true;
-  }
+  if (!recentEvent) return true;
 
   const age = Date.now() - recentEvent.updatedAt.getTime();
   const ageHours = age / (1000 * 60 * 60);
 
-  if (ageHours < 24) {
-    console.log(
-      `[Events][DB] ${upper} updated ${ageHours.toFixed(
-        1
-      )}h ago, skipping fetch`
-    );
-    return false;
-  }
-
-  console.log(
-    `[Events][DB] ${upper} updated ${ageHours.toFixed(1)}h ago, will refetch`
-  );
-  return true;
+  return ageHours >= 24;
 }
 
 /**
@@ -251,29 +278,12 @@ export async function shouldFetchMacroEvents(): Promise<boolean> {
     },
   });
 
-  if (!recentEvent) {
-    console.log(`[Events][DB] No macro events in DB, will fetch from API`);
-    return true;
-  }
+  if (!recentEvent) return true;
 
   const age = Date.now() - recentEvent.updatedAt.getTime();
   const ageHours = age / (1000 * 60 * 60);
 
-  if (ageHours < 24) {
-    console.log(
-      `[Events][DB] Macro events updated ${ageHours.toFixed(
-        1
-      )}h ago, skipping fetch`
-    );
-    return false;
-  }
-
-  console.log(
-    `[Events][DB] Macro events updated ${ageHours.toFixed(
-      1
-    )}h ago, will refetch`
-  );
-  return true;
+  return ageHours >= 24;
 }
 
 /**
@@ -292,9 +302,6 @@ export async function hasTickerEventsInDb(symbol: string): Promise<boolean> {
     },
   });
 
-  console.log(
-    `[Events][DB] Check for ${upper}: found ${count} events (today: ${today})`
-  );
   return count > 0;
 }
 

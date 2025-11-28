@@ -29,7 +29,10 @@ def generate_live_predictions(raw_predictions, prices, volatilities, raw_data):
 
         signal_map = {-1: "SELL", 0: "NEUTRAL", 1: "BUY"}
         signal = signal_map.get(pred, "NEUTRAL")
-        confidence = max(prob_up, prob_neutral, prob_down)
+
+        # Confidence based on the predicted direction
+        confidence_map = {-1: prob_down, 0: prob_neutral, 1: prob_up}
+        confidence = confidence_map.get(pred, prob_neutral)
 
         if atr and pred != 0:
             take_profit = current_price + \
