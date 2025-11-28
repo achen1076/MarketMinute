@@ -45,8 +45,15 @@ export async function POST() {
 
     const data = await response.json();
 
-    // Lambda returns data directly, not wrapped in statusCode/body
-    const result = data.body ? JSON.parse(data.body) : data;
+    // Lambda returns {statusCode: 200, body: "JSON STRING"}
+    // Need to parse the body string
+    let result;
+    if (data.statusCode && data.body) {
+      result =
+        typeof data.body === "string" ? JSON.parse(data.body) : data.body;
+    } else {
+      result = data;
+    }
 
     console.log("[Admin] Parsed result:", {
       tickers_analyzed: result.tickers_analyzed,

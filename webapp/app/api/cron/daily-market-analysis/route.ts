@@ -42,14 +42,26 @@ export async function GET(request: Request) {
 
       if (lambdaRes.ok) {
         const data = await lambdaRes.json();
-        // Lambda returns data directly, not wrapped in statusCode/body
-        results.lambda = data.body ? JSON.parse(data.body) : data;
+
+        // Lambda returns {statusCode: 200, body: "JSON STRING"}
+        // Need to parse the body string
+        let parsedData;
+        if (data.statusCode && data.body) {
+          parsedData =
+            typeof data.body === "string" ? JSON.parse(data.body) : data.body;
+        } else {
+          parsedData = data;
+        }
+
+        results.lambda = parsedData;
+
         console.log("[Cron] Lambda triggered successfully:", {
           tickers:
-            results.lambda.tickers_analyzed ||
-            results.lambda.live_predictions?.length ||
+            parsedData.tickers_analyzed ||
+            parsedData.live_predictions?.length ||
             0,
-          predictions: results.lambda.live_predictions?.length || 0,
+          predictions: parsedData.live_predictions?.length || 0,
+          sentinel: parsedData.sentinel?.status || "unknown",
         });
       } else {
         throw new Error(`Lambda returned ${lambdaRes.status}`);
