@@ -153,13 +153,6 @@ export function MarketMinuteSummary({ watchlistId }: Props) {
 
     setLoading(true);
     fetchSummary();
-
-    // Poll every 5 seconds for live price updates
-    const interval = setInterval(() => {
-      fetchSummary();
-    }, 5000);
-
-    return () => clearInterval(interval);
   }, [watchlistId]);
 
   const handleTextToSpeech = async () => {
