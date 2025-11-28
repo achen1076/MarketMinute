@@ -39,6 +39,15 @@ MarketMinute is a full-stack financial intelligence platform that combines real-
 - JSON fields for flexible data structures (`whatThisMeans`, `context`, `keyDrivers`)
 - Indexed anomaly flags and `runId` for efficient querying
 
+### Performance Optimizations (Nov 2025)
+
+- **⚡ Batch API Operations** - FMP Premium batch-quote endpoint for single-call ticker fetching
+- **🚀 Redis Caching** - 30-second TTL with Upstash Redis for shared cross-instance cache
+- **📊 Database Query Optimization** - Fixed N+1 queries in events API (430+ queries → 2 queries)
+- **💾 30-Year Historical Data** - Upgraded from 5 years to 30 years of training data (~7,560 days)
+- **🔄 Parallel Writes** - Promise.all for concurrent Redis operations
+- **📈 83% Redis Reduction** - Optimized cache strategy reduces operations from 50k/hour to ~8.5k/hour
+
 ---
 
 ## 🎯 Overview
@@ -68,7 +77,7 @@ The system uses a serverless architecture with three main components:
 **Daily Automated Flow:**
 
 - **4:05 PM EST (Mon-Fri)**: EventBridge triggers Lambda function
-- **Lambda**: Fetches 5 years of market data from Financial Modeling Prep API
+- **Lambda**: Fetches 30 years of market data from Financial Modeling Prep API
 - **Lambda**: Calls SageMaker endpoint for ML predictions
 - **Lambda**: Generates distributional forecasts and trading signals
 - **Lambda**: Saves results to PostgreSQL database
@@ -88,10 +97,11 @@ The system uses a serverless architecture with three main components:
   - Sector rotation detection and analysis
   - Macro event integration and surprise detection
   - Historical report tracking with expandable insights
-- **Real-time Market Data** - Live quotes and price updates via Financial Modeling Prep API
+- **Real-time Market Data** - Live quotes with 30s cache via FMP Premium batch API
+- **Redis-Powered Caching** - Shared app-level cache with Upstash Redis for instant updates
 - **AI Market Summaries** - Natural language summaries powered by LangChain & OpenAI
 - **Smart Alerts** - Automated notifications for price movements, volume spikes, and 52-week highs
-- **Events Timeline** - Track upcoming earnings dates and key market events
+- **Events Timeline** - Batch-optimized events API for earnings and macro events
 - **Historical Analysis** - "Since Last Visit" snapshots to see what changed
 
 ### 📈 Watchlist Management
@@ -143,7 +153,8 @@ The system uses a serverless architecture with three main components:
 - **UI Components:** Radix UI, Lucide Icons
 - **Authentication:** NextAuth.js 5 (Beta)
 - **Database ORM:** Prisma
-- **Database:** PostgreSQL
+- **Database:** PostgreSQL (Vercel Postgres)
+- **Caching:** Upstash Redis (30s TTL, shared app-level cache)
 
 ### AI & ML (Web App)
 
@@ -164,7 +175,8 @@ The system uses a serverless architecture with three main components:
 
 ### Infrastructure & Cloud
 
-- **Market Data Provider:** Financial Modeling Prep API
+- **Market Data Provider:** Financial Modeling Prep API (Premium - batch quotes, 30 years historical)
+- **Caching Layer:** Upstash Redis (serverless, shared across instances)
 - **Web Deployment:** Vercel (Next.js production hosting)
 - **ML Infrastructure:** AWS Lambda + SageMaker (serverless inference)
 - **Orchestration:** AWS EventBridge (cron scheduler)
@@ -635,7 +647,10 @@ cp .env.example .env.local
 # - DATABASE_URL (PostgreSQL)
 # - NEXTAUTH_SECRET
 # - OPENAI_API_KEY
-# - FMP_API_KEY
+# - FMP_API_KEY (Financial Modeling Prep - Premium tier)
+# - UPSTASH_REDIS_REST_URL (optional - Redis caching)
+# - UPSTASH_REDIS_REST_TOKEN (optional - Redis caching)
+# - FINNHUB_API_KEY (optional - news headlines)
 
 # Initialize database
 npx prisma migrate dev
@@ -884,27 +899,6 @@ Run migrations:
 ```bash
 npx prisma migrate dev
 ```
-
----
-
-## 📈 Quant System Performance
-
-**2024 YTD Backtest Results:**
-
-- Directional accuracy: 54–59% depending on symbol
-- Model stability (Sharpe-like metric): 3.40
-- Largest downward deviation: -17.9% equivalent simulated drawdown
-- Scenario frequency: ~10–12% strong-signal days
-
-**Key Parameters:**
-
-- Confidence threshold: 64%
-- Position size: 10% per trade
-- Stop loss: 1.5x ATR
-- Take profit: 2.5x ATR
-- Risk/Reward: ~1.67:1
-
----
 
 ---
 

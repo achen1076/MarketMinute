@@ -7,34 +7,34 @@ export const COLORS = {
     elevated: "#050B1B",
     subtle: "#0B1220",
   },
-  
+
   // Borders
   border: {
     subtle: "#111827",
     strong: "#1F2937",
   },
-  
+
   // Text
   text: {
     main: "#F9FAFB",
     muted: "#9CA3AF",
     soft: "#6B7280",
   },
-  
+
   // Accents
   accent: {
-    primary: "#16A34A",        // brand green
-    primarySoft: "#22C55E",    // softer green
-    secondary: "#A855F7",      // soft purple for pills/hover
+    primary: "#16A34A",
+    primarySoft: "#22C55E",
+    secondary: "#A855F7",
   },
-  
+
   // Semantic (market indicators)
   semantic: {
-    up: "#22C55E",             // green for positive
-    down: "#FB7185",           // red for negative
-    neutral: "#9CA3AF",        // gray for flat
+    up: "#22C55E",
+    down: "#FB7185",
+    neutral: "#9CA3AF",
   },
-  
+
   // Badge
   badge: {
     neutralBg: "rgba(148, 163, 184, 0.08)",

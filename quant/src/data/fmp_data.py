@@ -47,20 +47,15 @@ class FMPDataFetcher:
         Returns:
             DataFrame with: timestamp, open, high, low, close, volume
         """
-        # Default to 5 years of data
         if not from_date:
-            from_date = (datetime.now() - timedelta(days=365*5)
+            from_date = (datetime.now() - timedelta(days=365*30)
                          ).strftime("%Y-%m-%d")
         if not to_date:
             to_date = datetime.now().strftime("%Y-%m-%d")
 
-        # Choose endpoint based on timespan
         if timespan == "minute":
-            # FMP intraday data (only available for recent dates)
-            print('minute!')
             df = self._fetch_intraday(ticker, multiplier, from_date, to_date)
         else:
-            # FMP historical daily data
             df = self._fetch_historical_daily(ticker, from_date, to_date)
 
         return df.tail(limit) if len(df) > limit else df
@@ -103,11 +98,6 @@ class FMPDataFetcher:
         return df
 
     def _fetch_intraday(self, ticker: str, interval: int, from_date: str, to_date: str) -> pd.DataFrame:
-        """
-        Fetch intraday minute-level data.
-        Note: FMP intraday data is limited to recent dates (typically last 1-5 days depending on plan).
-        """
-        # Map interval to FMP format (1min, 5min, 15min, 30min, 1hour)
         interval_map = {
             1: "1min",
             5: "5min",
@@ -149,7 +139,6 @@ class FMPDataFetcher:
         return df
 
     def fetch_quote(self, ticker: str) -> dict:
-        """Fetch current quote for a ticker."""
         url = f"{self.BASE_URL}/quote"
         params = {
             "symbol": ticker,
@@ -161,21 +150,20 @@ class FMPDataFetcher:
         data = response.json()
 
         if data and isinstance(data, list) and len(data) > 0:
-            return data[0]  # FMP returns list with single quote
+            return data[0]
         return {}
 
     def save_to_csv(self, df: pd.DataFrame, filepath: str):
-        """Save DataFrame to CSV file."""
         df.to_csv(filepath, index=False)
 
 
-# Quick test
 if __name__ == "__main__":
     fetcher = FMPDataFetcher()
     df = fetcher.fetch_aggregates(
         ticker="AAPL",
-        timespan="minute",
-        from_date=(datetime.now() - timedelta(days=365*5)).strftime("%Y-%m-%d")
+        timespan="day",
+        from_date=(datetime.now() - timedelta(days=365*30)
+                   ).strftime("%Y-%m-%d")
     )
     print(f"Fetched {len(df)} bars for AAPL")
     print(df.head())

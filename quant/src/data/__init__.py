@@ -1,4 +1,4 @@
 """Data fetching and processing."""
-from .schwab_data import SchwabDataFetcher
+from .fmp_data import FMPDataFetcher
 
-__all__ = ['SchwabDataFetcher']
+__all__ = ['FMPDataFetcher']

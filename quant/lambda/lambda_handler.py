@@ -1,11 +1,11 @@
 import json
 import os
 import boto3
-import traceback
 import requests
 from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
+import traceback
 
 # Local modules
 from src.data.fmp_data import FMPDataFetcher
@@ -14,13 +14,36 @@ from predictions import generate_live_predictions
 from forecasting import generate_distributional_forecasts, calculate_historical_volatility
 from tickers import TICKERS
 
-CODE_VERSION = "v1.3.0-fmp-data"
+CODE_VERSION = "v1.4.0-secrets-manager"
 print(f"[INIT] Lambda handler loaded - {CODE_VERSION}")
 
 sagemaker_runtime = boto3.client('sagemaker-runtime')
+secretsmanager = boto3.client('secretsmanager')
+
 SAGEMAKER_ENDPOINT = os.environ.get(
     'SAGEMAKER_ENDPOINT_NAME', 'marketminute-dev-endpoint')
 WEBAPP_URL = os.environ.get('WEBAPP_URL', '')
+
+
+def get_fmp_api_key():
+    """Retrieve FMP API key from AWS Secrets Manager"""
+    secret_arn = os.environ.get('FMP_SECRET_ARN')
+
+    if not secret_arn:
+        print("[Lambda] FMP_SECRET_ARN not set, trying FMP_API_KEY environment variable")
+        # Fallback to environment variable for backwards compatibility
+        return os.environ.get('FMP_API_KEY', 'YOUR_FMP_API_KEY_HERE')
+
+    try:
+        response = secretsmanager.get_secret_value(SecretId=secret_arn)
+        secret_data = json.loads(response['SecretString'])
+        api_key = secret_data.get('FMP_API_KEY')
+        print("[Lambda] Successfully retrieved FMP API key from Secrets Manager")
+        return api_key
+    except Exception as e:
+        print(f"[Lambda] Error retrieving secret from Secrets Manager: {e}")
+        # Fallback to environment variable
+        return os.environ.get('FMP_API_KEY', 'YOUR_FMP_API_KEY_HERE')
 
 
 def save_results_to_db(live_predictions, distributional_forecasts):
@@ -140,7 +163,8 @@ def handler(event, context):
 
 def fetch_market_data():
     """Fetch market data from FMP API and generate features"""
-    fmp_client = FMPDataFetcher(api_key=os.environ.get('FMP_API_KEY'))
+    fmp_api_key = get_fmp_api_key()
+    fmp_client = FMPDataFetcher(api_key=fmp_api_key)
     feature_engine = FeatureEngine()
 
     features, prices, volatilities, raw_data = {}, {}, {}, {}
@@ -150,8 +174,8 @@ def fetch_market_data():
         "rolling_vol", "neutral_thresh", "strong_thresh", "dyn_thresh"
     ]
 
-    # Fetch 5 years of historical data
-    from_date = (datetime.now() - timedelta(days=365*5)).strftime("%Y-%m-%d")
+    # Fetch 30 years of historical data (FMP premium supports 30 years)
+    from_date = (datetime.now() - timedelta(days=365*30)).strftime("%Y-%m-%d")
     to_date = datetime.now().strftime("%Y-%m-%d")
 
     print(f"[Lambda] Fetching data from {from_date} to {to_date}")

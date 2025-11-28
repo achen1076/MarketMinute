@@ -40,6 +40,23 @@ resource "aws_iam_role_policy" "lambda_sagemaker" {
   })
 }
 
+# Allow Lambda to read FMP API key from Secrets Manager
+resource "aws_iam_role_policy" "lambda_secrets" {
+  name = "${var.project_name}-${var.environment}-lambda-secrets-policy"
+  role = aws_iam_role.lambda_execution.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "secretsmanager:GetSecretValue"
+      ]
+      Resource = aws_secretsmanager_secret.fmp_api_key.arn
+    }]
+  })
+}
+
 resource "aws_lambda_function" "quant_orchestrator" {
   count = var.lambda_image_uri != "none" && var.lambda_image_uri != "" ? 1 : 0
   
@@ -56,7 +73,7 @@ resource "aws_lambda_function" "quant_orchestrator" {
   environment {
     variables = {
       SAGEMAKER_ENDPOINT_NAME = aws_sagemaker_endpoint.quant.name
-      FMP_API_KEY             = var.fmp_api_key
+      FMP_SECRET_ARN          = aws_secretsmanager_secret.fmp_api_key.arn
       PROJECT_NAME            = var.project_name
       ENVIRONMENT             = var.environment
       WEBAPP_URL              = var.webapp_url
