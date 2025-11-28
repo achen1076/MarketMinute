@@ -15,9 +15,7 @@
 
 import { getSnapshotsForSymbols, TickerSnapshot } from "@/lib/marketData";
 import { redis } from "@/lib/redis";
-
-const CACHE_TTL_SECONDS = 30; // 30 seconds for Redis TTL
-const CACHE_TTL_MS = CACHE_TTL_SECONDS * 1000; // 30 seconds for in-memory cache
+import { CACHE_TTL_SECONDS, CACHE_TTL_MS } from "@/lib/constants";
 
 const tickerCache = new Map<
   string,
@@ -55,7 +53,6 @@ export async function getCachedSnapshots(symbols: string[]): Promise<{
   const toFetch: string[] = [];
 
   if (redis) {
-    // Batch read from Redis using mget (1 call instead of N calls)
     try {
       const cacheKeys = symbols.map((s) => `ticker:${s}`);
       const cachedResults = await redis.mget<TickerSnapshot[]>(...cacheKeys);
@@ -91,7 +88,6 @@ export async function getCachedSnapshots(symbols: string[]): Promise<{
     fresh = await getSnapshotsForSymbols(toFetch);
 
     if (redis) {
-      // Batch write to Redis using pipeline (1 round-trip instead of N)
       try {
         const pipeline = redis.pipeline();
         for (const snapshot of fresh) {

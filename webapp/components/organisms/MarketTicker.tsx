@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { CACHE_TTL_MS } from "@/lib/constants";
 
 type TickerItem = {
   symbol: string;
@@ -44,7 +45,8 @@ export function MarketTicker() {
 
   useEffect(() => {
     fetchTickers();
-    const interval = setInterval(fetchTickers, 5000);
+    // Poll at cache TTL interval
+    const interval = setInterval(fetchTickers, CACHE_TTL_MS);
     return () => clearInterval(interval);
   }, []);
 

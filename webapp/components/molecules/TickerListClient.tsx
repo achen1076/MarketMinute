@@ -5,6 +5,7 @@ import type { TickerSnapshot } from "@/lib/marketData";
 import Card from "@/components/atoms/Card";
 import Button from "@/components/atoms/Button";
 import { RefreshCw, Search } from "lucide-react";
+import { CACHE_TTL_MS } from "@/lib/constants";
 
 type Props = {
   snapshots: TickerSnapshot[];
@@ -49,7 +50,8 @@ export function TickerListClient({
     if (!watchlistId) return;
 
     handleRefresh();
-    const interval = setInterval(handleRefresh, 5000);
+    // Poll at cache TTL interval
+    const interval = setInterval(handleRefresh, CACHE_TTL_MS);
     return () => clearInterval(interval);
   }, [watchlistId]);
 
