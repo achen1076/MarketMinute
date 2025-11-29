@@ -120,34 +120,47 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         <nav className="mt-2 flex flex-1 flex-col gap-4 px-3 text-md">
-          <NavLink to="/" onClick={closeMenu}>
-            Home
-          </NavLink>
-          <NavLink to="/watchlist" onClick={closeMenu}>
-            Watchlist
-          </NavLink>
-          <NavLink to="/quant" onClick={closeMenu}>
-            Quant Lab
-          </NavLink>
-          <NavLink to="/forecasts" onClick={closeMenu}>
-            Market Forecasts
-          </NavLink>
-          <NavLink to="/sentinel" onClick={closeMenu}>
-            Sentinel Dashboard
-          </NavLink>
-          <NavLink to="/history" onClick={closeMenu}>
-            History
-          </NavLink>
-          {/* <NavLink to="/explore" onClick={closeMenu}>
-            Explore
-          </NavLink>
-          <NavLink to="/settings" onClick={closeMenu}>
-            Settings
-          </NavLink> */}
-          {user?.email === "achen1076@gmail.com" && (
-            <NavLink to="/admin" onClick={closeMenu}>
-              Admin
-            </NavLink>
+          {user ? (
+            <>
+              <NavLink to="/" onClick={closeMenu}>
+                Home
+              </NavLink>
+              <NavLink to="/watchlist" onClick={closeMenu}>
+                Watchlist
+              </NavLink>
+              <NavLink to="/quant" onClick={closeMenu}>
+                Quant Lab
+              </NavLink>
+              <NavLink to="/forecasts" onClick={closeMenu}>
+                Market Forecasts
+              </NavLink>
+              <NavLink to="/sentinel" onClick={closeMenu}>
+                Sentinel Dashboard
+              </NavLink>
+              <NavLink to="/history" onClick={closeMenu}>
+                History
+              </NavLink>
+              <NavLink to="/about" onClick={closeMenu}>
+                About
+              </NavLink>
+              {/* <NavLink to="/explore" onClick={closeMenu}>
+                Explore
+              </NavLink>
+              <NavLink to="/settings" onClick={closeMenu}>
+                Settings
+              </NavLink> */}
+              {user?.email === "achen1076@gmail.com" && (
+                <NavLink to="/admin" onClick={closeMenu}>
+                  Admin
+                </NavLink>
+              )}
+            </>
+          ) : (
+            <>
+              <NavLink to="/signin" onClick={closeMenu}>
+                Sign In
+              </NavLink>
+            </>
           )}
         </nav>
         {user && (
