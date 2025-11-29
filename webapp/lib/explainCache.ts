@@ -6,8 +6,8 @@ export type ExplanationCacheEntry = {
   timestamp: number;
 };
 
-const CACHE_DURATION_MS = 30 * 60 * 1000;
-const CACHE_DURATION_SECONDS = 30 * 60;
+const CACHE_DURATION_MS = 30 * 60 * 1000; // 30 minutes
+const CACHE_DURATION_SECONDS = 30 * 60; // 30 minutes
 
 // In-memory fallback for when Redis is unavailable
 const explanationCache = new Map<string, ExplanationCacheEntry>();
@@ -36,9 +36,8 @@ export async function getExplanationFromCache(
   }
 
   const cached = explanationCache.get(normalizedSymbol);
-  const now = Date.now();
 
-  if (cached && now - cached.timestamp < CACHE_DURATION_MS) {
+  if (cached) {
     console.log(`[Explain/Memory] Cache hit for ${normalizedSymbol}`);
     return cached;
   }
@@ -60,24 +59,23 @@ export async function setExplanationInCache(
     timestamp: Date.now(),
   };
 
-  // Store in Redis with TTL
   if (redis) {
     try {
+      // setex automatically replaces old cache if it exists
       await redis.setex(cacheKey, CACHE_DURATION_SECONDS, entry);
       console.log(
-        `[Explain/Redis] Cached new explanation for ${normalizedSymbol}`
+        `[Explain/Redis] Stored new explanation for ${normalizedSymbol} (TTL: ${CACHE_DURATION_SECONDS}s)`
       );
       return;
     } catch (error) {
       console.error(`[Explain/Redis] Error setting cache:`, error);
-      // Fall through to in-memory cache
     }
   }
 
-  // Fallback to in-memory cache
+  // Map.set() automatically replaces old value if key exists
   explanationCache.set(normalizedSymbol, entry);
   console.log(
-    `[Explain/Memory] Cached new explanation for ${normalizedSymbol}. Cache size now: ${explanationCache.size}`
+    `[Explain/Memory] Stored new explanation for ${normalizedSymbol}. Cache size: ${explanationCache.size}`
   );
 }
 

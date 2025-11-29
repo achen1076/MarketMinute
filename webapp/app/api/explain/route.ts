@@ -93,9 +93,12 @@ export async function POST(req: Request) {
     const isStale = isCacheStale(cachedEntry);
 
     if (isStale) {
-      // Cache is stale (>= 30 min old), trigger background refresh
+      // Cache is stale (>= 30 min old)
+      // Return old cache immediately, then refresh in background
       console.log(
-        `[Explain] Cache stale for ${symbol}, triggering background refresh`
+        `[Explain] Serving stale cache for ${symbol} (${formatCacheAge(
+          cachedEntry
+        )}), refreshing in background...`
       );
 
       // Return cached explanation immediately
@@ -111,7 +114,7 @@ export async function POST(req: Request) {
         }
       );
 
-      // Trigger background refresh (don't await)
+      // Trigger background refresh that will replace old cache
       refreshExplanation(symbol, changePct, price).catch((error) => {
         console.error(
           `[Explain] Background refresh failed for ${symbol}:`,
@@ -379,9 +382,11 @@ async function refreshExplanation(
 
     const finalExplanation = formattedExplanation.trim();
 
-    // Update cache
+    // Replace old cache with new explanation
     await setExplanationInCache(symbol, finalExplanation);
-    console.log(`[Explain] Background refresh completed for ${symbol}`);
+    console.log(
+      `[Explain] Background refresh completed and cache updated for ${symbol}`
+    );
   } catch (error) {
     console.error(`[Explain] Background refresh error for ${symbol}:`, error);
     throw error;
