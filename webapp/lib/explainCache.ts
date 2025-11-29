@@ -62,9 +62,11 @@ export async function setExplanationInCache(
   if (redis) {
     try {
       // setex automatically replaces old cache if it exists
-      await redis.setex(cacheKey, CACHE_DURATION_SECONDS, entry);
+      // Use extended TTL (2 hours) to support stale-while-revalidate
+      const redisTTL = CACHE_DURATION_SECONDS * 4; // 2 hours
+      await redis.setex(cacheKey, redisTTL, entry);
       console.log(
-        `[Explain/Redis] Stored new explanation for ${normalizedSymbol} (TTL: ${CACHE_DURATION_SECONDS}s)`
+        `[Explain/Redis] Stored new explanation for ${normalizedSymbol} (TTL: ${redisTTL}s)`
       );
       return;
     } catch (error) {
@@ -179,21 +181,25 @@ export async function getExplanationCacheStats() {
 }
 
 /**
- * Clean expired explanations from in-memory cache
+ * Clean very old explanations from in-memory cache
  * (Redis handles expiration automatically with TTL)
+ *
+ * Note: We keep stale entries (30-60 min) to serve while refreshing.
+ * Only delete entries older than 2 hours.
  */
 export function cleanExpiredExplanations() {
   const now = Date.now();
   let cleaned = 0;
+  const MAX_AGE_MS = CACHE_DURATION_MS * 4; // 2 hours
 
   for (const [symbol, entry] of explanationCache.entries()) {
-    if (now - entry.timestamp > CACHE_DURATION_MS) {
+    if (now - entry.timestamp > MAX_AGE_MS) {
       explanationCache.delete(symbol);
       cleaned++;
     }
   }
 
   if (cleaned > 0) {
-    console.log(`[Explain/Memory] Cleaned ${cleaned} expired entries`);
+    console.log(`[Explain/Memory] Cleaned ${cleaned} very old entries (>2h)`);
   }
 }

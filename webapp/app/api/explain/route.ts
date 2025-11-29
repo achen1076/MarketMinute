@@ -40,7 +40,7 @@ const explanationSchema = z.object({
   summary: z
     .string()
     .describe(
-      "A concise summary paragraph highlighting key metrics and the overall story. Include specific percentages, dollar amounts, and key facts in bold."
+      "2-3 sentence summary of the stock movement. Be concise and specific."
     ),
   keyPoints: z
     .array(
@@ -53,11 +53,11 @@ const explanationSchema = z.object({
         explanation: z
           .string()
           .describe(
-            "Brief explanation of this key point with specific details"
+            "1-2 concise sentences explaining this point with specific details"
           ),
       })
     )
-    .describe("3-4 key points that explain the stock movement or situation"),
+    .describe("2-4 most important key points explaining the stock movement"),
 });
 
 export async function POST(req: Request) {
@@ -84,9 +84,7 @@ export async function POST(req: Request) {
     watchlistName?: string;
   };
 
-  cleanExpiredExplanations();
-
-  // Check cache first
+  // Check cache first (don't clean before checking - we want to serve stale cache)
   const cachedEntry = await getExplanationFromCache(symbol);
 
   if (cachedEntry) {
@@ -101,8 +99,19 @@ export async function POST(req: Request) {
         )}), refreshing in background...`
       );
 
+      // Trigger background refresh asynchronously (don't block response)
+      // Use setImmediate/setTimeout to ensure response is sent first
+      setTimeout(() => {
+        refreshExplanation(symbol, changePct, price).catch((error) => {
+          console.error(
+            `[Explain] Background refresh failed for ${symbol}:`,
+            error
+          );
+        });
+      }, 0);
+
       // Return cached explanation immediately
-      const response = NextResponse.json(
+      return NextResponse.json(
         {
           explanation: cachedEntry.explanation,
           cached: true,
@@ -113,16 +122,6 @@ export async function POST(req: Request) {
           headers: getRateLimitHeaders(rateLimitResult),
         }
       );
-
-      // Trigger background refresh that will replace old cache
-      refreshExplanation(symbol, changePct, price).catch((error) => {
-        console.error(
-          `[Explain] Background refresh failed for ${symbol}:`,
-          error
-        );
-      });
-
-      return response;
     }
 
     // Cache is fresh, return it
@@ -173,7 +172,7 @@ export async function POST(req: Request) {
   };
 
   const systemPrompt = `
-      You are an educational market explainer.
+      You are an educational market explainer. BE CONCISE.
       No em dashes or en dashes. No semicolons.
 
       The user will send you a JSON object with:
@@ -188,35 +187,32 @@ export async function POST(req: Request) {
       Important: The "news" array contains ONLY headlines for this specific symbol. Do not reference or invent news from other stocks.
 
       Rules:
-      1. Create a structured explanation with:
-         - A summary paragraph (2-3 sentences) highlighting the stock movement and key metrics
-         - 3-4 key points that break down the major factors
+      1. BE BRIEF. Keep everything tight:
+         - Summary: 2-3 sentences maximum
+         - Key points: Only 2-4 most critical factors
+         - Each explanation: 1-2 sentences maximum
       
       2. SMART ALERTS PRIORITY:
-         - If smartAlerts array has items, ALWAYS mention them in the summary
-         - Reference the alert context prominently (e.g., "hit a ±3% move today" or "approaching its 52-week high")
-         - Order of priority: price_move (critical severity first) > near_52w_high > near_52w_low > earnings_soon
+         - If smartAlerts exist, mention in the summary
+         - Be specific: "hit a ±3% move" or "near 52-week high"
          
-      3. Use news array for key points:
-         - PRIORITIZE news with HIGH relevanceScore (>0.7) - these are the most impactful
-         - Consider the sentiment when explaining: negative sentiment for down moves, positive for up moves
-         - Each key point should have a clear, bold-worthy title (e.g., "Earnings Pressure", "Theme Park Growth", "Investor Sentiment")
-         - Provide specific details from the headlines in the explanation
-         - Do NOT invent details beyond what headlines/summaries state
-         - Only use news from the provided array
-         - If no news has high relevance scores, acknowledge limited news availability
+      3. Use news for key points:
+         - ONLY use news with HIGH relevanceScore (>0.7)
+         - Short titles (e.g., "Earnings Miss", "Revenue Beat")
+         - One specific fact per point
+         - Do NOT invent details
          
-      4. Do NOT give investment advice. Do not tell the user to buy, sell, or hold.
+      4. No investment advice. No buy/sell/hold recommendations.
       
-      5. Do NOT invent exact dates, numbers, or event names. Only use what's in the JSON.
+      5. Only use data from the JSON. No invented dates or numbers.
       
-      6. Avoid meta-disclaimers and hedging phrases. Use a neutral, factual tone.
+      6. Factual tone. No hedging or disclaimers. Remove dramatic news tone
       
-      7. Avoid vague jargon unless it appears in the headlines. Focus on concrete events and facts.
-      
-      8. Do NOT use meta-commentary about the headlines. Talk directly about the company and events.
-      
-      9. Every point must reference concrete events/facts from the JSON.
+      7. Every point must cite concrete facts from the JSON.
+
+      8. Do not use any input variable names in the output (e.g., do not use "symbol" or "changePct" or "relevanceScore" or "sentiment").
+
+      9. Do not repeat similar news items in the key points or repeat the same point.
 `.trim();
 
   // Initialize LangChain model with structured output
@@ -316,7 +312,7 @@ async function refreshExplanation(
     };
 
     const systemPrompt = `
-      You are an educational market explainer.
+      You are an educational market explainer. BE CONCISE.
       No em dashes or en dashes. No semicolons.
 
       The user will send you a JSON object with:
@@ -331,38 +327,34 @@ async function refreshExplanation(
       Important: The "news" array contains ONLY headlines for this specific symbol. Do not reference or invent news from other stocks.
 
       Rules:
-      1. Create a structured explanation with:
-         - A summary paragraph (2-3 sentences) highlighting the stock movement and key metrics
-         - 3-4 key points that break down the major factors
+      1. BE BRIEF. Keep everything tight:
+         - Summary: 2-3 sentences maximum
+         - Key points: Only 2-4 most critical factors
+         - Each explanation: 1-2 sentences maximum
       
       2. SMART ALERTS PRIORITY:
-         - If smartAlerts array has items, ALWAYS mention them in the summary
-         - Reference the alert context prominently (e.g., "hit a ±3% move today" or "approaching its 52-week high")
-         - Order of priority: price_move (critical severity first) > near_52w_high > near_52w_low > earnings_soon
+         - If smartAlerts exist, mention in the summary
+         - Be specific: "hit a ±3% move" or "near 52-week high"
          
-      3. Use news array for key points:
-         - PRIORITIZE news with HIGH relevanceScore (>0.7) - these are the most impactful
-         - Consider the sentiment when explaining: negative sentiment for down moves, positive for up moves
-         - Each key point should have a clear, bold-worthy title (e.g., "Earnings Pressure", "Theme Park Growth", "Investor Sentiment")
-         - Provide specific details from the headlines in the explanation
-         - Do NOT invent details beyond what headlines/summaries state
-         - Only use news from the provided array
-         - If no news has high relevance scores, acknowledge limited news availability
+      3. Use news for key points:
+         - ONLY use news with HIGH relevanceScore (>0.7)
+         - Short titles (e.g., "Earnings Miss", "Revenue Beat")
+         - One specific fact per point
+         - Do NOT invent details
          
-      4. Do NOT give investment advice. Do not tell the user to buy, sell, or hold.
+      4. No investment advice. No buy/sell/hold recommendations.
       
-      5. Do NOT invent exact dates, numbers, or event names. Only use what's in the JSON.
+      5. Only use data from the JSON. No invented dates or numbers.
       
-      6. Avoid meta-disclaimers and hedging phrases. Use a neutral, factual tone.
+      6. Factual tone. No hedging or disclaimers. Remove dramatic news tone
       
-      7. Avoid vague jargon unless it appears in the headlines. Focus on concrete events and facts.
-      
-      8. Do NOT use meta-commentary about the headlines. Talk directly about the company and events.
-      
-      9. Every point must reference concrete events/facts from the JSON.
+      7. Every point must cite concrete facts from the JSON.
+
+      8. Do not use any input variable names in the output (e.g., do not use "symbol" or "changePct" or "relevanceScore" or "sentiment").
+
+      9. Do not repeat similar news items in the key points or repeat the same point.
 `.trim();
 
-    // Initialize LangChain model with structured output
     const model = new ChatOpenAI({
       model: "gpt-5-mini",
     });
