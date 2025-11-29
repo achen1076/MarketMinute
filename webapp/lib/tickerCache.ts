@@ -16,6 +16,7 @@
 import { getSnapshotsForSymbols, TickerSnapshot } from "@/lib/marketData";
 import { redis } from "@/lib/redis";
 import { CACHE_TTL_SECONDS, CACHE_TTL_MS } from "@/lib/constants";
+import { isMarketOpen } from "@/lib/marketHours";
 
 const tickerCache = new Map<
   string,
@@ -87,12 +88,16 @@ export async function getCachedSnapshots(symbols: string[]): Promise<{
   if (toFetch.length > 0) {
     fresh = await getSnapshotsForSymbols(toFetch);
 
+    // Use longer TTL when market is closed since prices don't change
+    const marketOpen = isMarketOpen();
+    const cacheTTL = marketOpen ? CACHE_TTL_SECONDS : CACHE_TTL_SECONDS * 60;
+
     if (redis) {
       try {
         const pipeline = redis.pipeline();
         for (const snapshot of fresh) {
           const cacheKey = `ticker:${snapshot.symbol}`;
-          pipeline.setex(cacheKey, CACHE_TTL_SECONDS, snapshot);
+          pipeline.setex(cacheKey, cacheTTL, snapshot);
         }
         await pipeline.exec();
       } catch (error) {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { CACHE_TTL_MS } from "@/lib/constants";
+import { isMarketOpen } from "@/lib/marketHours";
 
 type TickerItem = {
   symbol: string;
@@ -45,8 +46,16 @@ export function MarketTicker() {
 
   useEffect(() => {
     fetchTickers();
-    // Poll at cache TTL interval
-    const interval = setInterval(fetchTickers, CACHE_TTL_MS);
+    if (!isMarketOpen()) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      if (isMarketOpen()) {
+        fetchTickers();
+      }
+    }, CACHE_TTL_MS);
+
     return () => clearInterval(interval);
   }, []);
 

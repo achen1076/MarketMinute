@@ -34,8 +34,8 @@ MarketMinute is a full-stack financial intelligence platform that combines real-
 ### Database Schema Updates
 
 - Added `SentinelReport` model with structured narrative storage
-- Added `LivePrediction` model for ML trading signals (21 tickers daily)
-- Added `DistribionalForecast` model for probabilistic forecasts (21 tickers daily)
+- Added `LivePrediction` model for ML trading signals (200+ tickers daily)
+- Added `DistribionalForecast` model for probabilistic forecasts (200+ tickers daily)
 - JSON fields for flexible data structures (`whatThisMeans`, `context`, `keyDrivers`)
 - Indexed anomaly flags and `runId` for efficient querying
 
@@ -233,7 +233,7 @@ The Sentinel AI Agent is an autonomous market intelligence system that provides 
    - Volatility regime classification
    - Cross-asset correlation analysis
 4. **Report Generation** - AI-powered narrative creation
-   - Summary and key drivers (GPT-4 Turbo)
+   - Summary and key drivers
    - Structured "What This Means" explanations
    - Macro context integration
    - Professional insights and risk assessment

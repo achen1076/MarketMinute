@@ -1,8 +1,3 @@
-#############################################
-# LAMBDA ORCHESTRATOR
-# Fetches data, calls SageMaker, returns predictions
-#############################################
-
 resource "aws_iam_role" "lambda_execution" {
   name = "${var.project_name}-${var.environment}-lambda-role"
 

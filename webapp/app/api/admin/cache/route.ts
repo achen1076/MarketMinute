@@ -4,14 +4,8 @@ import {
   getExplanationCacheStats,
   clearExplanationCache,
 } from "@/lib/explainCache";
-import {
-  getSummaryCacheStats,
-  clearSummaryCache,
-} from "@/lib/summaryCache";
-import {
-  getEventsDbStats,
-  clearEventsDb,
-} from "@/lib/eventsDb";
+import { getSummaryCacheStats, clearSummaryCache } from "@/lib/summaryCache";
+import { getEventsDbStats, clearEventsDb } from "@/lib/eventsDb";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -22,7 +16,7 @@ export async function POST(req: Request) {
   const { action } = await req.json();
 
   if (action === "clear") {
-    const explanationCount = clearExplanationCache();
+    const explanationCount = await clearExplanationCache();
     const summaryCount = clearSummaryCache();
     const eventsCount = await clearEventsDb();
     const totalCleared = explanationCount + summaryCount + eventsCount;
@@ -46,27 +40,34 @@ export async function GET() {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
-  const explanationStats = getExplanationCacheStats();
+  const explanationStats = await getExplanationCacheStats();
   const summaryStats = getSummaryCacheStats();
   const eventsStats = await getEventsDbStats();
 
+  const explanationSize =
+    explanationStats.redis?.size || explanationStats.memory?.size || 0;
+  const summarySize = summaryStats.size || 0;
+  const eventsSize = eventsStats.size || 0;
+
   console.log("[Admin Cache] Stats requested:", {
-    explanations: explanationStats.size,
-    summaries: summaryStats.size,
-    events: eventsStats.size,
+    explanations: explanationSize,
+    summaries: summarySize,
+    events: eventsSize,
   });
 
   return NextResponse.json({
     explanations: {
-      size: explanationStats.size,
+      size: explanationSize,
+      redis: explanationStats.redis,
+      memory: explanationStats.memory,
       registered: true,
     },
     summaries: {
-      size: summaryStats.size,
+      size: summarySize,
       registered: true,
     },
     events: {
-      size: eventsStats.size,
+      size: eventsSize,
       registered: true,
     },
   });

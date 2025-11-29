@@ -7,6 +7,8 @@ import Button from "@/components/atoms/Button";
 import { MiniSparkline } from "@/components/atoms/MiniSparkline";
 import { RefreshCw, Search, Star } from "lucide-react";
 import { CACHE_TTL_MS } from "@/lib/constants";
+import ReactMarkdown from "react-markdown";
+import { isMarketOpen } from "@/lib/marketHours";
 
 type EnrichedSnapshot = TickerSnapshot & {
   isFavorite?: boolean;
@@ -25,6 +27,9 @@ export function TickerListClient({
   const [snapshots, setSnapshots] = useState(initialSnapshots);
   const [loadingSymbol, setLoadingSymbol] = useState<string | null>(null);
   const [explanations, setExplanations] = useState<Record<string, string>>({});
+  const [explanationMeta, setExplanationMeta] = useState<
+    Record<string, { age: string | null; refreshing: boolean }>
+  >({});
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [favoriteTogglingId, setFavoriteTogglingId] = useState<string | null>(
@@ -99,8 +104,18 @@ export function TickerListClient({
     if (!watchlistId) return;
 
     handleRefresh();
-    // Poll at cache TTL interval
-    const interval = setInterval(handleRefresh, CACHE_TTL_MS);
+
+    // Only set up polling if market is currently open
+    if (!isMarketOpen()) {
+      return; // No polling outside market hours
+    }
+
+    const interval = setInterval(() => {
+      if (isMarketOpen()) {
+        handleRefresh();
+      }
+    }, CACHE_TTL_MS);
+
     return () => clearInterval(interval);
   }, [watchlistId]);
 
@@ -144,6 +159,11 @@ export function TickerListClient({
         delete next[s.symbol];
         return next;
       });
+      setExplanationMeta((prev) => {
+        const next = { ...prev };
+        delete next[s.symbol];
+        return next;
+      });
       return;
     }
 
@@ -165,6 +185,13 @@ export function TickerListClient({
       setExplanations((prev) => ({
         ...prev,
         [s.symbol]: data.explanation as string,
+      }));
+      setExplanationMeta((prev) => ({
+        ...prev,
+        [s.symbol]: {
+          age: data.age || null,
+          refreshing: data.refreshing || false,
+        },
       }));
     } finally {
       setLoadingSymbol(null);
@@ -272,7 +299,7 @@ export function TickerListClient({
               >
                 {isFlashing && (
                   <div
-                    className={`absolute inset-0 bg-gradient-to-r ${priceChangeClass} to-transparent animate-pulse pointer-events-none`}
+                    className={`absolute inset-0 bg-linear-to-r ${priceChangeClass} to-transparent animate-pulse pointer-events-none`}
                     style={{ animation: "pulse 0.6s ease-out" }}
                   />
                 )}
@@ -359,9 +386,58 @@ export function TickerListClient({
                 </div>
 
                 {hasExplanation && (
-                  <p className="mt-3 rounded bg-slate-800/50 p-2 text-sm leading-relaxed text-slate-300">
-                    {explanations[s.symbol]}
-                  </p>
+                  <div className="mt-3 rounded bg-slate-800/50 p-3 text-sm leading-relaxed text-slate-300 prose prose-sm prose-invert max-w-none">
+                    <ReactMarkdown
+                      components={{
+                        p: ({ children }) => (
+                          <p className="mb-3 last:mb-0">{children}</p>
+                        ),
+                        strong: ({ children }) => (
+                          <strong className="font-semibold text-slate-100">
+                            {children}
+                          </strong>
+                        ),
+                        ul: ({ children }) => (
+                          <ul className="space-y-2 list-none">{children}</ul>
+                        ),
+                        li: ({ children }) => (
+                          <li className="pl-0">{children}</li>
+                        ),
+                      }}
+                    >
+                      {explanations[s.symbol]}
+                    </ReactMarkdown>
+                    {explanationMeta[s.symbol]?.age && (
+                      <div className="mt-3 pt-2 border-t border-slate-700/50 flex items-center justify-between text-xs text-slate-500">
+                        <span>{explanationMeta[s.symbol].age}</span>
+                        {explanationMeta[s.symbol].refreshing && (
+                          <span className="flex items-center gap-1 text-amber-400/70">
+                            <svg
+                              className="animate-spin h-3 w-3"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              ></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                            Refreshing...
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             );
