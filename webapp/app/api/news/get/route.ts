@@ -27,7 +27,6 @@ export async function GET(req: NextRequest) {
         createdAt: {
           gte: since,
         },
-        NOT: [{ sentiment: null }, { relevance: null }],
       },
       orderBy: {
         createdAt: "desc",
