@@ -120,57 +120,54 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         <nav className="mt-2 flex flex-1 flex-col gap-4 px-3 text-md">
-          {user ? (
-            <>
-              <NavLink to="/" onClick={closeMenu}>
-                Home
+          <NavLink to="/" onClick={closeMenu}>
+            Home
+          </NavLink>
+          <NavLink to="/watchlist" onClick={closeMenu}>
+            Watchlist
+          </NavLink>
+          <NavLink to="/quant" onClick={closeMenu}>
+            Quant Lab
+          </NavLink>
+          <NavLink to="/forecasts" onClick={closeMenu}>
+            Market Forecasts
+          </NavLink>
+          <NavLink to="/sentinel" onClick={closeMenu}>
+            Sentinel Dashboard
+          </NavLink>
+          <NavLink to="/history" onClick={closeMenu}>
+            History
+          </NavLink>
+          <NavLink to="/about" onClick={closeMenu}>
+            About
+          </NavLink>
+          {/* <NavLink to="/explore" onClick={closeMenu}>
+            Explore
+          </NavLink>
+          <NavLink to="/settings" onClick={closeMenu}>
+            Settings
+          </NavLink> */}
+          {user &&
+            process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(",").includes(
+              user.email || ""
+            ) && (
+              <NavLink to="/admin" onClick={closeMenu}>
+                Admin
               </NavLink>
-              <NavLink to="/watchlist" onClick={closeMenu}>
-                Watchlist
-              </NavLink>
-              <NavLink to="/quant" onClick={closeMenu}>
-                Quant Lab
-              </NavLink>
-              <NavLink to="/forecasts" onClick={closeMenu}>
-                Market Forecasts
-              </NavLink>
-              <NavLink to="/sentinel" onClick={closeMenu}>
-                Sentinel Dashboard
-              </NavLink>
-              <NavLink to="/history" onClick={closeMenu}>
-                History
-              </NavLink>
-              <NavLink to="/about" onClick={closeMenu}>
-                About
-              </NavLink>
-              {/* <NavLink to="/explore" onClick={closeMenu}>
-                Explore
-              </NavLink>
-              <NavLink to="/settings" onClick={closeMenu}>
-                Settings
-              </NavLink> */}
-              {user?.email === "achen1076@gmail.com" && (
-                <NavLink to="/admin" onClick={closeMenu}>
-                  Admin
-                </NavLink>
-              )}
-            </>
-          ) : (
-            <>
-              <NavLink to="/signin" onClick={closeMenu}>
-                Sign In
-              </NavLink>
-            </>
-          )}
+            )}
         </nav>
-        {user && (
-          <div
-            className="border-t px-3 py-3"
-            style={{ borderColor: COLORS.border.subtle }}
-          >
+        <div
+          className="border-t px-3 py-3"
+          style={{ borderColor: COLORS.border.subtle }}
+        >
+          {user ? (
             <SignOutButton />
-          </div>
-        )}
+          ) : (
+            <NavLink to="/signin" onClick={closeMenu}>
+              Sign In
+            </NavLink>
+          )}
+        </div>
 
         <div
           className="border-t px-4 py-3 text-xs"

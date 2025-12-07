@@ -2,11 +2,12 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 /**
- * Security Middleware
+ * Security Proxy (Next.js 16+)
  *
  * Provides CSRF protection and origin validation for API routes
+ * Note: This replaces the deprecated middleware.ts convention
  */
-export function middleware(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   // Only apply to API routes
   if (!request.nextUrl.pathname.startsWith("/api")) {
     return NextResponse.next();

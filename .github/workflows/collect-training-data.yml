@@ -31,7 +31,7 @@ jobs:
           WEBAPP_URL: ${{ secrets.WEBAPP_URL }}
         run: |
           cd services/sentiment
-          python collect_training_data.py
+          python scripts/collect_training_data.py
 
       - name: Notify on failure
         if: failure()
