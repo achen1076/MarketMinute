@@ -6,13 +6,16 @@ from datetime import datetime, timedelta
 from src.news.bayesian_update import bayesian_update
 
 
-def load_news_from_db(ticker, webapp_url):
+def load_news_from_db(ticker, webapp_url, lambda_api_key=None):
     """Load news items from database via webapp API"""
     if not webapp_url:
         return []
 
     try:
-        url = f"{webapp_url}/api/news/get?ticker={ticker}&days=2"
+        # Use Lambda-specific endpoint with API key
+        url = f"{webapp_url}/api/news/get-for-lambda?ticker={ticker}&days=2"
+        if lambda_api_key:
+            url += f"&apiKey={lambda_api_key}"
         response = requests.get(url, timeout=5)
 
         if not response.ok:
@@ -39,7 +42,7 @@ def load_news_from_db(ticker, webapp_url):
         return []
 
 
-def generate_live_predictions(raw_predictions, prices, volatilities, raw_data, webapp_url=None):
+def generate_live_predictions(raw_predictions, prices, volatilities, raw_data, webapp_url=None, lambda_api_key=None):
     """Generate live predictions from SageMaker model outputs with optional news adjustment"""
     predictions = []
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -65,7 +68,7 @@ def generate_live_predictions(raw_predictions, prices, volatilities, raw_data, w
         # Apply Bayesian update if webapp_url provided
         news_count = 0
         if webapp_url:
-            news_items = load_news_from_db(ticker, webapp_url)
+            news_items = load_news_from_db(ticker, webapp_url, lambda_api_key)
 
             if news_items:
                 prior = {"up": prob_up, "down": prob_down,

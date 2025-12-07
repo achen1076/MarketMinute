@@ -23,6 +23,7 @@ secretsmanager = boto3.client('secretsmanager')
 SAGEMAKER_ENDPOINT = os.environ.get(
     'SAGEMAKER_ENDPOINT_NAME', 'marketminute-dev-endpoint')
 WEBAPP_URL = os.environ.get('WEBAPP_URL', '')
+LAMBDA_API_KEY = os.environ.get('LAMBDA_API_KEY', '')
 
 
 def get_fmp_api_key():
@@ -113,11 +114,16 @@ def process_news_for_all_tickers():
 
     try:
         news_url = f"{WEBAPP_URL}/api/news/process-batch"
-        print(f"[Lambda] Processing news at {news_url}")
+        today = datetime.now().strftime("%Y-%m-%d")
+        print(f"[Lambda] Processing news at {news_url} for date: {today}")
 
         response = requests.post(
             news_url,
-            json={'tickers': TICKERS},
+            json={
+                'tickers': TICKERS,
+                'from': today,
+                'to': today
+            },
             timeout=120
         )
         response.raise_for_status()
@@ -152,7 +158,7 @@ def handler(event, context):
             features, prices, volatilities, raw_data = fetch_market_data()
             raw_predictions = get_predictions(features)
             live_predictions = generate_live_predictions(
-                raw_predictions, prices, volatilities, raw_data, webapp_url=WEBAPP_URL)
+                raw_predictions, prices, volatilities, raw_data, webapp_url=WEBAPP_URL, lambda_api_key=LAMBDA_API_KEY)
             distributional_forecasts = generate_distributional_forecasts(
                 raw_predictions, prices, volatilities)
 

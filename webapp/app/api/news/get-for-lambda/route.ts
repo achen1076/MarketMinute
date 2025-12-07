@@ -1,21 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/auth";
 
 /**
- * Get news items for a ticker from database
- * GET /api/news/get?ticker=AAPL&days=2
+ * Get news items for Lambda function (uses API key auth instead of session)
+ * GET /api/news/get-for-lambda?ticker=AAPL&days=2&apiKey=xxx
  */
 export async function GET(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.email) {
-    return new NextResponse("Unauthorized", { status: 401 });
-  }
-
   try {
     const { searchParams } = new URL(req.url);
     const ticker = searchParams.get("ticker");
     const days = parseInt(searchParams.get("days") || "2");
+    const apiKey = searchParams.get("apiKey");
+
+    // Verify API key for Lambda
+    const expectedKey = process.env.LAMBDA_API_KEY;
+    if (!expectedKey || apiKey !== expectedKey) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
 
     if (!ticker) {
       return NextResponse.json(
@@ -43,19 +44,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       ok: true,
       ticker,
-      count: newsItems.length,
-      news: newsItems.map((item) => ({
-        sentiment: item.sentiment,
-        relevance: item.relevance,
-        category: item.category,
-        headline: item.headline,
-        createdAt: item.createdAt,
-      })),
+      news: newsItems,
     });
-  } catch (error) {
-    console.error("Error fetching news:", error);
+  } catch (err) {
+    console.error("[News] Error fetching news:", err);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { ok: false, error: "Failed to fetch news" },
       { status: 500 }
     );
   }

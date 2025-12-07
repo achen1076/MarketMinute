@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
 import {
   storeTickerNewsTraining,
   storeGeneralNewsTraining,
@@ -77,6 +78,11 @@ export async function POST(request: NextRequest) {
  * Get statistics about training data
  */
 export async function GET() {
+  const session = await auth();
+  if (!session?.user?.email) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
   try {
     const stats = await getTrainingDataStats();
 

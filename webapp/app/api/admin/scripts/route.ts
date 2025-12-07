@@ -1,11 +1,22 @@
 import { auth } from "@/auth";
 import { spawn } from "child_process";
 import { join } from "path";
+import { checkRateLimit, createRateLimitResponse } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.email) {
     return new Response("Unauthorized", { status: 401 });
+  }
+
+  // Rate limit: 5 script executions per 5 minutes per user
+  const rateLimitResult = checkRateLimit("admin:scripts", session.user.email, {
+    maxRequests: 5,
+    windowSeconds: 300,
+  });
+
+  if (!rateLimitResult.allowed) {
+    return createRateLimitResponse(rateLimitResult);
   }
 
   try {
@@ -38,13 +49,14 @@ export async function POST(req: Request) {
         break;
 
       default:
-        return new Response(
-          JSON.stringify({ error: "Invalid script name" }),
-          { status: 400 }
-        );
+        return new Response(JSON.stringify({ error: "Invalid script name" }), {
+          status: 400,
+        });
     }
 
-    console.log(`Running ${description}: ${command} ${args.join(" ")} in ${quantPath}`);
+    console.log(
+      `Running ${description}: ${command} ${args.join(" ")} in ${quantPath}`
+    );
 
     // Create streaming response
     const encoder = new TextEncoder();
@@ -80,7 +92,11 @@ export async function POST(req: Request) {
         process.on("error", (error) => {
           controller.enqueue(
             encoder.encode(
-              `data: ${JSON.stringify({ error: error.message, done: true, exitCode: 1 })}\n\n`
+              `data: ${JSON.stringify({
+                error: error.message,
+                done: true,
+                exitCode: 1,
+              })}\n\n`
             )
           );
           controller.close();

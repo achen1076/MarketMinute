@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { checkRateLimit, createRateLimitResponse } from "@/lib/rateLimit";
 
-const ADMIN_EMAILS = ["achen1076@gmail.com"];
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
+  .split(",")
+  .map((email) => email.trim())
+  .filter(Boolean);
 const LAMBDA_URL = process.env.LAMBDA_FUNCTION_URL;
 
 export async function POST() {
@@ -13,6 +17,20 @@ export async function POST() {
         { ok: false, error: "Unauthorized" },
         { status: 401 }
       );
+    }
+
+    // Rate limit: 10 cron triggers per hour per admin
+    const rateLimitResult = checkRateLimit(
+      "admin:trigger-cron",
+      session.user.email,
+      {
+        maxRequests: 10,
+        windowSeconds: 3600,
+      }
+    );
+
+    if (!rateLimitResult.allowed) {
+      return createRateLimitResponse(rateLimitResult);
     }
 
     // Check if Lambda URL is configured

@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 
 export async function GET(req: Request) {
+  const session = await auth();
+  if (!session?.user?.email) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
   const { searchParams } = new URL(req.url);
   const query = searchParams.get("q");
 

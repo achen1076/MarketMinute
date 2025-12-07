@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { join } from "path";
+import { checkRateLimit, createRateLimitResponse } from "@/lib/rateLimit";
 
 const execAsync = promisify(exec);
 
@@ -10,6 +11,16 @@ export async function POST() {
   const session = await auth();
   if (!session?.user?.email) {
     return new NextResponse("Unauthorized", { status: 401 });
+  }
+
+  // Rate limit: 3 prediction generations per 5 minutes per user
+  const rateLimitResult = checkRateLimit("quant:generate", session.user.email, {
+    maxRequests: 3,
+    windowSeconds: 300,
+  });
+
+  if (!rateLimitResult.allowed) {
+    return createRateLimitResponse(rateLimitResult);
   }
 
   try {

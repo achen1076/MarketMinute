@@ -5,7 +5,6 @@ import { prisma } from "@/lib/prisma";
 export const maxDuration = 300; // 5 minutes max execution time
 
 export async function GET(request: Request) {
-  // Verify the request is from Vercel Cron
   const authHeader = request.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -21,7 +20,6 @@ export async function GET(request: Request) {
   try {
     console.log("[Cron] Starting daily market analysis...");
 
-    // 1. Trigger AWS Lambda for ML Predictions & Forecasts
     try {
       console.log("[Cron] Triggering AWS Lambda for quant analysis...");
 
