@@ -1,0 +1,11 @@
+# Ignore model artifacts
+model/*.pkl
+model/*.pt
+model/*.pth
+
+# Ignore training data
+data/*.csv
+
+# Keep structure
+!model/.gitkeep
+!data/.gitkeep

@@ -8,12 +8,22 @@ MarketMinute is a full-stack financial intelligence platform that combines real-
 
 ## 🆕 Recent Updates
 
+### News-Aware Predictions (v2.2 - Dec 2025)
+
+- **📰 Bayesian News Integration** - ML model probabilities adjusted using news sentiment and relevance
+- **🎯 Two-Stage Prediction** - Raw model output → News-based Bayesian update → Final signal
+- **📊 Dual Scores in UI** - QuantLab shows both raw and news-adjusted Quant Scores
+- **🔄 Daily News Processing** - Batch API processes 20 news items per ticker before predictions
+- **⚖️ Weighted Categories** - Company (1.0x), Sector (0.7x), Macro (0.4x), Noise (0.1x)
+- **🧮 Sequential Bayesian Update** - Multiple news items multiply likelihoods iteratively
+- **💾 Database Storage** - NewsItem table stores sentiment, relevance, and category for reuse
+
 ### EC2 ML Services (v2.1 - Dec 2025)
 
 - **🤖 Sentiment & Relevance Models** - ML-powered news analysis deployed on EC2
 - **⚡ FastAPI Services** - Two microservices running on single t3.medium instance
   - Sentiment service (:8001) - Headlines → sentiment scores (-1 to 1)
-  - Relevance service (:8002) - Headlines + ticker → relevance scores (0 to 1)
+  - Relevance service (:8002) - Headlines + ticker → relevance scores (0 to 1) + category
 - **🎯 Intelligent News Filtering** - ML models filter and score news for explain API and daily summaries
 - **🚀 One-Command Redeployment** - `./services/redeploy_models.sh` for model updates
 - **💰 Cost-Effective** - ~$30/month for always-on EC2 vs serverless SageMaker
@@ -44,8 +54,11 @@ MarketMinute is a full-stack financial intelligence platform that combines real-
 
 ### Database Schema Updates
 
+- Added `NewsItem` model for storing ML-scored news (sentiment, relevance, category)
+- Updated `LivePrediction` with raw and news-adjusted fields for dual scoring
+  - Raw fields: `rawSignal`, `rawConfidence`, `rawProbUp`, `rawProbNeutral`, `rawProbDown`
+  - News fields: `newsCount` to track Bayesian update influence
 - Added `SentinelReport` model with structured narrative storage
-- Added `LivePrediction` model for ML trading signals (200+ tickers daily)
 - Added `DistribionalForecast` model for probabilistic forecasts (200+ tickers daily)
 - JSON fields for flexible data structures (`whatThisMeans`, `context`, `keyDrivers`)
 - Indexed anomaly flags and `runId` for efficient querying
@@ -89,11 +102,16 @@ The system uses a serverless architecture with three main components:
 **Daily Automated Flow:**
 
 - **4:05 PM EST (Mon-Fri)**: EventBridge triggers Lambda function
-- **Lambda**: Fetches 30 years of market data from Financial Modeling Prep API
-- **Lambda**: Calls SageMaker endpoint for ML predictions
-- **Lambda**: Generates distributional forecasts and trading signals
-- **Lambda**: Saves results to PostgreSQL database
-- **Lambda**: Triggers Sentinel AI agent for market analysis
+- **Lambda Step 1**: Calls webapp API to process news for all tickers
+  - Fetches latest 20 news items per ticker from FMP
+  - Scores each headline with EC2 sentiment & relevance models
+  - Stores in NewsItem database table (sentiment, relevance, category)
+- **Lambda Step 2**: Fetches 30 years of market data from Financial Modeling Prep API
+- **Lambda Step 3**: Calls SageMaker endpoint for raw ML predictions (up/down/neutral probabilities)
+- **Lambda Step 4**: Queries NewsItem table and applies Bayesian news update to probabilities
+- **Lambda Step 5**: Generates distributional forecasts and final trading signals
+- **Lambda Step 6**: Saves results to PostgreSQL database (with both raw and news-adjusted scores)
+- **Lambda Step 7**: Triggers Sentinel AI agent for market analysis
 - **Webapp**: Displays fresh predictions and insights (instant page loads from DB)
 
 ---
@@ -127,6 +145,17 @@ The system uses a serverless architecture with three main components:
 ### 🤖 Quantitative Trading (Quant Lab)
 
 - **ML Predictions** - LightGBM/XGBoost/LSTM models for daily trading signals
+- **News-Aware Predictions** - Two-stage prediction pipeline:
+  1. **Raw ML Model** → Directional probabilities (up/down/neutral)
+  2. **Bayesian News Update** → Adjust probabilities using sentiment & relevance
+  3. **Final Signal** → BUY/SELL/NEUTRAL based on posterior probabilities
+- **Bayesian Inference** - Sequential likelihood multiplication across multiple news items
+  - **Sentiment Model** (-1 to +1): Bullish/bearish direction from EC2 ML service
+  - **Relevance Model** (0 to 1): How relevant the news is to the ticker
+  - **Category Weights**: Company (1.0x), Sector (0.7x), Macro (0.4x), Noise (0.1x)
+  - **Likelihood Ratios**: Strong bullish + high relevance → 2x up, 0.5x down
+  - **Example**: Prior `{up: 0.52, down: 0.31}` + bearish news → `{up: 0.34, down: 0.51}`
+- **Dual Scoring in UI** - QuantLab displays both raw and news-adjusted Quant Scores
 - **Distributional Forecasts** - Probabilistic price predictions with confidence intervals
 - **Database-Backed Results** - Predictions stored in PostgreSQL for instant page loads
 - **Automated Daily Analysis** - AWS Lambda cron job runs at 4:05 PM EST weekdays
@@ -173,10 +202,60 @@ The system uses a serverless architecture with three main components:
 - **LLM Framework:** LangChain
 - **AI Provider:** OpenAI (GPT models)
 - **Text-to-Speech:** OpenAI TTS API
-- **News Analysis Models:** Custom trained sentiment & relevance classifiers (EC2-hosted)
-  - **Sentiment:** Sentence-transformers + logistic regression
-  - **Relevance:** Sentence-transformers + ticker-specific relevance scoring
-  - **Deployment:** FastAPI microservices on AWS EC2 t3.medium
+
+### News ML Models (EC2-Hosted)
+
+Custom-trained sentiment and relevance classifiers deployed as FastAPI microservices on AWS EC2 (t3.medium):
+
+**Sentiment Model** (Port 8001)
+
+- **Architecture:** sentence-transformers/all-MiniLM-L6-v2 → logistic regression
+- **Output:** Continuous score from -1 (bearish) to +1 (bullish)
+- **Training:** Fine-tuned on financial news headlines with manual annotations
+- **Endpoint:** `POST /score` with `{"text": "headline"}`
+- **Response:** `{"score": 0.73, "category": "bullish"}`
+
+**Relevance Model** (Port 8002)
+
+- **Architecture:** sentence-transformers embeddings → cosine similarity + category classifier
+- **Output:** Relevance score 0-1 + category (company/sector/macro/noise)
+- **Category Weights:**
+  - **Company**: 1.0x (direct mentions, earnings, product launches)
+  - **Sector**: 0.7x (industry trends, competitor news)
+  - **Macro**: 0.4x (Fed policy, GDP, inflation)
+  - **Noise**: 0.1x (unrelated or generic news)
+- **Endpoint:** `POST /score` with `{"headline": "text", "ticker": "AAPL"}`
+- **Response:** `{"score": 0.85, "category": "company"}`
+
+**Deployment Details:**
+
+- **Hosting:** AWS EC2 t3.medium (Tailscale private network)
+- **Framework:** FastAPI with uvicorn
+- **Concurrency:** Async processing for batch requests
+- **Latency:** ~50-100ms per headline
+- **Access:** Private Tailscale IPs (100.x.x.x) - **NOT publicly accessible**
+
+**News Processing Workflow:**
+
+1. **Lambda** → `POST /api/news/process-batch` (220 tickers, today's news)
+2. **Webapp** → Fetch FMP news API (`/stable/news/stock`)
+3. **Webapp** → Call sentiment service for each headline
+4. **Webapp** → Call relevance service for each headline + ticker pair
+5. **Webapp** → Store `NewsItem` in database (ticker, headline, sentiment, relevance, category)
+6. **Lambda** → `GET /api/news/get?ticker=X&days=2` (retrieve scored news)
+7. **Lambda** → Apply `bayesian_update()` to raw ML predictions
+8. **Lambda** → Save both raw and news-adjusted predictions to `LivePrediction`
+
+**Example News Scoring:**
+
+```
+Headline: "Apple announces record Q4 earnings, stock jumps 5%"
+Ticker: AAPL
+→ Sentiment: +0.85 (bullish)
+→ Relevance: 0.95 (company)
+→ Category weight: 1.0x
+→ Bayesian impact: Shifts prob_up from 0.52 → 0.67
+```
 
 ### Quantitative System
 
@@ -1005,10 +1084,22 @@ SentinelReport
 
 LivePrediction
  ├── ticker, timestamp, currentPrice
- ├── signal (BUY/SELL/NEUTRAL)
- ├── confidence, probUp, probNeutral, probDown
+ ├── Raw ML Model Outputs (before news):
+ │   ├── rawSignal, rawConfidence
+ │   └── rawProbUp, rawProbNeutral, rawProbDown
+ ├── News-Adjusted Outputs (after Bayesian update):
+ │   ├── signal (BUY/SELL/NEUTRAL)
+ │   ├── confidence, probUp, probNeutral, probDown
+ │   └── newsCount (number of news items that influenced the update)
  ├── shouldTrade, takeProfit, stopLoss, atr
  └── runId (groups predictions from same Lambda run)
+
+NewsItem
+ ├── ticker, headline
+ ├── sentiment (-1 to +1, from EC2 ML model)
+ ├── relevance (0 to 1, from EC2 ML model)
+ ├── category (company/sector/macro/noise)
+ └── createdAt (for querying recent news)
 
 DistribionalForecast
  ├── ticker, timestamp, currentPrice
