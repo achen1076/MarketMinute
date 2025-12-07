@@ -296,7 +296,7 @@ model NewsItem {
   ticker    String
   headline  String
   sentiment Float
-  relevance Float?
+  relevance Float
   category  String?
   summary   String?
   createdAt DateTime @default(now())
