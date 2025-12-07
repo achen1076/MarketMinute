@@ -8,9 +8,20 @@ MarketMinute is a full-stack financial intelligence platform that combines real-
 
 ## 🆕 Recent Updates
 
+### EC2 ML Services (v2.1 - Dec 2025)
+
+- **🤖 Sentiment & Relevance Models** - ML-powered news analysis deployed on EC2
+- **⚡ FastAPI Services** - Two microservices running on single t3.medium instance
+  - Sentiment service (:8001) - Headlines → sentiment scores (-1 to 1)
+  - Relevance service (:8002) - Headlines + ticker → relevance scores (0 to 1)
+- **🎯 Intelligent News Filtering** - ML models filter and score news for explain API and daily summaries
+- **🚀 One-Command Redeployment** - `./services/redeploy_models.sh` for model updates
+- **💰 Cost-Effective** - ~$30/month for always-on EC2 vs serverless SageMaker
+- **🔄 Model Training Pipeline** - Train locally, deploy to EC2 with Docker
+
 ### AWS Serverless Infrastructure (v2.0)
 
-- **☁️ Lambda + SageMaker** - Fully serverless ML inference pipeline
+- **☁️ Lambda + SageMaker** - Fully serverless ML inference pipeline for quant predictions
 - **⏰ Automated Daily Analysis** - EventBridge cron job (Mon-Fri, 4:05 PM EST)
 - **🗄️ Database-Backed Predictions** - Results stored in PostgreSQL for instant page loads
 - **🐳 Docker Deployment** - Containerized Lambda and SageMaker models
@@ -162,6 +173,10 @@ The system uses a serverless architecture with three main components:
 - **LLM Framework:** LangChain
 - **AI Provider:** OpenAI (GPT models)
 - **Text-to-Speech:** OpenAI TTS API
+- **News Analysis Models:** Custom trained sentiment & relevance classifiers (EC2-hosted)
+  - **Sentiment:** Sentence-transformers + logistic regression
+  - **Relevance:** Sentence-transformers + ticker-specific relevance scoring
+  - **Deployment:** FastAPI microservices on AWS EC2 t3.medium
 
 ### Quantitative System
 
@@ -179,7 +194,9 @@ The system uses a serverless architecture with three main components:
 - **Market Data Provider:** Financial Modeling Prep API (Premium - batch quotes, 30 years historical)
 - **Caching Layer:** Upstash Redis (serverless, shared across instances)
 - **Web Deployment:** Vercel (Next.js production hosting)
-- **ML Infrastructure:** AWS Lambda + SageMaker (serverless inference)
+- **ML Infrastructure:**
+  - AWS EC2 (t3.medium) - Sentiment & relevance microservices
+  - AWS Lambda + SageMaker - Quant predictions (serverless inference)
 - **Orchestration:** AWS EventBridge (cron scheduler)
 - **Secrets:** AWS Secrets Manager
 - **Container Registry:** AWS ECR (Docker images)
@@ -413,6 +430,32 @@ MarketMinute/
 ├── README.md                  # Project documentation
 ├── deploy.sh                  # Main deployment script
 │
+├── services/                  # ML microservices (EC2-hosted)
+│   ├── redeploy_models.sh     # Model redeployment script
+│   ├── sentiment/             # Sentiment analysis service
+│   │   ├── app.py            # FastAPI application
+│   │   ├── config.py         # Service configuration
+│   │   ├── Dockerfile        # Container definition
+│   │   ├── requirements.txt  # Python dependencies
+│   │   ├── model/            # Model artifacts
+│   │   │   ├── sentiment_classifier.pkl  # Trained model
+│   │   │   └── sentiment_classifier.py   # Model class
+│   │   ├── training/         # Training scripts
+│   │   │   └── train.py     # Model training
+│   │   └── data/             # Training data
+│   │
+│   └── relevance/            # Relevance scoring service
+│       ├── app.py            # FastAPI application
+│       ├── config.py         # Service configuration
+│       ├── Dockerfile        # Container definition
+│       ├── requirements.txt  # Python dependencies
+│       ├── model/            # Model artifacts
+│       │   ├── relevance_classifier.pkl  # Trained model
+│       │   └── relevance_scorer.py      # Model class
+│       ├── training/         # Training scripts
+│       │   └── train.py     # Model training
+│       └── data/             # Training data
+│
 ├── webapp/                    # Next.js web application
 │   ├── .env                   # Environment variables
 │   ├── .gitignore             # Git ignore rules
@@ -603,6 +646,7 @@ MarketMinute/
 │
 └── infrastructure/            # Cloud infrastructure
     ├── scripts/              # Management utilities
+    │   ├── deploy_ec2_ml_services.sh  # EC2 ML services deployment
     │   ├── deploy_lambda.sh  # Lambda deployment
     │   ├── manage_scheduler.sh  # Cron job management
     │   ├── setup.sh          # Initial setup
@@ -616,6 +660,10 @@ MarketMinute/
         ├── outputs.tf        # Output definitions
         ├── ecr.tf            # ECR repositories
         ├── iam.tf            # IAM roles and policies
+        ├── ec2_ml_services.tf  # EC2 instance for ML services
+        ├── iam_ec2_ml.tf     # IAM roles for EC2
+        ├── user_data.sh      # EC2 initialization script
+        ├── docker-compose.yml  # Docker Compose for ML services
         ├── lambda.tf         # Lambda function config
         ├── sagemaker.tf      # SageMaker endpoint config
         ├── scheduler.tf      # EventBridge cron job
@@ -649,6 +697,8 @@ cp .env.example .env.local
 # - NEXTAUTH_SECRET
 # - OPENAI_API_KEY
 # - FMP_API_KEY (Financial Modeling Prep - Premium tier for quotes, news, and events)
+# - SENTIMENT_SERVICE_URL (e.g., http://100.31.239.246:8001)
+# - RELEVANCE_SERVICE_URL (e.g., http://100.31.239.246:8002)
 # - UPSTASH_REDIS_REST_URL (optional - Redis caching)
 # - UPSTASH_REDIS_REST_TOKEN (optional - Redis caching)
 
@@ -689,6 +739,61 @@ python3 scripts/generate_predictions.py
 # Generate Forecasts
 python3 scripts/generate_distributional_forecasts.py
 ```
+
+### ML Services Setup (EC2)
+
+**Deploy Sentiment & Relevance Models:**
+
+```bash
+cd services
+
+# Option 1: Deploy both services
+./redeploy_models.sh both
+
+# Option 2: Deploy individual services
+./redeploy_models.sh sentiment
+./redeploy_models.sh relevance
+```
+
+**The script will:**
+
+1. Verify model artifacts exist (`.pkl` files in `model/` directories)
+2. Build Docker images with `--no-cache` for AMD64 architecture
+3. Push images to AWS ECR
+4. Restart services on EC2 via AWS SSM
+5. Verify health endpoints
+
+**Test the services:**
+
+```bash
+# Sentiment analysis
+curl -X POST http://<EC2_IP>:8001/score \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Stock prices surge on positive earnings"}'
+
+# Relevance scoring
+curl -X POST http://<EC2_IP>:8002/score \
+  -H "Content-Type: application/json" \
+  -d '{"headline": "Apple unveils new iPhone", "ticker": "AAPL"}'
+```
+
+**Train new models:**
+
+```bash
+# Sentiment
+cd services/sentiment/training
+python3 train.py
+
+# Relevance
+cd services/relevance/training
+python3 train.py
+
+# Then redeploy
+cd ../../
+./redeploy_models.sh both
+```
+
+---
 
 ### AWS Infrastructure Setup
 
@@ -787,6 +892,17 @@ The Lambda function will:
 
 ## 📊 API Endpoints
 
+### ML Services (EC2-hosted)
+
+- `POST :8001/score` - Sentiment analysis
+  - Body: `{"text": "string"}`
+  - Returns: `{"score": -1.0 to 1.0, "category": "very_negative|negative|neutral|positive|very_positive"}`
+- `POST :8002/score` - Relevance scoring
+  - Body: `{"headline": "string", "ticker": "string"}`
+  - Returns: `{"score": 0.0 to 1.0, "category": "not_relevant|marginally_relevant|somewhat_relevant|highly_relevant"}`
+- `GET :8001/health` - Sentiment service health check
+- `GET :8002/health` - Relevance service health check
+
 ### Market Data
 
 - `GET /api/snapshots` - Real-time stock quotes
@@ -854,6 +970,7 @@ Key models:
 - **WatchlistItem** - Individual stocks with ordering
 - **Session** - Session Auth
 - **DailyWatchlistSummary** - Historical performance snapshots
+- **NewsItem** - Processed news with ML-based sentiment and relevance scores
 - **SentinelReport** - AI-generated market intelligence reports with structured narratives
 - **InsightReport** - Historical insight reports
 - **LivePrediction** - ML trading signals from Lambda (21 tickers daily)
@@ -868,6 +985,14 @@ User
  ├── Sessions (Auth)
  ├── DailyWatchlistSummaries (through watchlist)
  └── SentinelReports (1-to-many)
+
+NewsItem
+ ├── id, ticker, headline
+ ├── sentiment (Float) - ML model score (-1.0 to 1.0)
+ ├── relevance (Float, nullable) - ML model score (0.0 to 1.0)
+ ├── category (String, nullable) - Relevance category
+ ├── summary (String, nullable)
+ └── createdAt (DateTime)
 
 SentinelReport
  ├── summary (Text)

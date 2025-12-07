@@ -62,3 +62,9 @@ variable "github_repo" {
   type        = string
   default     = ""
 }
+
+variable "ml_services_instance_type" {
+  description = "EC2 instance type for sentiment and relevance services"
+  type        = string
+  default     = "t3.medium"
+}

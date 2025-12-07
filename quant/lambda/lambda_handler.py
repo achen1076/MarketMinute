@@ -105,6 +105,37 @@ def trigger_sentinel_agent():
         return {'status': 'error', 'error': str(e)}
 
 
+def process_news_for_all_tickers():
+    """Process news before generating predictions"""
+    if not WEBAPP_URL:
+        print("[Lambda] WEBAPP_URL not configured, skipping news processing")
+        return {'status': 'skipped', 'reason': 'No WEBAPP_URL configured'}
+
+    try:
+        news_url = f"{WEBAPP_URL}/api/news/process-batch"
+        print(f"[Lambda] Processing news at {news_url}")
+
+        response = requests.post(
+            news_url,
+            json={'tickers': TICKERS},
+            timeout=120
+        )
+        response.raise_for_status()
+
+        data = response.json()
+        print(
+            f"[Lambda] News processed: {data.get('processed', 0)} tickers, {data.get('saved', 0)} items saved")
+
+        return {
+            'status': 'success',
+            'processed': data.get('processed', 0),
+            'saved': data.get('saved', 0)
+        }
+    except Exception as e:
+        print(f"[Lambda] News processing error: {str(e)}")
+        return {'status': 'error', 'error': str(e)}
+
+
 def handler(event, context):
     """Lambda orchestrator for daily market analysis"""
     print(f"[Lambda] Starting analysis at {datetime.now().isoformat()}")
@@ -114,10 +145,14 @@ def handler(event, context):
         print(f"[Lambda] Task: {task}")
 
         if task == 'daily_analysis':
+            # Step 1: Process news FIRST
+            news_result = process_news_for_all_tickers()
+
+            # Step 2: Fetch market data and generate predictions
             features, prices, volatilities, raw_data = fetch_market_data()
             raw_predictions = get_predictions(features)
             live_predictions = generate_live_predictions(
-                raw_predictions, prices, volatilities, raw_data)
+                raw_predictions, prices, volatilities, raw_data, webapp_url=WEBAPP_URL)
             distributional_forecasts = generate_distributional_forecasts(
                 raw_predictions, prices, volatilities)
 
@@ -133,6 +168,7 @@ def handler(event, context):
             return {
                 'statusCode': 200,
                 'body': json.dumps({
+                    'news_processing': news_result,
                     'live_predictions': live_predictions,
                     'distributional_forecasts': distributional_forecasts,
                     'sentinel': sentinel_result,

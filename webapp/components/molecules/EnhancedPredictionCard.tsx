@@ -15,7 +15,14 @@ export function EnhancedPredictionCard({ signal }: { signal: EnhancedSignal }) {
     prob_down,
     prob_neutral,
     directionalConfidence,
+    raw_prob_up,
+    raw_prob_down,
+    raw_prob_neutral,
+    raw_signal,
+    news_count,
   } = signal;
+
+  const hasNewsAdjustment = news_count && news_count > 0;
 
   const scoreColor =
     quantScore >= 70
@@ -102,9 +109,65 @@ export function EnhancedPredictionCard({ signal }: { signal: EnhancedSignal }) {
         </div>
       </div>
 
+      {/* News Impact Comparison (if news was applied) */}
+      {hasNewsAdjustment && (
+        <div className="mb-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs text-blue-400 font-semibold">
+              📰 News Impact ({news_count} headlines)
+            </p>
+            <span className="text-xs text-slate-500">
+              {raw_signal} → {signal.signal}
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <div>
+              <div className="text-slate-500">UP</div>
+              <div className="flex items-center gap-1">
+                <span className="text-slate-400">
+                  {(raw_prob_up! * 100).toFixed(0)}%
+                </span>
+                <span className="text-blue-400">→</span>
+                <span className="text-emerald-400 font-semibold">
+                  {(prob_up * 100).toFixed(0)}%
+                </span>
+              </div>
+            </div>
+            <div>
+              <div className="text-slate-500">NEUTRAL</div>
+              <div className="flex items-center gap-1">
+                <span className="text-slate-400">
+                  {(raw_prob_neutral! * 100).toFixed(0)}%
+                </span>
+                <span className="text-blue-400">→</span>
+                <span className="text-slate-400 font-semibold">
+                  {(prob_neutral * 100).toFixed(0)}%
+                </span>
+              </div>
+            </div>
+            <div>
+              <div className="text-slate-500">DOWN</div>
+              <div className="flex items-center gap-1">
+                <span className="text-slate-400">
+                  {(raw_prob_down! * 100).toFixed(0)}%
+                </span>
+                <span className="text-blue-400">→</span>
+                <span className="text-rose-400 font-semibold">
+                  {(prob_down * 100).toFixed(0)}%
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Probability Distribution */}
       <div className="mb-3">
-        <p className="text-xs text-slate-500 mb-2">Probability Distribution:</p>
+        <p className="text-xs text-slate-500 mb-2">
+          {hasNewsAdjustment
+            ? "Final Probability Distribution:"
+            : "Probability Distribution:"}
+        </p>
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-400 w-16">Higher:</span>

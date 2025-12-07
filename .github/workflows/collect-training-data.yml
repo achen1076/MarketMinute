@@ -1,0 +1,40 @@
+name: Collect Training Data
+
+on:
+  # Run daily at 6 AM UTC (after US market close)
+  schedule:
+    - cron: "0 6 * * *"
+
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          pip install requests
+
+      - name: Collect training data
+        env:
+          FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+          WEBAPP_URL: ${{ secrets.WEBAPP_URL }}
+        run: |
+          cd services/sentiment
+          python collect_training_data.py
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "Training data collection failed!"
+          # Add Slack/Discord webhook notification here if desired

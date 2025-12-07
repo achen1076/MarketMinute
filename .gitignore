@@ -59,6 +59,11 @@ webapp/lib/generated/prisma/
 *.egg-info/
 .pytest_cache/
 *.log
+**/venv/
+**/.venv/
+*.pyc
+*.pyo
+*.pyd
 
 # quant outputs
 quant/logs/

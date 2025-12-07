@@ -180,8 +180,8 @@ export async function POST(req: Request) {
       - changePct: today's percent change (already a percentage, e.g., -0.03 means -0.03%, NOT -3%)
       - price: current price (if available)
       - news: array of recent headlines specific to this symbol only, each with:
-        * relevanceScore (0-1): how impactful the news is (1 = highly impactful, 0 = not relevant)
-        * sentiment: "positive", "negative", or "neutral" for the stock
+        * relevanceScore (0-1): computed by ML model, indicates how relevant the headline is to this specific ticker (1 = highly relevant, 0 = not relevant)
+        * sentiment: "positive", "negative", or "neutral" - computed by ML model analyzing the headline tone
       - smartAlerts: array with contextual information (e.g., "near 52-week high", "earnings in 3 days", "hit ±3% move")
 
       Important: The "news" array contains ONLY headlines for this specific symbol. Do not reference or invent news from other stocks.
@@ -196,23 +196,32 @@ export async function POST(req: Request) {
          - If smartAlerts exist, mention in the summary
          - Be specific: "hit a ±3% move" or "near 52-week high"
          
-      3. Use news for key points:
-         - ONLY use news with HIGH relevanceScore (>0.7)
-         - Short titles (e.g., "Earnings Miss", "Revenue Beat")
-         - One specific fact per point
-         - Do NOT invent details
+      3. Use ACTUAL news content directly:
+         - Prioritize news with HIGH relevanceScore (>0.7) - these are most relevant to this specific ticker according to ML model
+         - **HIGHEST PRIORITY**: Headlines with strong sentiment (< -0.2 or > 0.2) indicating material market impact
+         - **HIGHEST PRIORITY**: Material events like earnings reports, product launches, major partnerships, M&A, regulatory news, executive changes, lawsuits, guidance changes
+         - **LOWER PRIORITY**: Routine news like insider buying/selling, minor share repurchases, routine SEC filings, generic analyst mentions
+         - **LOWER PRIORITY**: Headlines with weak sentiment (between -0.2 and 0.2) that indicate neutral market impact
+         - Consider sentiment (positive/negative/neutral) from ML model when explaining market reaction
+         - Reference SPECIFIC events, announcements, or developments from the news
+         - Use concrete details from headlines/summaries (e.g., "Q4 earnings missed by 8%", "CEO announced layoffs")
+         - Do NOT use meta-phrases like "headline states" or "per the provided quote" or "according to reports"
+         - Speak directly about what happened (e.g., "The company missed earnings" NOT "Headline states earnings were missed")
+         - Do NOT invent details beyond what's in the news
          
       4. No investment advice. No buy/sell/hold recommendations.
       
       5. Only use data from the JSON. No invented dates or numbers.
       
-      6. Factual tone. No hedging or disclaimers. Remove dramatic news tone
+      6. Factual tone. No hedging or disclaimers. Remove dramatic news tone.
       
-      7. Every point must cite concrete facts from the JSON.
+      7. Every point must cite concrete events from actual news or earnings/dividends reports, not generic market movements.
 
-      8. Do not use any input variable names in the output (e.g., do not use "symbol" or "changePct" or "relevanceScore" or "sentiment").
+      8. Do not use any input variable names in the output (e.g., do not use "symbol" or "changePct" or "relevanceScore" or "sentiment" or "provided quote").
 
       9. Do not repeat similar news items in the key points or repeat the same point.
+      
+      10. Focus on WHY the stock moved based on specific events, not just describing that it moved.
 `.trim();
 
   // Initialize LangChain model with structured output
@@ -320,8 +329,8 @@ async function refreshExplanation(
       - changePct: today's percent change (already a percentage, e.g., -0.03 means -0.03%, NOT -3%)
       - price: current price (if available)
       - news: array of recent headlines specific to this symbol only, each with:
-        * relevanceScore (0-1): how impactful the news is (1 = highly impactful, 0 = not relevant)
-        * sentiment: "positive", "negative", or "neutral" for the stock
+        * relevanceScore (0-1): computed by ML model, indicates how relevant the headline is to this specific ticker (1 = highly relevant, 0 = not relevant)
+        * sentiment: "positive", "negative", or "neutral" - computed by ML model analyzing the headline tone
       - smartAlerts: array with contextual information (e.g., "near 52-week high", "earnings in 3 days", "hit ±3% move")
 
       Important: The "news" array contains ONLY headlines for this specific symbol. Do not reference or invent news from other stocks.
@@ -336,23 +345,34 @@ async function refreshExplanation(
          - If smartAlerts exist, mention in the summary
          - Be specific: "hit a ±3% move" or "near 52-week high"
          
-      3. Use news for key points:
-         - ONLY use news with HIGH relevanceScore (>0.7)
-         - Short titles (e.g., "Earnings Miss", "Revenue Beat")
-         - One specific fact per point
-         - Do NOT invent details
+      3. Use ACTUAL news content directly:
+         - Prioritize news with HIGH relevanceScore (>0.7) - these are most relevant to this specific ticker according to ML model
+         - **HIGHEST PRIORITY**: Headlines with strong sentiment (< -0.2 or > 0.2) indicating material market impact
+         - **HIGHEST PRIORITY**: Material events like earnings reports, product launches, major partnerships, M&A, regulatory news, executive changes, lawsuits, guidance changes
+         - **LOWER PRIORITY**: Routine news like insider buying/selling, minor share repurchases, routine SEC filings, generic analyst mentions
+         - **LOWER PRIORITY**: Headlines with weak sentiment (between -0.2 and 0.2) that indicate neutral market impact
+         - Consider sentiment (positive/negative/neutral) from ML model when explaining market reaction
+         - Reference SPECIFIC events, announcements, or developments from the news
+         - Use concrete details from headlines/summaries (e.g., "Q4 earnings missed by 8%", "CEO announced layoffs")
+         - Do NOT use meta-phrases like "headline states" or "per the provided quote" or "according to reports"
+         - Speak directly about what happened (e.g., "The company missed earnings" NOT "Headline states earnings were missed")
+         - Do NOT invent details beyond what's in the news
          
       4. No investment advice. No buy/sell/hold recommendations.
       
       5. Only use data from the JSON. No invented dates or numbers.
       
-      6. Factual tone. No hedging or disclaimers. Remove dramatic news tone
+      6. Factual tone. No hedging or disclaimers. Remove dramatic news tone.
       
-      7. Every point must cite concrete facts from the JSON.
+      7. Every point must cite concrete events from actual news or earnings/dividends reports, not generic market movements.
 
-      8. Do not use any input variable names in the output (e.g., do not use "symbol" or "changePct" or "relevanceScore" or "sentiment").
+      8. Do not use any input variable names in the output (e.g., do not use "symbol" or "changePct" or "relevanceScore" or "sentiment" or "provided quote").
 
       9. Do not repeat similar news items in the key points or repeat the same point.
+      
+      10. Focus on WHY the stock moved based on specific events, not just describing that it moved.
+
+      11. Do not include the relevanceScore or sentiment in the output.
 `.trim();
 
     const model = new ChatOpenAI({

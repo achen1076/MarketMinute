@@ -1,5 +1,8 @@
+# ============================================
+# Quant Model (existing)
+# ============================================
 resource "aws_sagemaker_model" "quant" {
-  name               = "${var.project_name}-${var.environment}-model"
+  name               = "${var.project_name}-${var.environment}-quant-model"
   execution_role_arn = aws_iam_role.sagemaker_execution.arn
 
   primary_container {
@@ -10,7 +13,7 @@ resource "aws_sagemaker_model" "quant" {
 }
 
 resource "aws_sagemaker_endpoint_configuration" "quant" {
-  name = "${var.project_name}-${var.environment}-realtime-config"
+  name = "${var.project_name}-${var.environment}-quant-config"
 
   production_variants {
     variant_name           = "AllTraffic"
@@ -21,7 +24,10 @@ resource "aws_sagemaker_endpoint_configuration" "quant" {
 }
 
 resource "aws_sagemaker_endpoint" "quant" {
-  name = "${var.project_name}-${var.environment}-endpoint"
+  name = "${var.project_name}-${var.environment}-quant-endpoint"
 
   endpoint_config_name = aws_sagemaker_endpoint_configuration.quant.name
 }
+
+# Sentiment and Relevance models moved to EC2
+# See ec2_ml_services.tf

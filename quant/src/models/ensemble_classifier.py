@@ -12,9 +12,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# -------------------------------------------------------
-# Helper: Balanced score for ensemble weighting
-# -------------------------------------------------------
 def compute_model_score(y_true, y_pred):
     """
     Compute a balanced model score (macro F1).
@@ -26,9 +23,6 @@ def compute_model_score(y_true, y_pred):
         return 0.0
 
 
-# -------------------------------------------------------
-# Ensemble Classifier
-# -------------------------------------------------------
 class EnsembleClassifier:
     """
     Ensemble classifier with improved weighted averaging, voting, and stacking.
@@ -58,14 +52,12 @@ class EnsembleClassifier:
 
         self.validation_scores = scores
 
-        # If all models collapse to 0 score, fallback to equal weights
         if sum(scores) == 0:
             logger.warning(
                 "[Ensemble] All model scores are zero. Falling back to equal weights.")
             self.weights = [1.0 / len(self.models)] * len(self.models)
             return
 
-        # Power-scaling -> softmax-like behavior
         powered = np.array([s**power for s in scores])
         powered = powered / powered.sum()
 
@@ -75,7 +67,6 @@ class EnsembleClassifier:
             f"[Ensemble] Weights (macro-F1, power={power}): {self.weights}")
         logger.info(f"[Ensemble] Raw scores: {scores}")
 
-    # Stacking meta learner
     def fit_meta_model(self, X_train, y_train, X_val=None, y_val=None):
         from .base.lgbm_classifier import LGBMClassifier
 
@@ -128,19 +119,12 @@ class EnsembleClassifier:
         else:
             raise ValueError(f"Unknown ensemble strategy: {self.strategy}")
 
-    # ---------------------------------------------------
-    # Class predictions
-    # ---------------------------------------------------
     def predict(self, X):
         probas = self.predict_proba(X)
         labels = np.argmax(probas, axis=1)
 
         label_map_reverse = {0: -1, 1: 0, 2: 1}
         return np.array([label_map_reverse[l] for l in labels])
-
-    # ---------------------------------------------------
-    # Evaluation
-    # ---------------------------------------------------
 
     def evaluate(self, X, y):
         y_pred = self.predict(X)
@@ -155,7 +139,6 @@ class EnsembleClassifier:
             "individual_models": []
         }
 
-        # Evaluate base models
         for i, m in enumerate(self.models):
             yp = m.predict(X)
             results["individual_models"].append({

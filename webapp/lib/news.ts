@@ -1,6 +1,4 @@
 import "server-only";
-import { ChatOpenAI } from "@langchain/openai";
-import { z } from "zod";
 
 export type NewsItem = {
   symbol: string;
@@ -11,32 +9,6 @@ export type NewsItem = {
   relevanceScore?: number;
   sentiment?: "positive" | "negative" | "neutral";
 };
-
-// Zod schema for news analysis
-const newsAnalysisSchema = z.object({
-  articles: z.array(
-    z.object({
-      index: z
-        .number()
-        .describe("The index of the article in the original array"),
-      relevanceScore: z
-        .number()
-        .min(0)
-        .max(1)
-        .describe(
-          "Score from 0-1 indicating how relevant/impactful this news is to the stock price movement. 1 = highly impactful (earnings, mergers, lawsuits), 0 = not relevant"
-        ),
-      sentiment: z
-        .enum(["positive", "negative", "neutral"])
-        .describe(
-          "Overall sentiment of the article: positive (good news for stock), negative (bad news for stock), or neutral"
-        ),
-      reasoning: z
-        .string()
-        .describe("Brief explanation of the relevance score and sentiment"),
-    })
-  ),
-});
 
 /**
  * Fetch recent news for a symbol using Financial Modeling Prep.
@@ -84,7 +56,7 @@ export async function getNewsForSymbol(
 }
 
 /**
- * Analyze news articles for relevance and sentiment using AI.
+ * Analyze news articles for relevance and sentiment using deployed ML models.
  * Returns the same articles with relevanceScore and sentiment populated.
  */
 export async function analyzeNewsImpact(
@@ -96,67 +68,70 @@ export async function analyzeNewsImpact(
     return articles;
   }
 
-  const model = new ChatOpenAI({
-    model: "gpt-5-mini",
-  });
+  const sentimentUrl = process.env.SENTIMENT_SERVICE_URL;
+  const relevanceUrl = process.env.RELEVANCE_SERVICE_URL;
 
-  const structuredModel = model.withStructuredOutput(newsAnalysisSchema);
-
-  const systemPrompt = `
-You are a financial news analyst. Analyze the provided news articles for a stock ticker.
-
-For each article, determine:
-1. **Relevance Score (0-1)**: How impactful is this news to the stock price?
-   - 1.0: Major events (earnings beats/misses, M&A, lawsuits, executive changes, product launches)
-   - 0.7-0.9: Significant developments (partnerships, regulatory news, analyst upgrades/downgrades)
-   - 0.4-0.6: Moderate relevance (industry trends, competitive news)
-   - 0.1-0.3: Low relevance (generic mentions, tangential news)
-   - 0.0: Not relevant
-
-2. **Sentiment**: positive (good for stock), negative (bad for stock), or neutral
-   - positive: Good earnings, partnerships, growth, positive analyst coverage
-   - negative: Lawsuits, losses, regulatory issues, downgrades, controversies
-   - neutral: Factual announcements without clear positive/negative impact
-
-Be objective and base your analysis on the content provided.
-`.trim();
-
-  const userMessage = `
-Symbol: ${symbol}
-Current Price Change: ${
-    changePct !== undefined ? `${changePct.toFixed(2)}%` : "N/A"
+  if (!sentimentUrl || !relevanceUrl) {
+    console.warn("ML service URLs not configured, skipping analysis");
+    return articles;
   }
 
-Articles to analyze:
-${articles
-  .map(
-    (article, idx) => `
-[${idx}] Title: ${article.title}
-Summary: ${article.summary}
-Published: ${article.publishedAt}
-`
-  )
-  .join("\n")}
-`.trim();
-
   try {
-    const result = await structuredModel.invoke([
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userMessage },
-    ]);
+    const analyzedArticles = await Promise.all(
+      articles.map(async (article) => {
+        try {
+          const sentimentRes = await fetch(`${sentimentUrl}/score`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: article.title }),
+          });
 
-    // Map the analysis back to the articles
-    const analyzedArticles = articles.map((article, idx) => {
-      const analysis = result.articles.find((a) => a.index === idx);
-      if (analysis) {
-        return {
-          ...article,
-          relevanceScore: analysis.relevanceScore,
-          sentiment: analysis.sentiment,
-        };
-      }
-      return article;
-    });
+          const relevanceRes = await fetch(`${relevanceUrl}/score`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              headline: article.title,
+              ticker: symbol,
+            }),
+          });
+
+          if (!sentimentRes.ok || !relevanceRes.ok) {
+            console.warn(
+              `Failed to analyze article: ${article.title.substring(0, 50)}`
+            );
+            return article;
+          }
+
+          const sentimentData = (await sentimentRes.json()) as {
+            score: number;
+            category: string;
+          };
+          const relevanceData = (await relevanceRes.json()) as {
+            score: number;
+            category: string;
+          };
+
+          // Map sentiment score to enum
+          let sentiment: "positive" | "negative" | "neutral";
+          if (sentimentData.score < -0.05) {
+            sentiment = "negative";
+          } else if (sentimentData.score > 0.05) {
+            sentiment = "positive";
+          } else {
+            sentiment = "neutral";
+          }
+
+          return {
+            ...article,
+            relevanceScore: relevanceData.score,
+            sentiment,
+          };
+        } catch (error) {
+          console.error(`Error analyzing article: ${article.title}`, error);
+          return article;
+        }
+      })
+    );
 
     // Sort by relevance score (highest first)
     return analyzedArticles.sort(

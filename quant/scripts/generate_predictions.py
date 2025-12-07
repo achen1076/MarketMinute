@@ -16,6 +16,7 @@ from datetime import datetime
 import argparse
 
 from src.data.features.feature_engine import FeatureEngine
+from src.news.bayesian_update import bayesian_update
 
 
 def generate_predictions(model_type="lgbm"):
@@ -78,10 +79,12 @@ def generate_predictions(model_type="lgbm"):
         engine = FeatureEngine()
         df_features = engine.calculate_all(df)
 
-        labeling_artifacts = ['rolling_vol', 'neutral_thresh', 'strong_thresh', 'dyn_thresh']
-        
+        labeling_artifacts = ['rolling_vol',
+                              'neutral_thresh', 'strong_thresh', 'dyn_thresh']
+
         if feature_names:
-            feature_cols = [f for f in feature_names if f not in labeling_artifacts]
+            feature_cols = [
+                f for f in feature_names if f not in labeling_artifacts]
             print(f"  Using {len(feature_cols)} features from saved model")
         else:
             exclude_cols = ['timestamp', 'open', 'high', 'low', 'close', 'volume',
@@ -90,7 +93,8 @@ def generate_predictions(model_type="lgbm"):
                 col for col in df_features.columns if col not in exclude_cols and not col.startswith('Unnamed')]
             print(f"  Using {len(feature_cols)} features (auto-detected)")
 
-        missing_features = [f for f in feature_cols if f not in df_features.columns]
+        missing_features = [
+            f for f in feature_cols if f not in df_features.columns]
         if missing_features:
             print(f"  ERROR: Missing features: {missing_features[:5]}...")
             continue
@@ -116,17 +120,59 @@ def generate_predictions(model_type="lgbm"):
         pred_classes = np.argmax(probas, axis=1)
         label_map_reverse = {0: -1, 1: 0, 2: 1}
         preds = np.array([label_map_reverse[int(p)] for p in pred_classes])
-        
+
         latest_pred = preds[-1]
         latest_proba = probas[-1]
         signal_map = {-1: "SELL", 0: "NEUTRAL", 1: "BUY"}
         signal = signal_map[latest_pred]
         confidence = latest_proba.max()
-        
+
         prob_down = latest_proba[0]
         prob_neutral = latest_proba[1]
         prob_up = latest_proba[2]
-        
+
+        # Store raw model probabilities
+        raw_prob_up = prob_up
+        raw_prob_down = prob_down
+        raw_prob_neutral = prob_neutral
+
+        # Calculate raw signal and confidence (before news)
+        raw_pred = latest_pred
+        raw_signal_map = {-1: "SELL", 0: "NEUTRAL", 1: "BUY"}
+        raw_signal = raw_signal_map[raw_pred]
+        raw_confidence = latest_proba.max()
+
+        # Apply Bayesian updating based on news sentiment and relevance
+        prior = {"up": prob_up, "down": prob_down, "neutral": prob_neutral}
+        news_items = load_news_items(ticker)
+
+        news_adjusted_prob_up = prob_up
+        news_adjusted_prob_down = prob_down
+        news_adjusted_prob_neutral = prob_neutral
+        news_count = 0
+
+        if news_items:
+            posterior = bayesian_update(prior, news_items)
+            news_adjusted_prob_up = posterior["up"]
+            news_adjusted_prob_down = posterior["down"]
+            news_adjusted_prob_neutral = posterior["neutral"]
+            news_count = len(news_items)
+            print(f"  Bayesian update applied ({news_count} news items)")
+
+            # Use news-adjusted probabilities for signal generation
+            prob_up = news_adjusted_prob_up
+            prob_down = news_adjusted_prob_down
+            prob_neutral = news_adjusted_prob_neutral
+
+            # Recalculate signal based on news-adjusted probabilities
+            news_probs = [prob_down, prob_neutral, prob_up]
+            news_pred = np.argmax(news_probs) - 1  # Convert back to -1, 0, 1
+            signal = raw_signal_map[news_pred]
+            confidence = max(news_probs)
+        else:
+            signal = raw_signal
+            confidence = raw_confidence
+
         latest_price = df['close'].iloc[-1]
         latest_time = df['timestamp'].iloc[-1]
         if 'atr_14' in df_features.columns:
@@ -152,23 +198,38 @@ def generate_predictions(model_type="lgbm"):
             'ticker': ticker,
             'timestamp': latest_time,
             'current_price': latest_price,
+            # Raw model outputs (before news)
+            'raw_signal': raw_signal,
+            'raw_confidence': raw_confidence,
+            'raw_prob_up': raw_prob_up,
+            'raw_prob_neutral': raw_prob_neutral,
+            'raw_prob_down': raw_prob_down,
+            # News-adjusted outputs (after Bayesian update)
             'signal': signal,
             'confidence': confidence,
             'prob_up': prob_up,
             'prob_neutral': prob_neutral,
             'prob_down': prob_down,
+            'news_count': news_count,
             'should_trade': should_trade,
             'take_profit': tp_target,
             'stop_loss': sl_target,
             'atr': latest_atr
         })
 
-        print(f"  Signal: {signal} (Confidence: {confidence:.1%})")
+        if news_count > 0:
+            print(
+                f"  Raw Signal: {raw_signal} (Confidence: {raw_confidence:.1%})")
+            print(
+                f"  News-Adjusted Signal: {signal} (Confidence: {confidence:.1%})")
+        else:
+            print(f"  Signal: {signal} (Confidence: {confidence:.1%})")
         print(f"  Should Trade: {'YES' if should_trade else 'NO'}")
         processed += 1
 
     print(f"\n{'='*70}")
-    print(f" SUMMARY: {processed} predictions generated, {skipped} tickers skipped")
+    print(
+        f" SUMMARY: {processed} predictions generated, {skipped} tickers skipped")
     print(f"{'='*70}\n")
     if predictions:
         df_pred = pd.DataFrame(predictions)
@@ -305,6 +366,123 @@ def predict_single_ticker(ticker, model_path=None, show_details=True):
         'data': df,
         'features': df_features
     }
+
+
+def load_news_items(ticker):
+    """
+    Load news items for a ticker with sentiment, relevance, and category from database.
+
+    Args:
+        ticker: Stock ticker symbol
+
+    Returns:
+        List of news item dictionaries with keys:
+            - sentiment: float in [-1, +1]
+            - relevance: float in [0, 1]
+            - category: str (based on relevance score)
+
+    Queries NewsItem table for recent news with ML scores.
+    """
+    import os
+    from datetime import datetime, timedelta
+
+    # Try to load from database
+    try:
+        database_url = os.getenv("DATABASE_URL")
+
+        if not database_url:
+            # Fall back to local JSON file if database not configured
+            return load_news_from_file(ticker)
+
+        # Use psycopg2 to query the database
+        import psycopg2
+        from psycopg2.extras import RealDictCursor
+
+        conn = psycopg2.connect(database_url)
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        # Get news from last 2 days with sentiment and relevance scores
+        two_days_ago = datetime.now() - timedelta(days=2)
+
+        query = """
+            SELECT sentiment, relevance, category
+            FROM "NewsItem"
+            WHERE ticker = %s
+              AND "createdAt" >= %s
+              AND sentiment IS NOT NULL
+              AND relevance IS NOT NULL
+            ORDER BY "createdAt" DESC
+            LIMIT 10
+        """
+
+        cursor.execute(query, (ticker, two_days_ago))
+        rows = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        if not rows:
+            return []
+
+        # Convert database rows to news items format
+        news_items = []
+        for row in rows:
+            sentiment_score = float(row['sentiment'])
+            relevance_score = float(
+                row['relevance']) if row['relevance'] else 0.0
+
+            # Use category from database if available, otherwise derive from relevance
+            if row['category']:
+                category = row['category']
+            else:
+                if relevance_score >= 0.7:
+                    category = "company"
+                elif relevance_score >= 0.4:
+                    category = "sector"
+                elif relevance_score >= 0.2:
+                    category = "macro"
+                else:
+                    category = "noise"
+
+            news_items.append({
+                'sentiment': sentiment_score,
+                'relevance': relevance_score,
+                'category': category
+            })
+
+        return news_items
+
+    except ImportError:
+        print(
+            f"  Warning: psycopg2 not installed. Install with: pip install psycopg2-binary")
+        return load_news_from_file(ticker)
+    except Exception as e:
+        print(f"  Warning: Could not load news from database: {e}")
+        # Fall back to local file
+        return load_news_from_file(ticker)
+
+
+def load_news_from_file(ticker):
+    """Load news from local JSON file (fallback method)."""
+    news_file = Path(f"data/news/{ticker.lower()}_news.json")
+
+    if news_file.exists():
+        import json
+        with open(news_file, 'r') as f:
+            news_data = json.load(f)
+
+        news_items = []
+        for item in news_data:
+            if all(k in item for k in ['sentiment', 'relevance', 'category']):
+                news_items.append({
+                    'sentiment': float(item['sentiment']),
+                    'relevance': float(item['relevance']),
+                    'category': str(item['category'])
+                })
+
+        return news_items
+
+    return []
 
 
 if __name__ == "__main__":

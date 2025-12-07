@@ -230,21 +230,29 @@ model InsightReport {
 }
 
 model LivePrediction {
-  id            String   @id @default(cuid())
-  ticker        String
-  timestamp     DateTime
-  currentPrice  Float    @map("current_price")
-  signal        String   // "BUY", "SELL", "NEUTRAL"
-  confidence    Float
-  probUp        Float    @map("prob_up")
-  probNeutral   Float    @map("prob_neutral")
-  probDown      Float    @map("prob_down")
-  shouldTrade   Boolean  @map("should_trade")
-  takeProfit    Float?   @map("take_profit")
-  stopLoss      Float?   @map("stop_loss")
-  atr           Float?
-  createdAt     DateTime @default(now()) @map("created_at")
-  runId         String   @map("run_id") // Group predictions from same Lambda run
+  id              String   @id @default(cuid())
+  ticker          String
+  timestamp       DateTime
+  currentPrice    Float    @map("current_price")
+  // Raw model outputs (before news adjustment)
+  rawSignal       String?  @map("raw_signal")
+  rawConfidence   Float?   @map("raw_confidence")
+  rawProbUp       Float?   @map("raw_prob_up")
+  rawProbNeutral  Float?   @map("raw_prob_neutral")
+  rawProbDown     Float?   @map("raw_prob_down")
+  // News-adjusted outputs (after Bayesian update)
+  signal          String   // "BUY", "SELL", "NEUTRAL"
+  confidence      Float
+  probUp          Float    @map("prob_up")
+  probNeutral     Float    @map("prob_neutral")
+  probDown        Float    @map("prob_down")
+  newsCount       Int?     @map("news_count")
+  shouldTrade     Boolean  @map("should_trade")
+  takeProfit      Float?   @map("take_profit")
+  stopLoss        Float?   @map("stop_loss")
+  atr             Float?
+  createdAt       DateTime @default(now()) @map("created_at")
+  runId           String   @map("run_id") // Group predictions from same Lambda run
 
   @@index([ticker])
   @@index([timestamp])
@@ -281,4 +289,50 @@ model DistribionalForecast {
   @@index([runId])
   @@index([createdAt])
   @@map("distributional_forecasts")
+}
+
+model NewsItem {
+  id        String   @id @default(cuid())
+  ticker    String
+  headline  String
+  sentiment Float
+  relevance Float?
+  category  String?
+  summary   String?
+  createdAt DateTime @default(now())
+}
+
+model TickerNewsTraining {
+  id              String   @id @default(cuid())
+  date            DateTime @db.Date
+  ticker          String
+  headline        String   @db.Text
+  newsUrl         String?  @map("news_url") @db.Text
+  stockChangePct  Float    @map("stock_change_pct")
+  dowChangePct    Float    @map("dow_change_pct")
+  spChangePct     Float    @map("sp_change_pct")
+  nasdaqChangePct Float    @map("nasdaq_change_pct")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@unique([date, ticker, headline])
+  @@index([date])
+  @@index([ticker])
+  @@index([createdAt])
+  @@map("ticker_news_training")
+}
+
+model GeneralNewsTraining {
+  id              String   @id @default(cuid())
+  date            DateTime @db.Date
+  headline        String   @db.Text
+  newsUrl         String?  @map("news_url") @db.Text
+  dowChangePct    Float    @map("dow_change_pct")
+  spChangePct     Float    @map("sp_change_pct")
+  nasdaqChangePct Float    @map("nasdaq_change_pct")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@unique([date, headline])
+  @@index([date])
+  @@index([createdAt])
+  @@map("general_news_training")
 }

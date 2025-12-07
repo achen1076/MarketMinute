@@ -7,7 +7,7 @@ set -e
 # -------------------------
 AWS_REGION="us-east-1"
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-FUNCTION_NAME="marketminute-quant-analysis"
+FUNCTION_NAME="marketminute-dev-orchestrator"
 ECR_REPO_NAME="marketminute-quant"
 IMAGE_TAG="latest"
 

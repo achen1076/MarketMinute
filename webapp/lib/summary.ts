@@ -1,6 +1,6 @@
 import "server-only";
 import type { TickerSnapshot } from "./marketData";
-import { getNewsForSymbol, type NewsItem } from "./news";
+import { getAnalyzedNewsForSymbol, type NewsItem } from "./news";
 import { getMacroNews } from "./macroNews";
 import { runMiniChat } from "./openai";
 import {
@@ -117,9 +117,9 @@ export async function buildSummary(
     ];
   }
 
-  // Fetch news only for selected symbols in parallel
+  // Fetch news only for selected symbols in parallel (with ML analysis)
   const newsPromises = symbolsToFetchNewsFor.map((s) =>
-    getNewsForSymbol(s.symbol, newsItemsPerSymbol)
+    getAnalyzedNewsForSymbol(s.symbol, s.changePct, newsItemsPerSymbol)
   );
   const allNewsArrays = await Promise.all(newsPromises);
 
@@ -137,6 +137,8 @@ export async function buildSummary(
         title: string;
         summary: string;
         publishedAt: string;
+        relevanceScore?: number;
+        sentiment?: "positive" | "negative" | "neutral";
       }>;
     }
   > = {};
@@ -148,10 +150,12 @@ export async function buildSummary(
       changePct: Number(snapshot.changePct.toFixed(2)),
       price: snapshot.price,
       isFavorite: favoritedSet.has(snapshot.symbol.toUpperCase()),
-      news: newsForSymbol.map((n) => ({
+      news: newsForSymbol.map((n: NewsItem) => ({
         title: n.title,
         summary: n.summary,
         publishedAt: n.publishedAt,
+        relevanceScore: n.relevanceScore,
+        sentiment: n.sentiment,
       })),
     };
   });
@@ -216,7 +220,9 @@ export async function buildSummary(
         - A "symbolsWithDetailedNews" object where each ticker is a key, containing:
           - changePct: the stock's % change
           - price: current price
-          - news: array of recent headlines (last 1–2 days) specific to that ticker
+          - news: array of recent headlines (last 1–2 days) specific to that ticker, each with:
+            * relevanceScore (0-1): ML model score indicating how relevant the headline is to this specific ticker (higher = more relevant)
+            * sentiment: "positive", "negative", or "neutral" - ML model assessment of headline tone
         - For large watchlists (>20 symbols), an "otherSymbols" object with basic price/change data for symbols without detailed news
         - macroContext: object containing macro economic news with:
           - news: array of macro headlines with category (rates, inflation, employment, gdp, policy, geopolitical) and impact level (high, medium, low)
@@ -232,8 +238,15 @@ export async function buildSummary(
         Key Movers & News (1–3 short paragraphs depending on watchlist size)
         - Focus ONLY on stocks in symbolsWithDetailedNews that have both a noticeable move and at least one recent headline in their news array.
           Example style: "Nvidia rose 1.8% after headlines about [X]. Apple slipped 0.2% on reports of [Y]."
+        - Prioritize news with HIGH relevanceScore (>0.7) - these are most relevant to the ticker according to ML model
+        - **HIGHEST PRIORITY**: Headlines with strong sentiment (< -0.2 or > 0.2) indicating material market impact
+        - **HIGHEST PRIORITY**: Material events like earnings reports, product launches, major partnerships, M&A, regulatory news, executive changes, lawsuits
+        - **LOWER PRIORITY**: Routine news like insider buying/selling, minor share repurchases, routine SEC filings, generic analyst mentions
+        - **LOWER PRIORITY**: Headlines with weak sentiment (between -0.2 and 0.2) that indicate neutral market impact
+        - Consider sentiment when explaining moves - if a stock is down and has negative sentiment news, connect them; if sentiment doesn't match the move, note that
         - Do not talk about "these headlines" or "this coverage" in the abstract. Talk directly about the companies and what the news says.
         - Do not include news sources in the summary like SeekingAlpha or any other sources.
+        - Do not mention relevanceScore or sentiment values explicitly in your narrative
         - Only connect news to the ticker it belongs to. If NVDA's news array has 2 items, only use those for NVDA.
         - For large watchlists, you may mention the overall trend (e.g., "Tech names were mostly higher") but focus details on top movers with news.
 

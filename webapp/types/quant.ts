@@ -2,11 +2,19 @@ export type Prediction = {
   ticker: string;
   timestamp: string;
   current_price: number;
+  // Raw model outputs (before news adjustment)
+  raw_signal?: "BUY" | "SELL" | "NEUTRAL";
+  raw_confidence?: number;
+  raw_prob_up?: number;
+  raw_prob_neutral?: number;
+  raw_prob_down?: number;
+  // News-adjusted outputs (after Bayesian update)
   signal: "BUY" | "SELL" | "NEUTRAL";
   confidence: number;
   prob_up: number;
   prob_neutral: number;
   prob_down: number;
+  news_count?: number;
   should_trade: boolean;
   take_profit: number | null;
   stop_loss: number | null;
