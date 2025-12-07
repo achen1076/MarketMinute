@@ -23,6 +23,7 @@ export type Prediction = {
 
 export type EnhancedSignal = Prediction & {
   quantScore: number;
+  rawQuantScore: number | null;
   edge: number;
   edgeDirectional: number;
   regime: string;

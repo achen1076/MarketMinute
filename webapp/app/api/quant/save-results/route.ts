@@ -22,13 +22,11 @@ export async function POST(request: Request) {
         ticker: p.ticker,
         timestamp: new Date(p.timestamp),
         currentPrice: p.current_price,
-        // Raw model outputs (before news adjustment)
         rawSignal: p.raw_signal || null,
         rawConfidence: p.raw_confidence || null,
         rawProbUp: p.raw_prob_up || null,
         rawProbNeutral: p.raw_prob_neutral || null,
         rawProbDown: p.raw_prob_down || null,
-        // News-adjusted outputs (after Bayesian update)
         signal: p.signal,
         confidence: p.confidence,
         probUp: p.prob_up,

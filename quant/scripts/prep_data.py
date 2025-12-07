@@ -16,7 +16,6 @@ def main():
     print("="*70)
 
     print("PROGRESS:5:Loading configuration...", flush=True)
-    # Load tickers from system specs
     with open("SYSTEM_SPEC.yaml", 'r') as f:
         config = yaml.safe_load(f)
 

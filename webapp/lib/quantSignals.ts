@@ -1,5 +1,43 @@
 import type { Prediction, EnhancedSignal } from "@/types/quant";
 
+function calculateQuantScore(
+  prob_up: number,
+  prob_down: number,
+  prob_neutral: number,
+  confidence: number
+): number {
+  const edge = Math.abs(prob_up - prob_down);
+  const trendFactor = 1 - prob_neutral;
+  const directionStrength = Math.max(prob_up, prob_down);
+
+  const EDGE_WEIGHT = 70;
+  const TREND_WEIGHT = 40;
+  const DIR_WEIGHT = 30;
+  const CONF_WEIGHT = 15;
+
+  let score =
+    edge * EDGE_WEIGHT +
+    trendFactor * TREND_WEIGHT +
+    directionStrength * DIR_WEIGHT +
+    confidence * CONF_WEIGHT;
+
+  // Regime adjustments
+  const regime = (() => {
+    if (prob_neutral > 0.85) return "low-vol chop";
+    if (edge > 0.15 && confidence > 0.7) return "trending";
+    if (edge > 0.1) return "high-vol breakout";
+    if (edge < 0.05) return "reverting";
+    return "mixed";
+  })();
+
+  if (regime === "trending") score *= 1.08;
+  if (regime === "high-vol breakout") score *= 1.12;
+  if (regime === "low-vol chop") score *= 0.75;
+  if (regime === "reverting") score *= 0.9;
+
+  return Math.round(Math.min(100, Math.max(0, score)));
+}
+
 export function calculateSignalMetrics(pred: Prediction): EnhancedSignal {
   const {
     prob_up,
@@ -9,6 +47,10 @@ export function calculateSignalMetrics(pred: Prediction): EnhancedSignal {
     atr,
     current_price,
     signal,
+    raw_prob_up,
+    raw_prob_down,
+    raw_prob_neutral,
+    raw_confidence,
   } = pred;
 
   const edge = Math.abs(prob_up - prob_down);
@@ -37,27 +79,27 @@ export function calculateSignalMetrics(pred: Prediction): EnhancedSignal {
   const prob1PctMove = prob_up + prob_down;
   const prob2PctMove = Math.max(0, (prob_up + prob_down) * 0.7);
 
-  const trendFactor = 1 - prob_neutral;
-  const directionStrength = Math.max(prob_up, prob_down);
+  // Calculate quant scores
+  const quantScore = calculateQuantScore(
+    prob_up,
+    prob_down,
+    prob_neutral,
+    confidence
+  );
 
-  const EDGE_WEIGHT = 70;
-  const TREND_WEIGHT = 40;
-  const DIR_WEIGHT = 30;
-  const CONF_WEIGHT = 15;
-
-  let quantScore =
-    edge * EDGE_WEIGHT +
-    trendFactor * TREND_WEIGHT +
-    directionStrength * DIR_WEIGHT +
-    confidence * CONF_WEIGHT;
-
-  if (regime === "trending") quantScore *= 1.08;
-  if (regime === "high-vol breakout") quantScore *= 1.12;
-  if (regime === "low-vol chop") quantScore *= 0.75;
-  if (regime === "reverting") quantScore *= 0.9;
-
-  quantScore = Math.min(100, Math.max(0, quantScore));
-  quantScore = Math.round(quantScore);
+  // Calculate raw quant score if raw fields exist
+  const rawQuantScore =
+    raw_prob_up !== undefined &&
+    raw_prob_down !== undefined &&
+    raw_prob_neutral !== undefined &&
+    raw_confidence !== undefined
+      ? calculateQuantScore(
+          raw_prob_up,
+          raw_prob_down,
+          raw_prob_neutral,
+          raw_confidence
+        )
+      : null;
 
   const signalDescription = (() => {
     if (quantScore >= 70) {
@@ -106,6 +148,7 @@ export function calculateSignalMetrics(pred: Prediction): EnhancedSignal {
   return {
     ...pred,
     quantScore,
+    rawQuantScore,
     edge,
     edgeDirectional,
     regime,

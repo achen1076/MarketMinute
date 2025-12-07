@@ -1,21 +1,8 @@
-"""
-Process news for all tickers before generating predictions.
-
-Fetches news from FMP API, scores with ML services, and saves to NewsItem database.
-Should be run before generate_predictions.py in the cron job.
-
-Usage: 
-  python3 scripts/process_news.py                    # Yesterday's news
-  python3 scripts/process_news.py --from 2025-12-05  # From specific date
-  python3 scripts/process_news.py --from 2025-12-05 --to 2025-12-06  # Date range
-"""
-
 import os
-import sys
 import yaml
 import requests
 import argparse
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 # Load environment variables
@@ -44,18 +31,16 @@ def process_news_for_tickers(from_date=None, to_date=None):
 
     tickers = config['objectives']['universe']['tickers']
 
-    # Default to yesterday if no dates provided
     if not from_date and not to_date:
-        yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-        from_date = yesterday
-        to_date = yesterday
-        print(f"No dates specified, using yesterday: {yesterday}")
+        today = datetime.now().strftime("%Y-%m-%d")
+        from_date = today
+        to_date = today
+        print(f"No dates specified, using yesterday: {today}")
 
     print(f"Date range: {from_date} to {to_date or 'latest'}")
     print(f"Processing news for {len(tickers)} tickers via {webapp_url}\n")
 
     try:
-        # Call webapp batch processing endpoint
         url = f"{webapp_url}/api/news/process-batch"
         payload = {"tickers": tickers}
         if from_date:
@@ -69,7 +54,7 @@ def process_news_for_tickers(from_date=None, to_date=None):
         response = requests.post(
             url,
             json=payload,
-            timeout=300  # 5 minutes timeout
+            timeout=300
         )
         response.raise_for_status()
 

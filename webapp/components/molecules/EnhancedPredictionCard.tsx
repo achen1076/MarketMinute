@@ -6,6 +6,7 @@ export function EnhancedPredictionCard({ signal }: { signal: EnhancedSignal }) {
     ticker,
     current_price,
     quantScore,
+    rawQuantScore,
     edgeDirectional,
     regime,
     expectedReturn,
@@ -23,6 +24,8 @@ export function EnhancedPredictionCard({ signal }: { signal: EnhancedSignal }) {
   } = signal;
 
   const hasNewsAdjustment = news_count && news_count > 0;
+  const quantScoreDiff =
+    rawQuantScore !== null ? quantScore - rawQuantScore : 0;
 
   const scoreColor =
     quantScore >= 70
@@ -52,9 +55,26 @@ export function EnhancedPredictionCard({ signal }: { signal: EnhancedSignal }) {
         </div>
         <div className="text-right">
           <p className="text-xs text-slate-500 uppercase tracking-wide">
-            Quant Score
+            {rawQuantScore !== null ? "Quant Score" : "Quant Score"}
           </p>
-          <p className={`text-3xl font-bold ${scoreColor}`}>{quantScore}</p>
+          <div className="flex items-baseline justify-end gap-1">
+            <p className={`text-3xl font-bold ${scoreColor}`}>{quantScore}</p>
+            {rawQuantScore !== null && quantScoreDiff !== 0 && (
+              <span
+                className={`text-sm font-semibold ${
+                  quantScoreDiff > 0 ? "text-emerald-400" : "text-rose-400"
+                }`}
+              >
+                ({quantScoreDiff > 0 ? "+" : ""}
+                {quantScoreDiff})
+              </span>
+            )}
+          </div>
+          {rawQuantScore !== null && (
+            <p className="text-xs text-slate-500 mt-0.5">
+              Raw: {rawQuantScore}
+            </p>
+          )}
         </div>
       </div>
 
@@ -114,7 +134,7 @@ export function EnhancedPredictionCard({ signal }: { signal: EnhancedSignal }) {
         <div className="mb-4 p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs text-blue-400 font-semibold">
-              📰 News Impact ({news_count} headlines)
+              📰 News Impact
             </p>
             <span className="text-xs text-slate-500">
               {raw_signal} → {signal.signal}

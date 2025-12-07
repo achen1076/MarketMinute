@@ -29,11 +29,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Clear existing news items
-    console.log("Clearing existing NewsItem table...");
-    const deleteResult = await prisma.newsItem.deleteMany({});
-    console.log(`Deleted ${deleteResult.count} existing news items`);
-
     let totalProcessed = 0;
     let totalSaved = 0;
 
@@ -41,7 +36,6 @@ export async function POST(req: NextRequest) {
       try {
         console.log(`Processing ${ticker}...`);
 
-        // Fetch news from FMP with optional date filtering
         let fmpUrl = `https://financialmodelingprep.com/stable/news/stock?symbols=${ticker}&apikey=${fmpApiKey}`;
         if (from) fmpUrl += `&from=${from}`;
         if (to) fmpUrl += `&to=${to}`;
@@ -62,12 +56,10 @@ export async function POST(req: NextRequest) {
 
         let tickerSaved = 0;
 
-        // Process up to 10 most recent items
-        for (const item of newsData.slice(0, 10)) {
+        for (const item of newsData.slice(0, 20)) {
           const headline = item.title;
           if (!headline) continue;
 
-          // Score with ML services
           const [sentResp, relResp] = await Promise.all([
             fetch(`${sentimentUrl}/score`, {
               method: "POST",

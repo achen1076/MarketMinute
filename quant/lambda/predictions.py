@@ -114,13 +114,11 @@ def generate_live_predictions(raw_predictions, prices, volatilities, raw_data, w
             'ticker': ticker,
             'timestamp': timestamp,
             'current_price': round(current_price, 2),
-            # Raw model outputs (before news)
             'raw_signal': raw_signal,
             'raw_confidence': round(raw_confidence, 10),
             'raw_prob_up': round(raw_prob_up, 10),
             'raw_prob_neutral': round(raw_prob_neutral, 10),
             'raw_prob_down': round(raw_prob_down, 10),
-            # News-adjusted outputs (after Bayesian update)
             'signal': signal,
             'confidence': round(confidence, 10),
             'prob_up': round(prob_up, 10),
