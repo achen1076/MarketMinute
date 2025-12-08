@@ -9,7 +9,7 @@ import { SUBSCRIPTION_TIERS } from "@/lib/subscription-tiers";
 export async function POST(req: NextRequest) {
   const session = await auth();
 
-  if (!session?.user?.email) {
+  if (!session?.user?.email || !session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
