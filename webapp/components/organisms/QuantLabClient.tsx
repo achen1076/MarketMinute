@@ -21,6 +21,7 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
   const [sortBy, setSortBy] = useState<"default" | "score" | "name">("default");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userTier, setUserTier] = useState<string | null>(null);
 
   const fetchPredictions = async () => {
     setIsLoading(true);
@@ -48,8 +49,21 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
     }
   };
 
+  const fetchUserTier = async () => {
+    try {
+      const response = await fetch("/api/subscription/status");
+      if (response.ok) {
+        const data = await response.json();
+        setUserTier(data.usage.tier);
+      }
+    } catch (err) {
+      console.error("Failed to fetch user tier:", err);
+    }
+  };
+
   useEffect(() => {
     fetchPredictions();
+    fetchUserTier();
   }, [symbols]);
 
   const getSortedSignals = () => {
@@ -155,6 +169,31 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
             <option value="score">Quant Score</option>
             <option value="name">Name (A-Z)</option>
           </select>
+        </div>
+      )}
+
+      {/* Free Tier Limitation Banner */}
+      {userTier === "free" && viewMode === "signals" && (
+        <div className="rounded-lg border border-blue-500/30 bg-blue-500/5 p-4">
+          <div className="flex items-start gap-3">
+            <div className="text-blue-400 text-xl">ℹ️</div>
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-blue-400 mb-1">
+                Free Tier: Limited Watchlist Signals
+              </h3>
+              <p className="text-xs text-slate-300">
+                You&apos;re viewing the first <strong>3 signals</strong> from
+                your watchlist. Upgrade to <strong>Basic</strong> to see all
+                signals from your watchlist.{" "}
+                <a
+                  href="/settings"
+                  className="text-blue-400 hover:text-blue-300 underline"
+                >
+                  View Plans
+                </a>
+              </p>
+            </div>
+          </div>
         </div>
       )}
 

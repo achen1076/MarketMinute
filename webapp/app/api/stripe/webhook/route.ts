@@ -128,22 +128,33 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
 
 /**
  * Handle subscription cancellation
+ * Note: User keeps access until current_period_end
  */
 async function handleSubscriptionCanceled(subscription: Stripe.Subscription) {
   const customerId = subscription.customer as string;
+  const periodEnd = new Date((subscription as any).current_period_end * 1000);
+  const now = new Date();
+
+  // If period has ended, downgrade immediately
+  // Otherwise, keep their access until period_end
+  const shouldDowngradeNow = periodEnd <= now;
 
   await prisma.user.updateMany({
     where: { stripeSubscriptionId: subscription.id },
     data: {
-      subscriptionTier: "free",
+      subscriptionTier: shouldDowngradeNow ? "free" : undefined,
       subscriptionStatus: "canceled",
-      subscriptionEndsAt: new Date(
-        (subscription as any).current_period_end * 1000
-      ),
+      subscriptionEndsAt: periodEnd,
     },
   });
 
-  console.log(`Canceled subscription ${subscription.id}`);
+  console.log(
+    `Canceled subscription ${subscription.id} - Access ${
+      shouldDowngradeNow
+        ? "removed immediately"
+        : `until ${periodEnd.toISOString()}`
+    }`
+  );
 }
 
 /**

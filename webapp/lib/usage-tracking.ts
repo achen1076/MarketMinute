@@ -125,6 +125,7 @@ export async function getUserTier(userId: string): Promise<SubscriptionTier> {
         email: true,
         subscriptionTier: true,
         subscriptionStatus: true,
+        subscriptionEndsAt: true,
       },
     });
 
@@ -139,12 +140,23 @@ export async function getUserTier(userId: string): Promise<SubscriptionTier> {
       return "basic";
     }
 
-    // If subscription is not active, treat as free
-    if (user.subscriptionStatus !== "active" || !user.subscriptionTier) {
-      return "free";
+    // If subscription is active, return their tier
+    if (user.subscriptionStatus === "active" && user.subscriptionTier) {
+      return user.subscriptionTier as SubscriptionTier;
     }
 
-    return user.subscriptionTier as SubscriptionTier;
+    // If subscription is canceled but period hasn't ended yet, keep their access
+    if (
+      user.subscriptionStatus === "canceled" &&
+      user.subscriptionTier &&
+      user.subscriptionEndsAt &&
+      new Date(user.subscriptionEndsAt) > new Date()
+    ) {
+      return user.subscriptionTier as SubscriptionTier;
+    }
+
+    // Otherwise, they're on free tier
+    return "free";
   } catch (error) {
     console.error("Error getting user tier:", error);
     return "free";
