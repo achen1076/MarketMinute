@@ -115,8 +115,8 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
       subscriptionTier: tier,
       subscriptionStatus:
         subscription.status === "active" ? "active" : subscription.status,
-      subscriptionEndsAt: subscription.current_period_end
-        ? new Date(subscription.current_period_end * 1000)
+      subscriptionEndsAt: (subscription as any).current_period_end
+        ? new Date((subscription as any).current_period_end * 1000)
         : null,
     },
   });
@@ -137,7 +137,9 @@ async function handleSubscriptionCanceled(subscription: Stripe.Subscription) {
     data: {
       subscriptionTier: "free",
       subscriptionStatus: "canceled",
-      subscriptionEndsAt: new Date(subscription.current_period_end * 1000),
+      subscriptionEndsAt: new Date(
+        (subscription as any).current_period_end * 1000
+      ),
     },
   });
 
