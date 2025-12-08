@@ -141,12 +141,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           <NavLink to="/about" onClick={closeMenu}>
             About
           </NavLink>
-          {/* <NavLink to="/explore" onClick={closeMenu}>
-            Explore
-          </NavLink>
-          <NavLink to="/settings" onClick={closeMenu}>
-            Settings
-          </NavLink> */}
+          {user && (
+            <NavLink to="/settings" onClick={closeMenu}>
+              Settings
+            </NavLink>
+          )}
           {user &&
             process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(",").includes(
               user.email || ""

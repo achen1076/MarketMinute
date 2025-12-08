@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma"; // shared Prisma client
 import { auth } from "@/auth"; // from auth.ts (NextAuth v5 helper)
+import { canUseFeature } from "@/lib/usage-tracking";
 
 export async function GET() {
   const session = await auth();
@@ -18,10 +19,7 @@ export async function GET() {
             orderBy: { order: "asc" },
           },
         },
-        orderBy: [
-          { isFavorite: "desc" },
-          { createdAt: "asc" },
-        ],
+        orderBy: [{ isFavorite: "desc" }, { createdAt: "asc" }],
       },
     },
   });
@@ -41,10 +39,34 @@ export async function POST(req: Request) {
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
+    select: {
+      id: true,
+      subscriptionTier: true,
+      subscriptionStatus: true,
+    },
   });
 
   if (!user) {
     return new NextResponse("User not found", { status: 404 });
+  }
+
+  // Check if user can create another watchlist
+  const tier =
+    user.subscriptionStatus === "active" && user.subscriptionTier
+      ? user.subscriptionTier
+      : "free";
+
+  const limitCheck = await canUseFeature(user.id, "watchlist", tier as any);
+
+  if (!limitCheck.allowed) {
+    return NextResponse.json(
+      {
+        error: limitCheck.message || "Watchlist limit reached",
+        limit: limitCheck.limit,
+        current: limitCheck.current,
+      },
+      { status: 403 }
+    );
   }
 
   const watchlist = await prisma.watchlist.create({
@@ -151,10 +173,7 @@ export async function DELETE(req: Request) {
     where: { email: session.user.email },
     include: {
       watchlists: {
-        orderBy: [
-          { isFavorite: "desc" },
-          { createdAt: "asc" },
-        ],
+        orderBy: [{ isFavorite: "desc" }, { createdAt: "asc" }],
       },
     },
   });
@@ -171,9 +190,8 @@ export async function DELETE(req: Request) {
     const remainingWatchlists = user.watchlists.filter(
       (w: { id: string }) => w.id !== watchlistId
     );
-    const newActiveId = remainingWatchlists.length > 0 
-      ? remainingWatchlists[0].id 
-      : null;
+    const newActiveId =
+      remainingWatchlists.length > 0 ? remainingWatchlists[0].id : null;
 
     await prisma.user.update({
       where: { id: user.id },

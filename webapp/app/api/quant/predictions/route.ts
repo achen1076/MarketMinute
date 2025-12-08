@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getUserTier } from "@/lib/usage-tracking";
+import { getTierConfig } from "@/lib/subscription-tiers";
 
 export async function GET() {
   const session = await auth();
@@ -9,6 +11,38 @@ export async function GET() {
   }
 
   try {
+    // Get user and tier info
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: {
+        id: true,
+        activeWatchlistId: true,
+        watchlists: {
+          include: {
+            items: {
+              select: { symbol: true },
+              orderBy: { order: "asc" },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return new NextResponse("User not found", { status: 404 });
+    }
+
+    const tier = await getUserTier(user.id);
+    const tierConfig = getTierConfig(tier);
+
+    // Get user's watchlist symbols
+    const activeWatchlist = user.watchlists.find(
+      (w) => w.id === user.activeWatchlistId
+    );
+    const watchlistSymbols = activeWatchlist
+      ? activeWatchlist.items.map((item) => item.symbol)
+      : [];
+
     // Get the most recent run of predictions
     const latestRun = await prisma.livePrediction.findFirst({
       orderBy: { createdAt: "desc" },
@@ -24,10 +58,35 @@ export async function GET() {
     }
 
     // Get all predictions from that run
-    const predictions = await prisma.livePrediction.findMany({
+    let predictions = await prisma.livePrediction.findMany({
       where: { runId: latestRun.runId },
-      orderBy: { ticker: "asc" },
+      orderBy: [
+        { confidence: "desc" }, // Top signals first
+        { ticker: "asc" },
+      ],
     });
+
+    // Apply tier-based filtering
+    if (tier === "free") {
+      const watchlistLimit =
+        typeof tierConfig.features.quantLab.watchlistSignals === "number"
+          ? tierConfig.features.quantLab.watchlistSignals
+          : watchlistSymbols.length;
+
+      // Get user's watchlist predictions (limit to first N)
+      const watchlistPredictions = predictions
+        .filter((p) => watchlistSymbols.includes(p.ticker))
+        .slice(0, watchlistLimit);
+
+      // Get top signals (not in watchlist)
+      const topSignals = predictions.filter(
+        (p) => !watchlistSymbols.includes(p.ticker)
+      );
+
+      // Combine: top signals + limited watchlist signals
+      predictions = [...topSignals, ...watchlistPredictions];
+    }
+    // Basic tier gets all predictions (no filtering)
 
     // Transform to match expected format
     const formatted = predictions.map((p) => ({

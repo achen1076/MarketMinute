@@ -112,6 +112,7 @@ export default function WatchlistsClient({
   const [watchlists, setWatchlists] = useState<Watchlist[]>(initialWatchlists);
   const [name, setName] = useState("");
   const [selectedSymbols, setSelectedSymbols] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [editingWatchlistId, setEditingWatchlistId] = useState<string | null>(
     null
@@ -141,6 +142,7 @@ export default function WatchlistsClient({
     if (!name.trim() || selectedSymbols.length === 0) return;
 
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch("/api/watchlist", {
         method: "POST",
@@ -149,7 +151,15 @@ export default function WatchlistsClient({
       });
 
       if (!res.ok) {
-        console.error("Failed to create watchlist", await res.text());
+        const errorData = await res.json();
+        if (res.status === 403) {
+          setError(
+            errorData.error ||
+              "Watchlist limit reached. Upgrade to create more."
+          );
+        } else {
+          setError("Failed to create watchlist");
+        }
         return;
       }
 
@@ -157,6 +167,8 @@ export default function WatchlistsClient({
       setWatchlists((prev) => [...prev, created]);
       setName("");
       setSelectedSymbols([]);
+    } catch (err) {
+      setError("An unexpected error occurred");
     } finally {
       setLoading(false);
     }
@@ -488,6 +500,16 @@ export default function WatchlistsClient({
         <h2 className="mb-4 text-sm font-semibold text-slate-200">
           Create a new watchlist
         </h2>
+
+        {error && (
+          <div className="mb-4 rounded-lg bg-red-500/10 border border-red-500/50 p-3 text-sm text-red-400">
+            {error}{" "}
+            <a href="/settings" className="underline hover:text-red-300">
+              View plans
+            </a>
+          </div>
+        )}
+
         <div className="space-y-4">
           <div>
             <label className="mb-2 block text-xs font-medium text-slate-300">

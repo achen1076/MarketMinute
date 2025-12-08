@@ -22,6 +22,13 @@ model User {
   sentinelFocus    String?      @default("balanced") @map("sentinel_focus") // "tech", "macro", "volatility", "balanced"
   sentinelDepth    String?      @default("standard") @map("sentinel_depth") // "brief", "standard", "detailed"
 
+  // Subscription fields
+  subscriptionTier   String?    @default("free") @map("subscription_tier") // "free", "basic", "pro", etc.
+  stripeCustomerId   String?    @unique @map("stripe_customer_id")
+  stripeSubscriptionId String?  @unique @map("stripe_subscription_id")
+  subscriptionStatus String?    @default("inactive") @map("subscription_status") // "active", "inactive", "canceled", "past_due"
+  subscriptionEndsAt DateTime?  @map("subscription_ends_at")
+
   // Auth.js relations
   accounts         Account[]
   sessions         Session[]
@@ -29,6 +36,7 @@ model User {
   // Your app relations (watchlists, etc.)
   activeWatchlist  Watchlist?   @relation("ActiveWatchlist", fields: [activeWatchlistId], references: [id])
   watchlists       Watchlist[]  @relation("UserWatchlists")
+  usageLogs        UsageLog[]
 
   @@map("users")
 }
@@ -336,4 +344,21 @@ model GeneralNewsTraining {
   @@index([date])
   @@index([createdAt])
   @@map("general_news_training")
+}
+
+model UsageLog {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  feature   String   // "explain", "watchlist", "quant_signal"
+  date      DateTime @default(now()) @db.Date
+  count     Int      @default(1)
+  metadata  Json?    // Store additional context like ticker symbol, etc.
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, feature, date])
+  @@index([userId, date])
+  @@index([feature])
+  @@map("usage_logs")
 }
