@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import PricingCard from "./PricingCard";
 
 interface User {
-  id: string;
+  id?: string;
   email?: string | null;
   name?: string | null;
 }
