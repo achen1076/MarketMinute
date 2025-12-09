@@ -31,9 +31,10 @@ export function isMarketOpen(): boolean {
   const minutes = etTime.getMinutes();
   const timeInMinutes = hours * 60 + minutes;
 
-  // Market hours: 9:30 AM (570 minutes) to 4:00 PM (960 minutes)
+  // Market hours: 9:30 AM (570 minutes) to 4:05 PM (965 minutes)
+  // Extended to 4:05 PM to give a breather for final settlements
   const marketOpen = 9 * 60 + 30; // 9:30 AM
-  const marketClose = 16 * 60; // 4:00 PM
+  const marketClose = 16 * 60 + 5; // 4:05 PM
 
   return timeInMinutes >= marketOpen && timeInMinutes < marketClose;
 }
@@ -61,7 +62,7 @@ export function isPreMarket(): boolean {
 }
 
 /**
- * Check if the market is in after-hours (4:00 PM - 8:00 PM ET)
+ * Check if the market is in after-hours (4:05 PM - 8:00 PM ET)
  */
 export function isAfterHours(): boolean {
   const now = new Date();
@@ -76,7 +77,7 @@ export function isAfterHours(): boolean {
   const minutes = etTime.getMinutes();
   const timeInMinutes = hours * 60 + minutes;
 
-  const marketClose = 16 * 60; // 4:00 PM
+  const marketClose = 16 * 60 + 5; // 4:05 PM
   const afterHoursEnd = 20 * 60; // 8:00 PM
 
   return timeInMinutes >= marketClose && timeInMinutes < afterHoursEnd;

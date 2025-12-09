@@ -88,9 +88,8 @@ export async function getCachedSnapshots(symbols: string[]): Promise<{
   if (toFetch.length > 0) {
     fresh = await getSnapshotsForSymbols(toFetch);
 
-    // Use longer TTL when market is closed since prices don't change
-    const marketOpen = isMarketOpen();
-    const cacheTTL = marketOpen ? CACHE_TTL_SECONDS : CACHE_TTL_SECONDS * 60;
+    // Always use 30 second TTL for ticker data to ensure freshness
+    const cacheTTL = CACHE_TTL_SECONDS;
 
     if (redis) {
       try {
