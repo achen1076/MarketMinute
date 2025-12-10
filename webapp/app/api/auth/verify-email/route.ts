@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update user emailVerified
-    await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: { emailVerified: new Date() },
     });
@@ -58,6 +58,22 @@ export async function POST(request: NextRequest) {
     await prisma.emailVerificationToken.deleteMany({
       where: { email: email.toLowerCase() },
     });
+
+    // Verify the update was successful
+    const verifiedUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { emailVerified: true },
+    });
+
+    if (!verifiedUser?.emailVerified) {
+      console.error(
+        `[Email Verification] Failed to verify - DB update didn't persist for: ${email}`
+      );
+      return NextResponse.json(
+        { error: "Verification update failed. Please try again." },
+        { status: 500 }
+      );
+    }
 
     console.log(`[Email Verification] Email verified for: ${email}`);
 

@@ -56,10 +56,10 @@ export default function VerifyEmailForm() {
           type: "success",
           text: "Email verified successfully! Redirecting...",
         });
-        // Refresh the page to update session
+        // Wait for DB to fully propagate, then refresh
         setTimeout(() => {
           window.location.href = "/";
-        }, 1500);
+        }, 2500);
       } else {
         setMessage({
           type: "error",
