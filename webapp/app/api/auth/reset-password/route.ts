@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth-utils";
 import crypto from "crypto";
+import {
+  checkRateLimit,
+  RateLimitPresets,
+  createRateLimitResponse,
+} from "@/lib/rateLimit";
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,6 +17,17 @@ export async function POST(request: NextRequest) {
         { error: "Missing required fields" },
         { status: 400 }
       );
+    }
+
+    // Rate limiting: 5 attempts per hour per email
+    const rateLimitResult = checkRateLimit(
+      "auth:reset-password",
+      email.toLowerCase(),
+      RateLimitPresets.AUTH
+    );
+
+    if (!rateLimitResult.allowed) {
+      return createRateLimitResponse(rateLimitResult);
     }
 
     // Validate password strength

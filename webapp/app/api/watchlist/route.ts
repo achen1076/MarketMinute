@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma"; // shared Prisma client
 import { auth } from "@/auth"; // from auth.ts (NextAuth v5 helper)
 import { canUseFeature } from "@/lib/usage-tracking";
+import {
+  checkRateLimit,
+  RateLimitPresets,
+  createRateLimitResponse,
+} from "@/lib/rateLimit";
 
 export async function GET() {
   const session = await auth();
@@ -32,6 +37,17 @@ export async function POST(req: Request) {
 
   if (!session?.user?.email) {
     return new NextResponse("Unauthorized", { status: 401 });
+  }
+
+  // Rate limiting: 20 watchlist mutations per minute per user
+  const rateLimitResult = checkRateLimit(
+    "watchlist:create",
+    session.user.email,
+    RateLimitPresets.MUTATION
+  );
+
+  if (!rateLimitResult.allowed) {
+    return createRateLimitResponse(rateLimitResult);
   }
 
   const body = await req.json();

@@ -170,6 +170,51 @@ export const RateLimitPresets = {
     maxRequests: 60,
     windowSeconds: 60,
   } as RateLimitConfig,
+
+  /**
+   * Authentication endpoints (signup, signin)
+   * 5 requests per hour to prevent spam accounts
+   */
+  AUTH: {
+    maxRequests: 5,
+    windowSeconds: 3600,
+  } as RateLimitConfig,
+
+  /**
+   * Password reset requests
+   * 3 requests per hour to prevent email bombing
+   */
+  AUTH_PASSWORD_RESET: {
+    maxRequests: 3,
+    windowSeconds: 3600,
+  } as RateLimitConfig,
+
+  /**
+   * Data fetching endpoints (snapshots, news, events)
+   * 30 requests per minute
+   */
+  DATA_FETCH: {
+    maxRequests: 30,
+    windowSeconds: 60,
+  } as RateLimitConfig,
+
+  /**
+   * Mutation endpoints (create/delete watchlists, items)
+   * 20 requests per minute
+   */
+  MUTATION: {
+    maxRequests: 20,
+    windowSeconds: 60,
+  } as RateLimitConfig,
+
+  /**
+   * Subscription checkout/portal
+   * 5 requests per hour
+   */
+  SUBSCRIPTION: {
+    maxRequests: 5,
+    windowSeconds: 3600,
+  } as RateLimitConfig,
 };
 
 /**

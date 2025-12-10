@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createCheckoutSession } from "@/lib/stripe";
 import { SUBSCRIPTION_TIERS } from "@/lib/subscription-tiers";
+import {
+  checkRateLimit,
+  RateLimitPresets,
+  createRateLimitResponse,
+} from "@/lib/rateLimit";
 
 /**
  * Create a Stripe checkout session for subscription
@@ -11,6 +16,17 @@ export async function POST(req: NextRequest) {
 
   if (!session?.user?.email || !session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Rate limiting: 5 checkout sessions per hour per user
+  const rateLimitResult = checkRateLimit(
+    "subscription:checkout",
+    session.user.email,
+    RateLimitPresets.SUBSCRIPTION
+  );
+
+  if (!rateLimitResult.allowed) {
+    return createRateLimitResponse(rateLimitResult);
   }
 
   try {

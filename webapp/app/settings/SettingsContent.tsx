@@ -35,14 +35,31 @@ interface SubscriptionData {
 export default function SettingsContent({
   user,
   canChangePassword,
+  emailVerified,
+  userEmail,
 }: {
   user: User;
   canChangePassword: boolean;
+  emailVerified: boolean;
+  userEmail: string;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [verificationLoading, setVerificationLoading] = useState(false);
+  const [verificationMessage, setVerificationMessage] = useState("");
+  const [verificationCooldown, setVerificationCooldown] = useState(0);
+
+  useEffect(() => {
+    if (verificationCooldown > 0) {
+      const timer = setTimeout(
+        () => setVerificationCooldown(verificationCooldown - 1),
+        1000
+      );
+      return () => clearTimeout(timer);
+    }
+  }, [verificationCooldown]);
 
   // Password change
   const [currentPassword, setCurrentPassword] = useState("");
@@ -154,8 +171,83 @@ export default function SettingsContent({
     }
   };
 
+  const handleResendVerification = async () => {
+    setVerificationLoading(true);
+    setVerificationMessage("");
+
+    try {
+      const res = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: userEmail }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setVerificationMessage(
+          "Verification email sent! Please check your inbox."
+        );
+        setVerificationCooldown(60); // Start 60 second cooldown
+      } else {
+        // Check if it's a rate limit error
+        if (res.status === 429 && data.retryAfter) {
+          setVerificationCooldown(data.retryAfter);
+          setVerificationMessage(
+            `Please wait ${data.retryAfter} seconds before resending.`
+          );
+        } else {
+          setVerificationMessage(
+            data.error || "Failed to send verification email"
+          );
+        }
+      }
+    } catch (err) {
+      setVerificationMessage("An error occurred. Please try again.");
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
+      {/* Email Verification */}
+      {!emailVerified && (
+        <div className="bg-amber-500/10 border-l-4 border-amber-500 p-6 rounded-lg">
+          <h2 className="text-xl font-semibold mb-2 text-amber-500">
+            Email Not Verified
+          </h2>
+          <p className="text-amber-200/80 mb-4">
+            Please verify your email address to access all features. Check your
+            inbox for the verification link.
+          </p>
+
+          {verificationMessage && (
+            <p
+              className={`text-sm mb-4 ${
+                verificationMessage.includes("sent")
+                  ? "text-emerald-400"
+                  : "text-red-400"
+              }`}
+            >
+              {verificationMessage}
+            </p>
+          )}
+
+          <button
+            onClick={handleResendVerification}
+            disabled={verificationLoading || verificationCooldown > 0}
+            className="bg-amber-500 hover:bg-amber-600 text-white font-medium py-2 px-6 rounded-lg transition-colors disabled:opacity-50"
+          >
+            {verificationLoading
+              ? "Sending..."
+              : verificationCooldown > 0
+              ? `Wait ${verificationCooldown}s to resend`
+              : "Resend Verification Email"}
+          </button>
+        </div>
+      )}
+
       {/* Account Info */}
       <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
         <h2 className="text-xl font-semibold mb-4">Account Information</h2>
@@ -165,6 +257,14 @@ export default function SettingsContent({
           </p>
           <p>
             <span className="font-medium">Name:</span> {user.name || "Not set"}
+          </p>
+          <p>
+            <span className="font-medium">Verified:</span>{" "}
+            <span
+              className={emailVerified ? "text-emerald-400" : "text-amber-400"}
+            >
+              {emailVerified ? "✓ Verified" : "✗ Not Verified"}
+            </span>
           </p>
         </div>
       </div>

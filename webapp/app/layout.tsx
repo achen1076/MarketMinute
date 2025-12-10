@@ -5,6 +5,8 @@ import { MarketTicker } from "@/components/organisms/MarketTicker";
 import { auth } from "@/auth";
 import { COLORS } from "@/lib/colors";
 import { Analytics } from "@vercel/analytics/next";
+import EmailVerificationBanner from "@/components/organisms/EmailVerificationBanner";
+import { prisma } from "@/lib/prisma";
 
 export const metadata = {
   title: "MarketMinute",
@@ -17,6 +19,22 @@ export default async function RootLayout({
   children: ReactNode;
 }) {
   const session = await auth();
+
+  // Check if user needs email verification
+  let needsVerification = false;
+  let userEmail = "";
+
+  if (session?.user?.email) {
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { emailVerified: true, email: true },
+    });
+
+    if (user && !user.emailVerified) {
+      needsVerification = true;
+      userEmail = user.email!;
+    }
+  }
 
   return (
     <html lang="en">
@@ -33,6 +51,12 @@ export default async function RootLayout({
             <MarketTicker />
           </div>
           <main className="mx-auto max-w-[1800px] px-4 py-6 pt-20 md:ml-64 md:pt-8 md:px-8">
+            {/* Email Verification Banner */}
+            {needsVerification && (
+              <div className="mb-6">
+                <EmailVerificationBanner userEmail={userEmail} />
+              </div>
+            )}
             {children}
           </main>
         </div>

@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getCachedSnapshots } from "@/lib/tickerCache";
+import {
+  checkRateLimit,
+  RateLimitPresets,
+  createRateLimitResponse,
+} from "@/lib/rateLimit";
 
 export async function GET(request: Request) {
   const session = await auth();
@@ -17,6 +22,17 @@ export async function GET(request: Request) {
       { error: "watchlistId required" },
       { status: 400 }
     );
+  }
+
+  // Rate limiting: 30 snapshot requests per minute per user
+  const rateLimitResult = checkRateLimit(
+    "snapshots",
+    session.user.email,
+    RateLimitPresets.DATA_FETCH
+  );
+
+  if (!rateLimitResult.allowed) {
+    return createRateLimitResponse(rateLimitResult);
   }
 
   const watchlist = await prisma.watchlist.findUnique({

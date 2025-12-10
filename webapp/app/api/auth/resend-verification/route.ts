@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendEmail, getPasswordResetEmailHTML } from "@/lib/email";
+import { sendEmail, getEmailVerificationHTML } from "@/lib/email";
 import crypto from "crypto";
 import {
   checkRateLimit,
@@ -16,11 +16,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    // Rate limiting: 3 password resets per hour per email
+    // Rate limiting: 1 resend request per minute per email
     const rateLimitResult = checkRateLimit(
-      "auth:forgot-password",
+      "auth:resend-verification",
       email.toLowerCase(),
-      RateLimitPresets.AUTH_PASSWORD_RESET
+      { maxRequests: 1, windowSeconds: 60 }
     );
 
     if (!rateLimitResult.allowed) {
@@ -30,48 +30,43 @@ export async function POST(request: NextRequest) {
     // Find user
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
-      include: { accounts: true },
     });
 
     // Always return success to prevent email enumeration
     if (!user) {
-      console.log(`[Password Reset] User not found: ${email}`);
+      console.log(`[Resend Verification] User not found: ${email}`);
       return NextResponse.json({
         success: true,
-        message: "If an account exists, a reset link has been sent.",
+        message:
+          "If an unverified account exists, a verification email has been sent.",
       });
     }
 
-    // Check if user has a password (not OAuth-only)
-    const hasGoogleAccount = user.accounts.some(
-      (account) => account.provider === "google"
-    );
-
-    if (hasGoogleAccount && !user.password) {
-      console.log(`[Password Reset] OAuth-only account: ${email}`);
+    // Check if already verified
+    if (user.emailVerified) {
       return NextResponse.json({
         success: true,
-        message: "If an account exists, a reset link has been sent.",
+        message: "Email is already verified",
       });
     }
 
-    // Generate reset token
-    const resetToken = crypto.randomBytes(32).toString("hex");
+    // Generate new verification token
+    const verificationToken = crypto.randomBytes(32).toString("hex");
     const hashedToken = crypto
       .createHash("sha256")
-      .update(resetToken)
+      .update(verificationToken)
       .digest("hex");
 
-    // Token expires in 1 hour
-    const expires = new Date(Date.now() + 3600000);
+    // Token expires in 24 hours
+    const expires = new Date(Date.now() + 86400000);
 
-    // Delete any existing reset tokens for this email
-    await prisma.passwordResetToken.deleteMany({
+    // Delete any existing verification tokens for this email
+    await prisma.emailVerificationToken.deleteMany({
       where: { email: email.toLowerCase() },
     });
 
-    // Create new reset token
-    await prisma.passwordResetToken.create({
+    // Create new verification token
+    await prisma.emailVerificationToken.create({
       data: {
         email: email.toLowerCase(),
         token: hashedToken,
@@ -79,31 +74,30 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Send email
+    // Send verification email
     const baseUrl = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
-    const resetUrl = `${baseUrl}/reset-password?token=${resetToken}&email=${encodeURIComponent(
+    const verifyUrl = `${baseUrl}/verify-email?token=${verificationToken}&email=${encodeURIComponent(
       email
     )}`;
 
     try {
       await sendEmail({
         to: email,
-        subject: "Reset your MarketMinute password",
-        html: getPasswordResetEmailHTML(resetUrl, email),
+        subject: "Verify your MarketMinute email",
+        html: getEmailVerificationHTML(verifyUrl, email),
       });
-
-      console.log(`[Password Reset] Email sent to: ${email}`);
+      console.log(`[Resend Verification] Email sent to: ${email}`);
     } catch (emailError) {
-      console.error("[Password Reset] Email send failed:", emailError);
+      console.error("[Resend Verification] Email send failed:", emailError);
       // Don't expose email errors to user
     }
 
     return NextResponse.json({
       success: true,
-      message: "If an account exists, a reset link has been sent.",
+      message: "Verification email sent. Please check your inbox.",
     });
   } catch (error) {
-    console.error("[Password Reset] Error:", error);
+    console.error("[Resend Verification] Error:", error);
     return NextResponse.json(
       { error: "Failed to process request" },
       { status: 500 }

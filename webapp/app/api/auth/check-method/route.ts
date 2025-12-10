@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkUserAuthMethod } from "@/lib/auth-utils";
+import {
+  checkRateLimit,
+  RateLimitPresets,
+  createRateLimitResponse,
+} from "@/lib/rateLimit";
 
 /**
  * Check which auth method a user has (google, credentials, or none)
@@ -11,6 +16,17 @@ export async function POST(req: NextRequest) {
 
     if (!email) {
       return NextResponse.json({ error: "Email required" }, { status: 400 });
+    }
+
+    // Rate limiting: 10 checks per minute per email (prevent email enumeration)
+    const rateLimitResult = checkRateLimit(
+      "auth:check-method",
+      email.toLowerCase(),
+      { maxRequests: 10, windowSeconds: 60 }
+    );
+
+    if (!rateLimitResult.allowed) {
+      return createRateLimitResponse(rateLimitResult);
     }
 
     const authMethod = await checkUserAuthMethod(email);

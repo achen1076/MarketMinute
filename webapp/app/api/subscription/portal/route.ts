@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createBillingPortalSession } from "@/lib/stripe";
 import { prisma } from "@/lib/prisma";
+import {
+  checkRateLimit,
+  RateLimitPresets,
+  createRateLimitResponse,
+} from "@/lib/rateLimit";
 
 /**
  * Create a Stripe billing portal session
@@ -11,6 +16,17 @@ export async function POST(req: NextRequest) {
 
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Rate limiting: 5 portal sessions per hour per user
+  const rateLimitResult = checkRateLimit(
+    "subscription:portal",
+    session.user.email,
+    RateLimitPresets.SUBSCRIPTION
+  );
+
+  if (!rateLimitResult.allowed) {
+    return createRateLimitResponse(rateLimitResult);
   }
 
   try {

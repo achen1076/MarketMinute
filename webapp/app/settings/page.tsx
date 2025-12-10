@@ -15,6 +15,8 @@ export default async function SettingsPage() {
     where: { email: session.user.email },
     select: {
       password: true,
+      emailVerified: true,
+      email: true,
       accounts: {
         select: {
           provider: true,
@@ -34,6 +36,8 @@ export default async function SettingsPage() {
       <SettingsContent
         user={session.user}
         canChangePassword={hasPassword && !hasGoogleAccount}
+        emailVerified={!!user?.emailVerified}
+        userEmail={user?.email || ""}
       />
     </div>
   );
