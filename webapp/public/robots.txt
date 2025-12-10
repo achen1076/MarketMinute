@@ -1,13 +1,18 @@
 User-agent: *
 # Allow all public pages
 Allow: /
+Allow: /signin$
 Allow: /about
 Allow: /support
 Allow: /terms
 Allow: /privacy
+Allow: /how-it-works
+Allow: /features
+Allow: /use-cases
+Allow: /why-marketminute
+
 
 # Disallow all private, authenticated, and backend routes
-Disallow: /signin
 Disallow: /logout
 Disallow: /api/
 Disallow: /admin

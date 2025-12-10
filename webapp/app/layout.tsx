@@ -16,6 +16,9 @@ export const viewport = {
 
 export const metadata = {
   metadataBase: new URL("https://marketminute.io"),
+  alternates: {
+    canonical: "https://marketminute.io",
+  },
   title: {
     default: "MarketMinute – AI-Powered Market Insights & Smart Alerts",
     template: "%s | MarketMinute",
