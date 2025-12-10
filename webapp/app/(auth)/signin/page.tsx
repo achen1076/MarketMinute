@@ -2,6 +2,13 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { TrendingUp, BarChart3, LineChart, PieChart } from "lucide-react";
 import SignInForm from "./SignInForm";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Sign In",
+  description:
+    "Sign in to MarketMinute to access AI-powered market insights, smart alerts, and personalized stock analysis.",
+};
 
 export default async function SignInPage() {
   const session = await auth();

@@ -1,5 +1,7 @@
 # MarketMinute
 
+https://marketminute.io/
+
 **Your automated minute view of the markets.**
 
 MarketMinute is a full-stack financial intelligence platform that combines real-time market data, AI-powered insights, and institutional-grade quantitative trading capabilities. Get instant market summaries, track custom watchlists, and leverage machine learning models for trading signals—all in one unified dashboard.
