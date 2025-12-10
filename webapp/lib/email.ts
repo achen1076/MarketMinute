@@ -214,3 +214,75 @@ export function getPasswordResetEmailHTML(resetUrl: string, userEmail: string) {
 </html>
   `;
 }
+
+export function getSupportEmailHTML(
+  email: string,
+  subject: string,
+  message: string
+): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Support Request</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td align="center" style="padding: 40px 0;">
+        <table role="presentation" style="width: 600px; max-width: 100%; border-collapse: collapse; background-color: #1e293b; border-radius: 8px; overflow: hidden;">
+          <!-- Header -->
+          <tr>
+            <td style="padding: 40px 40px 20px; text-align: center;">
+              <h1 style="margin: 0; color: #14b8a6; font-size: 28px; font-weight: bold;">MarketMinute Support</h1>
+            </td>
+          </tr>
+          
+          <!-- Content -->
+          <tr>
+            <td style="padding: 20px 40px 40px;">
+              <h2 style="margin: 0 0 20px; color: #f1f5f9; font-size: 24px; font-weight: 600;">New Support Request</h2>
+              
+              <div style="margin-bottom: 30px;">
+                <div style="margin-bottom: 20px; padding: 16px; background-color: #0f172a; border-radius: 6px; border-left: 4px solid #14b8a6;">
+                  <p style="margin: 0 0 8px; color: #94a3b8; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">From</p>
+                  <p style="margin: 0; color: #f1f5f9; font-size: 16px; font-weight: 500;">${email}</p>
+                </div>
+
+                <div style="margin-bottom: 20px; padding: 16px; background-color: #0f172a; border-radius: 6px; border-left: 4px solid #06b6d4;">
+                  <p style="margin: 0 0 8px; color: #94a3b8; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Subject</p>
+                  <p style="margin: 0; color: #f1f5f9; font-size: 16px; font-weight: 500;">${subject}</p>
+                </div>
+
+                <div style="padding: 16px; background-color: #0f172a; border-radius: 6px; border-left: 4px solid #8b5cf6;">
+                  <p style="margin: 0 0 12px; color: #94a3b8; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Message</p>
+                  <p style="margin: 0; color: #cbd5e1; font-size: 15px; line-height: 1.6; white-space: pre-wrap;">${message}</p>
+                </div>
+              </div>
+              
+              <div style="padding: 20px 0; border-top: 1px solid #334155;">
+                <p style="margin: 0; color: #94a3b8; font-size: 14px; line-height: 1.6;">
+                  <strong style="color: #f1f5f9;">Reply directly to this email</strong> to respond at ${email}.
+                </p>
+              </div>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 20px 40px; background-color: #0f172a; text-align: center;">
+              <p style="margin: 0; color: #64748b; font-size: 12px;">
+                © ${new Date().getFullYear()} MarketMinute Support System
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+}

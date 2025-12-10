@@ -415,6 +415,20 @@ export default function SettingsContent({
           </form>
         </div>
       )}
+
+      {/* Support & Feedback */}
+      <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+        <h2 className="text-xl font-semibold mb-4">Support & Feedback</h2>
+        <p className="text-slate-400 mb-4">
+          Need help or have feedback? We're here to assist you.
+        </p>
+        <a
+          href="/support"
+          className="inline-block bg-teal-500 hover:bg-teal-600 text-white font-medium py-2 px-6 rounded-lg transition-colors"
+        >
+          Contact Support
+        </a>
+      </div>
     </div>
   );
 }
