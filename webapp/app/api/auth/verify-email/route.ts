@@ -77,10 +77,15 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Email Verification] Email verified for: ${email}`);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       message: "Email verified successfully",
     });
+
+    // Prevent any caching of this response
+    response.headers.set("Cache-Control", "no-store, max-age=0");
+
+    return response;
   } catch (error) {
     console.error("[Email Verification] Error:", error);
     return NextResponse.json(

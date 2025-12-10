@@ -25,7 +25,6 @@ export default async function RootLayout({
   let userEmail = "";
 
   if (session?.user?.email) {
-    // Always fetch fresh data from database to check verification status
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       select: { emailVerified: true, email: true },

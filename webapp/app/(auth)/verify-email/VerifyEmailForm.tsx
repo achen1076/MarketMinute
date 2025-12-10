@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Button from "@/components/atoms/Button";
 import Link from "next/link";
+import { signOut } from "next-auth/react";
 
 export default function VerifyEmailForm() {
   const searchParams = useSearchParams();
@@ -56,10 +57,13 @@ export default function VerifyEmailForm() {
           type: "success",
           text: "Email verified successfully! Redirecting...",
         });
-        // Wait for DB to fully propagate, then refresh
-        setTimeout(() => {
-          window.location.href = "/";
-        }, 2500);
+        // Sign out and redirect to clear session cache
+        setTimeout(async () => {
+          // Sign out to force session refresh
+          await signOut({ redirect: false });
+          // Hard redirect to sign in page
+          window.location.href = "/signin?verified=true";
+        }, 1500);
       } else {
         setMessage({
           type: "error",
