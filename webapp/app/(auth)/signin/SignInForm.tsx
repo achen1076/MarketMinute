@@ -131,7 +131,7 @@ export default function SignInForm() {
             setMode("signin");
             setError("");
           }}
-          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all cursor-pointer ${
             mode === "signin"
               ? "bg-teal-500 text-white"
               : "text-slate-400 hover:text-white"
@@ -145,7 +145,7 @@ export default function SignInForm() {
             setMode("signup");
             setError("");
           }}
-          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all cursor-pointer ${
             mode === "signup"
               ? "bg-teal-500 text-white"
               : "text-slate-400 hover:text-white"
@@ -239,7 +239,7 @@ export default function SignInForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-teal-500 hover:bg-teal-600 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold py-3.5 rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+          className="w-full bg-teal-500 hover:bg-teal-600 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold py-3.5 rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
         >
           {loading
             ? "Loading..."
@@ -266,7 +266,7 @@ export default function SignInForm() {
         type="button"
         onClick={handleGoogleSignIn}
         disabled={loading}
-        className="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-100 disabled:bg-slate-700 disabled:text-slate-500 text-slate-900 font-semibold py-3.5 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+        className="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-100 disabled:bg-slate-700 disabled:text-slate-500 text-slate-900 font-semibold py-3.5 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
       >
         <svg className="w-5 h-5" viewBox="0 0 24 24">
           <path

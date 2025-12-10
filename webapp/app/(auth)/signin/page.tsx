@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { TrendingUp, BarChart3, LineChart, PieChart } from "lucide-react";
 import SignInForm from "./SignInForm";
 import { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "MarketMinute – AI-Powered Stock Market Insights & Smart Alerts",
@@ -117,8 +118,20 @@ export default async function SignInPage() {
 
             <div className="mt-6 pt-6 border-t border-slate-800">
               <p className="text-xs text-center text-slate-500">
-                By signing in, you agree to our Terms of Service and Privacy
-                Policy
+                By signing in, you agree to our{" "}
+                <Link
+                  href="/terms"
+                  className="underline hover:text-teal-400 transition-colors"
+                >
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link
+                  href="/privacy"
+                  className="underline hover:text-teal-400 transition-colors"
+                >
+                  Privacy Policy
+                </Link>
               </p>
             </div>
           </div>
