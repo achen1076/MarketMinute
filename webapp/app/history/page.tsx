@@ -19,54 +19,57 @@ export default async function HistoryPage() {
     redirect("/api/auth/signin");
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    include: {
-      watchlists: {
-        include: {
-          items: true,
-        },
-        orderBy: [{ isFavorite: "desc" }, { createdAt: "asc" }],
-      },
-    },
-  });
+  // Temporarily redirect to home
+  redirect("/");
+  // Temperarily disabled
+  // const user = await prisma.user.findUnique({
+  //   where: { email: session.user.email },
+  //   include: {
+  //     watchlists: {
+  //       include: {
+  //         items: true,
+  //       },
+  //       orderBy: [{ isFavorite: "desc" }, { createdAt: "asc" }],
+  //     },
+  //   },
+  // });
 
-  const activeWatchlist = user?.watchlists.find(
-    (w) => w.id === user?.activeWatchlistId
-  );
+  // const activeWatchlist = user?.watchlists.find(
+  //   (w) => w.id === user?.activeWatchlistId
+  // );
 
-  return (
-    <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">History</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Track changes since your last visit and view your watchlist timeline.
-        </p>
-      </header>
+  // return (
+  //   <div className="space-y-6">
+  //     <header>
+  //       <h1 className="text-2xl font-semibold tracking-tight">History</h1>
+  //       <p className="mt-1 text-sm text-slate-400">
+  //         Track changes since your last visit and view your watchlist timeline.
+  //       </p>
+  //     </header>
 
-      <WatchlistSelector
-        watchlists={user?.watchlists ?? []}
-        activeWatchlist={activeWatchlist ?? null}
-        showManageButton
-      />
+  //     <WatchlistSelector
+  //       watchlists={user?.watchlists ?? []}
+  //       activeWatchlist={activeWatchlist ?? null}
+  //       showManageButton
+  //     />
 
-      {!activeWatchlist && (
-        <Card className="p-6 text-center">
-          <p className="text-slate-400">
-            Select an active watchlist to view history.
-          </p>
-        </Card>
-      )}
+  //     {!activeWatchlist && (
+  //       <Card className="p-6 text-center">
+  //         <p className="text-slate-400">
+  //           Select an active watchlist to view history.
+  //         </p>
+  //       </Card>
+  //     )}
 
-      {activeWatchlist && (
-        <>
-          {/* Since Last Visit */}
-          <SinceLastVisit watchlistId={activeWatchlist.id} userId={user!.id} />
+  //     {activeWatchlist && (
+  //       <>
+  //         {/* Since Last Visit */}
+  //         <SinceLastVisit watchlistId={activeWatchlist.id} userId={user!.id} />
 
-          {/* 7-Day Timeline */}
-          <WatchlistTimeline watchlistId={activeWatchlist.id} />
-        </>
-      )}
-    </div>
-  );
+  //         {/* 7-Day Timeline */}
+  //         <WatchlistTimeline watchlistId={activeWatchlist.id} />
+  //       </>
+  //     )}
+  //   </div>
+  // );
 }

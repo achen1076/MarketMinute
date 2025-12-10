@@ -186,9 +186,19 @@ export default function SignInForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">
-            Password
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-slate-300">
+              Password
+            </label>
+            {mode === "signin" && (
+              <a
+                href="/forgot-password"
+                className="text-xs text-teal-400 hover:text-teal-300 transition-colors"
+              >
+                Forgot password?
+              </a>
+            )}
+          </div>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
             <input
