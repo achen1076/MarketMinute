@@ -50,21 +50,12 @@ export const metadata = {
     title: "MarketMinute – AI-Powered Market Insights & Smart Alerts",
     description:
       "Get AI-powered market explanations, smart alerts, and daily summaries tailored to your watchlist.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "MarketMinute - AI-Powered Market Insights",
-      },
-    ],
   },
   twitter: {
-    card: "summary_large_image",
+    card: "summary",
     title: "MarketMinute – AI-Powered Market Insights",
     description:
       "Understand every stock move with AI-powered insights and real-time alerts.",
-    images: ["/og-image.png"],
   },
   robots: {
     index: true,
@@ -105,6 +96,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

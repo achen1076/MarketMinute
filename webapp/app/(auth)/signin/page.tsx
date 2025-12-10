@@ -5,11 +5,27 @@ import SignInForm from "./SignInForm";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Sign In",
+  title: "MarketMinute – AI-Powered Stock Market Insights & Smart Alerts",
   description:
-    "Sign in to MarketMinute to access AI-powered market insights, smart alerts, and personalized stock analysis.",
+    "Sign in to MarketMinute to access AI-powered market insights, smart alerts, and personalized stock analysis. Get real-time market summaries tailored to your watchlist.",
+  keywords: [
+    "stock market insights",
+    "AI market analysis",
+    "smart stock alerts",
+    "market summaries",
+    "portfolio tracking",
+    "stock watchlist",
+  ],
   alternates: {
     canonical: "https://marketminute.io/signin",
+  },
+  openGraph: {
+    title: "MarketMinute – AI-Powered Stock Market Insights",
+    description:
+      "Get AI-powered market insights, smart alerts, and daily summaries tailored to your watchlist.",
+    url: "https://marketminute.io/signin",
+    siteName: "MarketMinute",
+    type: "website",
   },
 };
 
