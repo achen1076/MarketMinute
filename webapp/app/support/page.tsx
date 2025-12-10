@@ -2,6 +2,16 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import SupportForm from "./SupportForm";
 import { HeadphonesIcon, Mail, MessageSquare } from "lucide-react";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Support & Feedback",
+  description:
+    "Get help with MarketMinute. Contact our support team for assistance with your account, features, or to share feedback about our platform.",
+  alternates: {
+    canonical: "https://marketminute.io/support",
+  },
+};
 
 export default async function SupportPage() {
   const session = await auth();

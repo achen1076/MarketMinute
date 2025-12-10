@@ -26,6 +26,9 @@ export const metadata: Metadata = {
     "market analytics",
     "watchlist tracker",
   ],
+  alternates: {
+    canonical: "https://marketminute.io/features",
+  },
 };
 
 export default function FeaturesPage() {

@@ -22,6 +22,9 @@ export const metadata: Metadata = {
     "long-term investing",
     "busy professional investing",
   ],
+  alternates: {
+    canonical: "https://marketminute.io/use-cases",
+  },
 };
 
 export default function UseCasesPage() {

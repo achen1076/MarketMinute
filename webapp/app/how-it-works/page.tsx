@@ -14,6 +14,9 @@ export const metadata: Metadata = {
     "market analysis guide",
     "portfolio tracking",
   ],
+  alternates: {
+    canonical: "https://marketminute.io/how-it-works",
+  },
 };
 
 export default function HowItWorksPage() {

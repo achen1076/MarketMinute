@@ -15,6 +15,9 @@ export const metadata: Metadata = {
     "AI stock analysis tools",
     "personalized stock insights",
   ],
+  alternates: {
+    canonical: "https://marketminute.io/why-marketminute",
+  },
 };
 
 export default function WhyMarketMinutePage() {

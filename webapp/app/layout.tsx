@@ -8,6 +8,12 @@ import { Analytics } from "@vercel/analytics/next";
 import EmailVerificationBanner from "@/components/organisms/EmailVerificationBanner";
 import { prisma } from "@/lib/prisma";
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export const metadata = {
   metadataBase: new URL("https://marketminute.io"),
   title: {
@@ -16,6 +22,9 @@ export const metadata = {
   },
   description:
     "MarketMinute delivers AI-powered market explanations, smart alerts, and daily summaries to help you understand every stock move in seconds.",
+  alternates: {
+    canonical: "https://marketminute.io",
+  },
   keywords: [
     "stock market",
     "AI market insights",
@@ -70,15 +79,6 @@ export const metadata = {
       "max-image-preview": "large",
       "max-snippet": -1,
     },
-  },
-  icons: {
-    icon: [
-      { url: "/logo.png" },
-      { url: "/logo.png", sizes: "32x32", type: "image/png" },
-      { url: "/logo.png", sizes: "16x16", type: "image/png" },
-    ],
-    apple: [{ url: "/logo.png" }],
-    shortcut: ["/logo.png"],
   },
 };
 

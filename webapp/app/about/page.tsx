@@ -7,6 +7,16 @@ export const metadata: Metadata = {
   title: "About - MarketMinute",
   description:
     "Stay informed about your portfolio in minutes, not hours. AI-powered market insights for busy investors.",
+  keywords: [
+    "about MarketMinute",
+    "AI market insights",
+    "stock portfolio tracking",
+    "market analysis platform",
+    "Andrew Chen",
+  ],
+  alternates: {
+    canonical: "https://marketminute.io/about",
+  },
 };
 
 export default async function AboutPage() {
