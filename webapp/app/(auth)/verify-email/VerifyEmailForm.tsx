@@ -55,7 +55,7 @@ export default function VerifyEmailForm() {
       if (response.ok) {
         setMessage({
           type: "success",
-          text: "Email verified successfully! Redirecting...",
+          text: "Email verified successfully! Signing you out to refresh your session...",
         });
         // Sign out and redirect to clear session cache
         setTimeout(async () => {
@@ -63,7 +63,7 @@ export default function VerifyEmailForm() {
           await signOut({ redirect: false });
           // Hard redirect to sign in page
           window.location.href = "/signin?verified=true";
-        }, 1500);
+        }, 2000);
       } else {
         setMessage({
           type: "error",

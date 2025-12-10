@@ -1,18 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { Mail, Lock, AlertCircle } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Mail, Lock, AlertCircle, CheckCircle } from "lucide-react";
 
 export default function SignInForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  // Check for verification success
+  useEffect(() => {
+    if (searchParams.get("verified") === "true") {
+      setSuccessMessage("Email verified! Please sign in to continue.");
+      // Clear the query param after showing message
+      router.replace("/signin", { scroll: false });
+    }
+  }, [searchParams, router]);
 
   const handleEmailPasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,6 +154,13 @@ export default function SignInForm() {
           Sign Up
         </button>
       </div>
+
+      {successMessage && (
+        <div className="flex items-center gap-2 p-3 bg-teal-500/10 border border-teal-500/20 rounded-lg text-teal-400 text-sm">
+          <CheckCircle className="w-4 h-4 shrink-0" />
+          <span>{successMessage}</span>
+        </div>
+      )}
 
       {error && (
         <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">

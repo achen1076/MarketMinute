@@ -11,10 +11,8 @@ export const metadata = {
 export default async function VerifyEmailPage() {
   const session = await auth();
 
-  // If already signed in with verified email, redirect to dashboard
-  if (session?.user) {
-    redirect("/");
-  }
+  // Don't redirect if signed in - allow verification to complete
+  // User will be signed out after verification anyway
 
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-10rem)] px-4">
