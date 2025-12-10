@@ -1,7 +1,16 @@
 import { auth } from "@/auth";
+import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import SentinelDashboardClient from "./SentinelDashboardClient";
+
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: true,
+  },
+};
 
 export default async function SentinelDashboard() {
   const session = await auth();

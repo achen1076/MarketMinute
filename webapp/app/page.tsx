@@ -13,6 +13,14 @@ import { EventsTimeline } from "@/components/organisms/EventsTimeline";
 import { SmartAlertsBar } from "@/components/organisms/SmartAlertsBar";
 import SentinelExplainToday from "@/components/organisms/SentinelExplainToday";
 import Link from "next/link";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: true,
+  },
+};
 
 export default async function DashboardPage() {
   const session = await auth();

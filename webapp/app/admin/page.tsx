@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import QuantScriptRunner from "@/components/organisms/QuantScriptRunner";
@@ -9,6 +10,14 @@ import NewsProcessor from "@/components/organisms/NewsProcessor";
 
 // Configure admin emails
 const ADMIN_EMAILS = ["achen1076@gmail.com"];
+
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: true,
+  },
+};
 
 export default async function AdminPage() {
   const session = await auth();

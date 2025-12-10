@@ -7,9 +7,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     {
-      url: `${baseUrl}`,
-      lastModified: lastMod,
-      changeFrequency: "daily",
+      url: `${baseUrl}/signin`,
+      lastModified: new Date().toISOString(),
+      changeFrequency: "monthly",
       priority: 1.0,
     },
     {

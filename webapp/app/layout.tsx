@@ -22,9 +22,6 @@ export const metadata = {
   },
   description:
     "MarketMinute delivers AI-powered market explanations, smart alerts, and daily summaries to help you understand every stock move in seconds.",
-  alternates: {
-    canonical: "https://marketminute.io",
-  },
   keywords: [
     "stock market",
     "AI market insights",

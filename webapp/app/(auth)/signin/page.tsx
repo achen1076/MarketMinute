@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   title: "Sign In",
   description:
     "Sign in to MarketMinute to access AI-powered market insights, smart alerts, and personalized stock analysis.",
+  alternates: {
+    canonical: "https://marketminute.io/signin",
+  },
 };
 
 export default async function SignInPage() {
