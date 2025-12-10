@@ -95,6 +95,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               `Linking Google account to existing user: ${user.email}`
             );
           }
+
+          // Auto-verify email for OAuth users (Google has already verified it)
+          if (user.id) {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { emailVerified: new Date() },
+            });
+            console.log(`Auto-verified email for OAuth user: ${user.email}`);
+          }
         }
 
         // Credentials signin - errors are thrown from authorize
@@ -107,7 +116,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async redirect({ url, baseUrl }) {
       // Allows relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`;
-      // Allows callback URLs on the same origin
       else if (new URL(url).origin === baseUrl) return url;
       return baseUrl;
     },
@@ -126,7 +134,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   session: {
-    strategy: "jwt", // Use JWT for credentials, works with database for OAuth
+    strategy: "jwt",
   },
   debug: process.env.NODE_ENV === "development",
 });
