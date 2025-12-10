@@ -54,11 +54,12 @@ export default function VerifyEmailForm() {
       if (response.ok) {
         setMessage({
           type: "success",
-          text: "Email verified successfully! Redirecting to sign in...",
+          text: "Email verified successfully! Redirecting...",
         });
+        // Refresh the page to update session
         setTimeout(() => {
-          router.push("/signin");
-        }, 2000);
+          window.location.href = "/";
+        }, 1500);
       } else {
         setMessage({
           type: "error",

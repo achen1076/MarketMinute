@@ -42,7 +42,7 @@ export default function EmailVerificationBanner({
         setMessage(
           "Verification email sent! Please check your inbox (and spam folder)."
         );
-        setCooldown(60); // Start 60 second cooldown
+        setCooldown(60);
       } else {
         // Check if it's a rate limit error
         if (response.status === 429 && data.retryAfter) {

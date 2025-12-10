@@ -186,7 +186,7 @@ export default function SettingsContent({
 
       if (res.ok) {
         setVerificationMessage(
-          "Verification email sent! Please check your inbox."
+          "Verification email sent! Please check your inbox and click the link."
         );
         setVerificationCooldown(60); // Start 60 second cooldown
       } else {
