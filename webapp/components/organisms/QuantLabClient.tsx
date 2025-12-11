@@ -7,6 +7,7 @@ import { EnhancedPredictionCard } from "@/components/molecules/EnhancedPredictio
 import { TopSignalsView } from "@/components/molecules/TopSignalsView";
 import { QuantLabMethodology } from "@/components/molecules/QuantLabMethodology";
 import { QuantLabLimitations } from "@/components/molecules/QuantLabLimitations";
+import { QuantLabAvailableTickers } from "@/components/molecules/QuantLabAvailableTickers";
 import type { Prediction, EnhancedSignal } from "@/types/quant";
 
 type Props = {
@@ -88,23 +89,26 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
 
   if (error || predictions.length === 0) {
     return (
-      <Card className="p-8">
-        <div className="flex items-center gap-3 text-slate-400">
-          <div>
-            <div className="font-semibold">No predictions available</div>
-            <div className="text-md mt-3 space-y-2">
-              <p className="text-sm">This means:</p>
-              <ul className="list-disc list-inside space-y-1 text-xs ml-2">
-                <li>No watchlist is selected</li>
-                <li>
-                  Your watchlist symbols are not in the trained model (currently
-                  trained on ~200 tickers)
-                </li>
-              </ul>
+      <div className="space-y-6">
+        <Card className="p-8">
+          <div className="flex items-center gap-3 text-slate-400">
+            <div>
+              <div className="font-semibold">No predictions available</div>
+              <div className="text-md mt-3 space-y-2">
+                <p className="text-sm">This means:</p>
+                <ul className="list-disc list-inside space-y-1 text-xs ml-2">
+                  <li>No watchlist is selected</li>
+                  <li>
+                    Your watchlist symbols are not in the trained model (see
+                    available tickers below)
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+        <QuantLabAvailableTickers />
+      </div>
     );
   }
 
@@ -215,6 +219,9 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
 
       {/* Limitations */}
       <QuantLabLimitations />
+
+      {/* Available Tickers */}
+      <QuantLabAvailableTickers />
     </div>
   );
 }
