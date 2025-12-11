@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import type { Metadata, Viewport } from "next";
+
 import "./globals.css";
 import Sidebar from "@/components/organisms/sidebar";
 import { MarketTicker } from "@/components/organisms/MarketTicker";
@@ -8,23 +10,23 @@ import { Analytics } from "@vercel/analytics/next";
 import EmailVerificationBanner from "@/components/organisms/EmailVerificationBanner";
 import { prisma } from "@/lib/prisma";
 
-export const viewport = {
+export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
 };
 
-export const metadata = {
+export const metadata: Metadata = {
   metadataBase: new URL("https://marketminute.io"),
   alternates: {
     canonical: "https://marketminute.io",
   },
   title: {
-    default: "MarketMinute – AI-Powered Market Insights & Smart Alerts",
+    default: "MarketMinute – AI-Powered Market Insights",
     template: "%s | MarketMinute",
   },
   description:
-    "MarketMinute delivers AI-powered market explanations, smart alerts, and daily summaries to help you understand every stock move in seconds.",
+    "MarketMinute delivers AI-powered market explanations, quant predictions and forcasts, and daily summaries to help you understand every stock move in seconds.",
   keywords: [
     "stock market",
     "AI market insights",
@@ -36,10 +38,14 @@ export const metadata = {
     "quant analytics",
     "real-time alerts",
     "financial data",
+    "market minute",
+    "stock analysis",
+    "market updates",
   ],
   authors: [{ name: "MarketMinute" }],
   creator: "MarketMinute",
   publisher: "MarketMinute",
+  category: "Finance",
   formatDetection: {
     email: false,
     address: false,
@@ -50,15 +56,23 @@ export const metadata = {
     locale: "en_US",
     url: "https://marketminute.io",
     siteName: "MarketMinute",
-    title: "MarketMinute – AI-Powered Market Insights & Smart Alerts",
-    description:
-      "Get AI-powered market explanations, smart alerts, and daily summaries tailored to your watchlist.",
-  },
-  twitter: {
-    card: "summary",
     title: "MarketMinute – AI-Powered Market Insights",
     description:
-      "Understand every stock move with AI-powered insights and real-time alerts.",
+      "Get AI-powered market explanations, quant predictions and forecasts, and daily summaries tailored to your watchlist.",
+    images: [
+      {
+        url: "https://marketminute.io/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "MarketMinute – AI-Powered Market Insights",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MarketMinute – AI-Powered Market Insights",
+    description: "Understand every stock move with AI-powered insights",
+    images: ["https://marketminute.io/og-image.png"],
   },
   robots: {
     index: true,
@@ -96,33 +110,42 @@ export default async function RootLayout({
     }
   }
 
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "MarketMinute",
+    url: "https://marketminute.io",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: "https://marketminute.io/search?q={search_term_string}",
+      "query-input": "required name=search_term_string",
+    },
+  };
+
+  const appSchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "MarketMinute",
+    url: "https://marketminute.io",
+    applicationCategory: "FinanceApplication",
+    description:
+      "AI-powered market insights, stock explanations, smart alerts, and daily summaries.",
+    operatingSystem: "Web",
+  };
+
   return (
     <html lang="en">
       <head>
+        {/* Website schema (helps sitelinks and brand understanding) */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "SoftwareApplication",
-              name: "MarketMinute",
-              url: "https://marketminute.io",
-              applicationCategory: "FinanceApplication",
-              description:
-                "AI-powered market insights, stock explanations, smart alerts, and daily summaries.",
-              operatingSystem: "Web",
-              offers: {
-                "@type": "Offer",
-                price: "0",
-                priceCurrency: "USD",
-              },
-              aggregateRating: {
-                "@type": "AggregateRating",
-                ratingValue: "4.8",
-                ratingCount: "127",
-              },
-            }),
-          }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+
+        {/* Application schema (treats MarketMinute as a software product) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(appSchema) }}
         />
       </head>
       <body
