@@ -103,8 +103,6 @@ export function TickerListClient({
   useEffect(() => {
     if (!watchlistId) return;
 
-    handleRefresh();
-
     // Only set up polling if market is currently open
     if (!isMarketOpen()) {
       return; // No polling outside market hours

@@ -37,7 +37,7 @@ if (!redis) {
 /**
  * Get snapshots for symbols with intelligent caching
  *
- * - Uses Redis cache when available (30 second TTL)
+ * - Uses Redis cache when available (15 second TTL)
  * - Falls back to in-memory cache
  * - Only fetches uncached/stale tickers from FMP API
  * - Returns combined cached + fresh data
@@ -68,7 +68,6 @@ export async function getCachedSnapshots(symbols: string[]): Promise<{
       }
     } catch (error) {
       console.error(`[Redis] Batch fetch error:`, error);
-      // On error, fetch all symbols from API
       toFetch.push(...symbols);
     }
   } else {
@@ -88,7 +87,6 @@ export async function getCachedSnapshots(symbols: string[]): Promise<{
   if (toFetch.length > 0) {
     fresh = await getSnapshotsForSymbols(toFetch);
 
-    // Always use 30 second TTL for ticker data to ensure freshness
     const cacheTTL = CACHE_TTL_SECONDS;
 
     if (redis) {

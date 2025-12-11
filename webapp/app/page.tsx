@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getSnapshotsForSymbols } from "@/lib/marketData";
+import { getCachedSnapshots } from "@/lib/tickerCache";
 import DashboardClient from "./DashboardClient";
 import Card from "@/components/atoms/Card";
 import { Stack } from "@/components/atoms/Stack";
@@ -21,6 +21,8 @@ export const metadata: Metadata = {
     follow: true,
   },
 };
+
+export const revalidate = 0;
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -56,8 +58,8 @@ export default async function DashboardPage() {
 
   const symbols =
     activeWatchlist?.items.map((i: { symbol: string }) => i.symbol) ?? [];
-  const rawSnapshots =
-    symbols.length > 0 ? await getSnapshotsForSymbols(symbols) : [];
+  const { snapshots: rawSnapshots } =
+    symbols.length > 0 ? await getCachedSnapshots(symbols) : { snapshots: [] };
 
   // Enrich snapshots with favorite status and item IDs from database
   const snapshots = rawSnapshots.map((snapshot) => {

@@ -9,6 +9,39 @@ export type TickerSnapshot = {
   earningsDate?: string;
 };
 
+const apiCallTimestamps: number[] = [];
+const MAX_CALLS_PER_MINUTE = 300;
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+
+function checkFMPRateLimit(): { allowed: boolean; retryAfter?: number } {
+  const now = Date.now();
+
+  while (
+    apiCallTimestamps.length > 0 &&
+    apiCallTimestamps[0] < now - RATE_LIMIT_WINDOW_MS
+  ) {
+    apiCallTimestamps.shift();
+  }
+
+  if (apiCallTimestamps.length >= MAX_CALLS_PER_MINUTE) {
+    const oldestCall = apiCallTimestamps[0];
+    const retryAfter = Math.ceil(
+      (oldestCall + RATE_LIMIT_WINDOW_MS - now) / 1000
+    );
+    console.warn(
+      `[FMP RateLimit] BLOCKED: ${apiCallTimestamps.length}/${MAX_CALLS_PER_MINUTE} calls in last 60s. Retry in ${retryAfter}s`
+    );
+    return { allowed: false, retryAfter };
+  }
+
+  // Record this API call
+  apiCallTimestamps.push(now);
+  console.log(
+    `[FMP RateLimit] ALLOWED: ${apiCallTimestamps.length}/${MAX_CALLS_PER_MINUTE} calls in last 60s`
+  );
+  return { allowed: true };
+}
+
 export async function getSnapshotsForSymbols(
   symbols: string[]
 ): Promise<TickerSnapshot[]> {
@@ -17,6 +50,18 @@ export async function getSnapshotsForSymbols(
   const apiKey = process.env.FMP_API_KEY;
   if (!apiKey) {
     console.error("[FMP] API key not configured");
+    return symbols.map((symbol) => ({
+      symbol: symbol.toUpperCase(),
+      price: 0,
+      changePct: 0,
+    }));
+  }
+
+  const rateLimitCheck = checkFMPRateLimit();
+  if (!rateLimitCheck.allowed) {
+    console.warn(
+      `[FMP] Rate limit exceeded. Retry after ${rateLimitCheck.retryAfter}s. Returning empty snapshots.`
+    );
     return symbols.map((symbol) => ({
       symbol: symbol.toUpperCase(),
       price: 0,
@@ -44,7 +89,7 @@ export async function getSnapshotsForSymbols(
       url.searchParams.set("apikey", apiKey);
 
       const res = await fetch(url.toString(), {
-        next: { revalidate: 30 },
+        next: { revalidate: 5 },
       });
 
       if (!res.ok) {
@@ -107,7 +152,7 @@ export async function getSnapshotsForSymbols(
         );
 
         const res = await fetch(url.toString(), {
-          next: { revalidate: 30 },
+          next: { revalidate: 5 },
         });
 
         if (res.ok) {
