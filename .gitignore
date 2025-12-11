@@ -77,3 +77,6 @@ quant/archive/
 .temp/
 tmp/
 .vercel
+
+#md
+RATE_LIMITS.md
