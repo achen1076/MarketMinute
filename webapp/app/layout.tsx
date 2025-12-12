@@ -41,6 +41,7 @@ export const metadata: Metadata = {
     "market minute",
     "stock analysis",
     "market updates",
+    "marketminute",
   ],
   authors: [{ name: "MarketMinute" }],
   creator: "MarketMinute",
