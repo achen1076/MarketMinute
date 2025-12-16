@@ -19,7 +19,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://marketminute.io"),
   alternates: {
-    canonical: "https://marketminute.io",
+    canonical: "https://marketminute.io/",
   },
   title: {
     default: "MarketMinute – AI-Powered Market Insights",
@@ -32,13 +32,11 @@ export const metadata: Metadata = {
     "AI market insights",
     "stock alerts",
     "market analysis",
-    "trading platform",
     "stock watchlist",
     "market summaries",
     "quant analytics",
     "real-time alerts",
     "financial data",
-    "market minute",
     "stock analysis",
     "market updates",
     "marketminute",
@@ -52,11 +50,15 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
+
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico", type: "image/x-icon" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    shortcut: [{ url: "/favicon.ico", type: "image/x-icon" }],
   },
+
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -74,12 +76,14 @@ export const metadata: Metadata = {
       },
     ],
   },
+
   twitter: {
     card: "summary_large_image",
     title: "MarketMinute – AI-Powered Market Insights",
     description: "Understand every stock move with AI-powered insights",
     images: ["https://marketminute.io/og-image.png"],
   },
+
   robots: {
     index: true,
     follow: true,
