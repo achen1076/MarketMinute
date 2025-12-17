@@ -19,7 +19,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://marketminute.io"),
   alternates: {
-    canonical: "https://marketminute.io/",
+    canonical: "https://marketminute.io/signin",
   },
   title: {
     default: "MarketMinute – AI-Powered Market Insights",
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://marketminute.io",
+    url: "https://marketminute.io/signin",
     siteName: "MarketMinute",
     title: "MarketMinute – AI-Powered Market Insights",
     description:
