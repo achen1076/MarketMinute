@@ -11,19 +11,6 @@ type TickerItem = {
   changePct: number;
 };
 
-const TICKER_SYMBOLS = [
-  { symbol: "$SPX", name: "S&P 500" },
-  { symbol: "$DJI", name: "Dow" },
-  { symbol: "$COMPX", name: "Nasdaq" },
-  { symbol: "AAPL", name: "Apple" },
-  { symbol: "MSFT", name: "Microsoft" },
-  { symbol: "GOOGL", name: "Google" },
-  { symbol: "AMZN", name: "Amazon" },
-  { symbol: "NVDA", name: "Nvidia" },
-  { symbol: "TSLA", name: "Tesla" },
-  { symbol: "META", name: "Meta" },
-];
-
 export function MarketTicker() {
   const [tickers, setTickers] = useState<TickerItem[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -64,7 +51,7 @@ export function MarketTicker() {
     if (!scrollContainer || tickers.length === 0) return;
 
     let scrollPosition = 0;
-    const scrollSpeed = 0.5;
+    const scrollSpeed = 1;
     let animationFrameId: number;
 
     const animate = () => {
@@ -82,10 +69,20 @@ export function MarketTicker() {
 
     animationFrameId = requestAnimationFrame(animate);
 
+    const handleResize = () => {
+      scrollPosition = 0;
+      if (scrollContainer) {
+        scrollContainer.scrollLeft = 0;
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+
     return () => {
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
+      window.removeEventListener("resize", handleResize);
     };
   }, [tickers.length]);
 

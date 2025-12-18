@@ -5,8 +5,6 @@ const TICKER_SYMBOLS = [
   { symbol: "^GSPC", name: "S&P 500" },
   { symbol: "^DJI", name: "Dow" },
   { symbol: "^IXIC", name: "Nasdaq" },
-  { symbol: "TQQQ", name: "TQQQ" },
-  { symbol: "SQQQ", name: "SQQQ" },
   { symbol: "AAPL", name: "Apple" },
   { symbol: "MSFT", name: "Microsoft" },
   { symbol: "GOOGL", name: "Google" },
@@ -14,6 +12,10 @@ const TICKER_SYMBOLS = [
   { symbol: "NVDA", name: "Nvidia" },
   { symbol: "TSLA", name: "Tesla" },
   { symbol: "META", name: "Meta" },
+  { symbol: "XOM", name: "Exxon" },
+  { symbol: "LLY", name: "Eli Lilly" },
+  { symbol: "COST", name: "Costco" },
+  { symbol: "JPM", name: "JPMorgan" },
 ];
 
 export async function GET() {

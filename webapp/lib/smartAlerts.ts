@@ -5,6 +5,7 @@ export type SmartAlert = {
   type: "price_move" | "near_52w_high" | "near_52w_low" | "earnings_soon";
   message: string;
   severity: "info" | "warning" | "critical";
+  direction?: "up" | "down";
 };
 
 export type SmartAlertFlags = {
@@ -38,6 +39,7 @@ export function computeSmartAlerts(
         2
       )}% today`,
       severity: Math.abs(changePct) >= 5 ? "critical" : "warning",
+      direction: changePct >= 0 ? "up" : "down",
     });
   }
 

@@ -533,8 +533,11 @@ export default function WatchlistsClient({
               onSymbolsChange={setSelectedSymbols}
               disabled={loading}
             />
+            <p className="mt-2 text-xs text-slate-500">
+              💡 Tip: Smaller watchlists (10-20 stocks) produce more accurate
+              and focused summaries.
+            </p>
           </div>
-
           <div className="flex justify-end">
             <Button
               onClick={handleCreate}

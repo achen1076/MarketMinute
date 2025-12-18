@@ -22,6 +22,7 @@ type AlertsSummary = {
       type: string;
       message: string;
       severity: string;
+      direction?: "up" | "down";
     }>;
   }>;
 };
@@ -142,16 +143,25 @@ export function SmartAlertsBar({ symbols }: Props) {
                   (a) => a.type === "price_move"
                 );
                 if (!alert) return null;
+                const isUp = alert.direction === "up";
+                const isLarge = alert.severity === "critical";
+                const label = isUp
+                  ? isLarge
+                    ? "Surging"
+                    : "Gaining"
+                  : isLarge
+                  ? "Plunging"
+                  : "Dropping";
                 return (
                   <AlertCard
                     key={detail.symbol}
                     symbol={detail.symbol}
                     message={alert.message}
-                    type={alert.severity === "critical" ? "critical" : "warning"}
+                    type={isUp ? "success" : "critical"}
                     badge={
                       <StatusBadge
-                        severity={alert.severity === "critical" ? "critical" : "warning"}
-                        label={alert.severity}
+                        severity={isUp ? "success" : "critical"}
+                        label={label}
                       />
                     }
                   />
@@ -213,7 +223,7 @@ export function SmartAlertsBar({ symbols }: Props) {
                     key={detail.symbol}
                     symbol={detail.symbol}
                     message={alert.message}
-                    type="warning"
+                    type="critical"
                   />
                 );
               })}

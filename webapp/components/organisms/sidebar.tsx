@@ -172,7 +172,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           className="border-t px-4 py-3 text-xs"
           style={{ borderColor: COLORS.border.subtle, color: COLORS.text.soft }}
         >
-          Built for people who actually watch the market.
+          Built for people who want to watch the market, but dont have the time.
         </div>
       </aside>
     </>
