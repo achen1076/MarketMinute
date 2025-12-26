@@ -2,15 +2,16 @@ import { auth } from "@/auth";
 import { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import QuantScriptRunner from "@/components/organisms/QuantScriptRunner";
 import WatchlistSelector from "@/components/organisms/WatchlistSelector";
-import SentinelRunner from "@/components/organisms/SentinelRunner";
-import LambdaCronRunner from "@/components/organisms/LambdaCronRunner";
-import NewsProcessor from "@/components/organisms/NewsProcessor";
+import QuantScriptRunner from "@/components/admin/QuantScriptRunner";
+import SentinelRunner from "@/components/admin/SentinelRunner";
+import LambdaCronRunner from "@/components/admin/LambdaCronRunner";
+import NewsProcessor from "@/components/admin/NewsProcessor";
+import SentimentAlertsTester from "@/components/admin/SentimentAlertsTester";
+import TickerAlertCreator from "@/components/admin/TickerAlertCreator";
 
 // Configure admin emails
 const ADMIN_EMAILS = ["achen1076@gmail.com"];
-
 
 export const metadata: Metadata = {
   robots: {
@@ -49,7 +50,7 @@ export default async function AdminPage() {
           <h1 className="text-3xl font-bold text-slate-100 mb-2">
             Admin Panel
           </h1>
-          <p className="text-slate-400">Manage quant models and predictions</p>
+          <p className="text-slate-400">You shouldnt be here</p>
         </div>
 
         <WatchlistSelector
@@ -60,8 +61,10 @@ export default async function AdminPage() {
 
         <LambdaCronRunner />
         <NewsProcessor />
-        <QuantScriptRunner />
-        <SentinelRunner />
+        {/* <QuantScriptRunner />
+        <SentinelRunner /> */}
+        <SentimentAlertsTester watchlistId={activeWatchlist?.id} />
+        <TickerAlertCreator />
       </div>
     </div>
   );

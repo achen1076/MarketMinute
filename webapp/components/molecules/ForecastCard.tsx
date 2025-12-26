@@ -100,7 +100,7 @@ export function ForecastCard({
       {/* Price Percentiles */}
       <div className="mb-4 p-3 rounded-lg bg-slate-800/40">
         <p className="text-xs text-slate-500 mb-3">
-          Price Percentiles (68% range)
+          Price Percentiles (80% range)
         </p>
         <div className="flex items-center justify-between text-sm">
           <div className="text-center flex-1">

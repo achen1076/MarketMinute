@@ -1,14 +1,25 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import type { TickerSnapshot } from "@/lib/marketData";
 import Card from "@/components/atoms/Card";
 import Button from "@/components/atoms/Button";
 import { MiniSparkline } from "@/components/atoms/MiniSparkline";
-import { RefreshCw, Search, Star } from "lucide-react";
+import { RefreshCw, Search, Star, Bell, X } from "lucide-react";
 import { CACHE_TTL_MS } from "@/lib/constants";
 import ReactMarkdown from "react-markdown";
 import { isMarketOpen } from "@/lib/marketHours";
+import { COLORS } from "@/lib/colors";
+
+interface TickerAlert {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  symbol: string;
+  severity: string;
+  createdAt: string;
+}
 
 type EnrichedSnapshot = TickerSnapshot & {
   isFavorite?: boolean;
@@ -47,6 +58,70 @@ export function TickerListClient({
   const [priceHistory, setPriceHistory] = useState<Record<string, number[]>>(
     {}
   );
+  const [alerts, setAlerts] = useState<TickerAlert[]>([]);
+  const [dismissedAlertIds, setDismissedAlertIds] = useState<Set<string>>(
+    new Set()
+  );
+  const [alertsOpen, setAlertsOpen] = useState(false);
+  const alertsDropdownRef = useRef<HTMLDivElement>(null);
+
+  const activeAlerts = alerts.filter((a) => !dismissedAlertIds.has(a.id));
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        alertsDropdownRef.current &&
+        !alertsDropdownRef.current.contains(event.target as Node)
+      ) {
+        setAlertsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const fetchAlerts = useCallback(async () => {
+    if (!watchlistId) {
+      setAlerts([]);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/alerts?watchlistId=${watchlistId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setAlerts(data.alerts || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch alerts:", err);
+    }
+  }, [watchlistId]);
+
+  useEffect(() => {
+    fetchAlerts();
+  }, [fetchAlerts]);
+
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case "high":
+        return "border-rose-500/50 bg-rose-500/10";
+      case "medium":
+        return "border-amber-500/50 bg-amber-500/10";
+      default:
+        return "border-teal-500/50 bg-teal-500/10";
+    }
+  };
+
+  const getSeverityTextColor = (severity: string) => {
+    switch (severity) {
+      case "high":
+        return "text-rose-400";
+      case "medium":
+        return "text-amber-400";
+      default:
+        return "text-teal-400";
+    }
+  };
 
   useEffect(() => {
     // Track price changes and trigger flash animations
@@ -70,7 +145,6 @@ export function TickerListClient({
     initialSnapshots.forEach((s) => {
       newPrices[s.symbol] = s.price;
 
-      // Maintain last 10 price points for sparkline
       if (!newHistory[s.symbol]) {
         newHistory[s.symbol] = [s.price];
       } else {
@@ -103,9 +177,8 @@ export function TickerListClient({
   useEffect(() => {
     if (!watchlistId) return;
 
-    // Only set up polling if market is currently open
     if (!isMarketOpen()) {
-      return; // No polling outside market hours
+      return;
     }
 
     const interval = setInterval(() => {
@@ -230,17 +303,98 @@ export function TickerListClient({
     <Card className="p-4 text-sm h-full overflow-hidden flex flex-col">
       <div className="mb-3 flex items-center justify-between shrink-0">
         <h3 className="text-sm font-semibold text-slate-200">Your Symbols</h3>
-        {/* <button
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          className="p-1.5 rounded-md transition-colors hover:bg-slate-800/50 disabled:opacity-50"
-          title="Refresh prices"
-        >
-          <RefreshCw
-            size={16}
-            className={`text-slate-400 ${isRefreshing ? "animate-spin" : ""}`}
-          />
-        </button> */}
+
+        {/* Alerts Bell Icon + Dropdown */}
+        <div className="relative" ref={alertsDropdownRef}>
+          <button
+            onClick={() => setAlertsOpen(!alertsOpen)}
+            className="relative p-2 rounded-lg transition-colors hover:bg-slate-700/50"
+            aria-label="Alerts"
+          >
+            <Bell className="w-5 h-5 text-slate-400" />
+            {activeAlerts.length > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white">
+                {activeAlerts.length > 9 ? "9+" : activeAlerts.length}
+              </span>
+            )}
+          </button>
+
+          {alertsOpen && (
+            <div
+              className="absolute right-0 mt-2 w-80 rounded-xl border shadow-xl z-50"
+              style={{
+                backgroundColor: COLORS.bg.elevated,
+                borderColor: COLORS.border.subtle,
+              }}
+            >
+              <div
+                className="flex items-center justify-between px-4 py-3 border-b"
+                style={{ borderColor: COLORS.border.subtle }}
+              >
+                <h3 className="font-semibold text-slate-100">Alerts</h3>
+              </div>
+
+              <div className="max-h-80 overflow-y-auto">
+                {activeAlerts.length === 0 ? (
+                  <div className="px-4 py-8 text-center text-slate-500 text-sm">
+                    No alerts for this watchlist
+                  </div>
+                ) : (
+                  activeAlerts.map((alert) => (
+                    <div
+                      key={alert.id}
+                      className="px-4 py-3 border-b cursor-pointer transition-colors hover:bg-slate-800/50 bg-slate-800/30"
+                      style={{ borderColor: COLORS.border.subtle }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span
+                          className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${
+                            alert.severity === "high"
+                              ? "bg-rose-400"
+                              : alert.severity === "medium"
+                              ? "bg-amber-400"
+                              : "bg-teal-400"
+                          }`}
+                        />
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`text-sm font-medium ${getSeverityTextColor(
+                                alert.severity
+                              )}`}
+                            >
+                              {alert.title}
+                            </span>
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-slate-700 text-slate-300">
+                              {alert.symbol}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-400 mt-1 line-clamp-2">
+                            {alert.message}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {activeAlerts.length > 0 && (
+                <div
+                  className="px-4 py-2 border-t text-center"
+                  style={{ borderColor: COLORS.border.subtle }}
+                >
+                  <button
+                    onClick={() => setAlertsOpen(false)}
+                    className="text-xs text-slate-400 hover:text-slate-300 transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Search and Sort Controls */}

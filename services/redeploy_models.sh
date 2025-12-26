@@ -104,6 +104,73 @@ build_and_push() {
 }
 
 # ============================================================================
+# Function: Get EC2 Instance ID
+# ============================================================================
+get_ec2_instance_id() {
+    cd "$SCRIPT_DIR/../infrastructure/terraform"
+    
+    # Try different possible output names
+    local instance_id=""
+    instance_id=$(terraform output -raw ml_services_instance_id 2>/dev/null) || \
+    instance_id=$(terraform output -raw ec2_instance_id 2>/dev/null) || \
+    instance_id=$(cat terraform.tfstate 2>/dev/null | grep -A2 '"ml_services_instance_id"' | grep value | sed 's/.*: "\(.*\)".*/\1/')
+    
+    echo "$instance_id"
+}
+
+# ============================================================================
+# Function: Wait for SSM command completion
+# ============================================================================
+wait_for_ssm_command() {
+    local command_id=$1
+    local instance_id=$2
+    local max_wait=${3:-300}  # Default 5 minutes
+    local interval=10
+    local elapsed=0
+    
+    echo "Waiting for SSM command to complete (max ${max_wait}s)..."
+    
+    while [ $elapsed -lt $max_wait ]; do
+        local status=$(aws ssm get-command-invocation \
+            --command-id "$command_id" \
+            --instance-id "$instance_id" \
+            --region "$AWS_REGION" \
+            --query 'Status' \
+            --output text 2>/dev/null)
+        
+        case "$status" in
+            "Success")
+                echo -e "${GREEN}✅ SSM command completed successfully${NC}"
+                return 0
+                ;;
+            "Failed"|"Cancelled"|"TimedOut")
+                echo -e "${RED}❌ SSM command failed with status: $status${NC}"
+                aws ssm get-command-invocation \
+                    --command-id "$command_id" \
+                    --instance-id "$instance_id" \
+                    --region "$AWS_REGION" \
+                    --query 'StandardErrorContent' \
+                    --output text
+                return 1
+                ;;
+            "InProgress"|"Pending")
+                echo "  Status: $status (${elapsed}s elapsed)..."
+                sleep $interval
+                elapsed=$((elapsed + interval))
+                ;;
+            *)
+                echo "  Unknown status: $status, waiting..."
+                sleep $interval
+                elapsed=$((elapsed + interval))
+                ;;
+        esac
+    done
+    
+    echo -e "${YELLOW}⚠️  SSM command timed out after ${max_wait}s${NC}"
+    return 1
+}
+
+# ============================================================================
 # Function: Restart EC2 service
 # ============================================================================
 restart_ec2_service() {
@@ -112,47 +179,67 @@ restart_ec2_service() {
     echo ""
     echo -e "${BLUE}🔄 Restarting $service service on EC2...${NC}"
     
-    # Get EC2 instance ID from Terraform
-    cd "$SCRIPT_DIR/../infrastructure/terraform"
-    EC2_INSTANCE_ID=$(terraform output -raw ec2_instance_id 2>/dev/null)
+    # Get EC2 instance ID
+    EC2_INSTANCE_ID=$(get_ec2_instance_id)
     
     if [ -z "$EC2_INSTANCE_ID" ]; then
-        echo -e "${RED}❌ Error: Could not get EC2 instance ID from Terraform${NC}"
+        echo -e "${RED}❌ Error: Could not get EC2 instance ID${NC}"
         echo "Make sure Terraform infrastructure is deployed"
+        echo "Tried: ml_services_instance_id, ec2_instance_id, terraform.tfstate"
         exit 1
     fi
     
     echo "EC2 Instance: $EC2_INSTANCE_ID"
     
     # Send SSM command to restart service
+    local port="8002"
+    [[ "$service" == "sentiment" ]] && port="8001"
+    
     COMMAND_ID=$(aws ssm send-command \
         --instance-ids "$EC2_INSTANCE_ID" \
         --document-name "AWS-RunShellScript" \
         --parameters "commands=[
+            'set -e',
             'cd /opt/ml-services',
-            'aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com',
-            'docker-compose pull $service',
-            'docker-compose up -d $service',
-            'sleep 10',
-            'docker ps | grep $service',
-            'curl http://localhost:800$([ \"$service\" = \"sentiment\" ] && echo 1 || echo 2)/health || echo \"Health check pending...\"'
+            'echo \"Logging into ECR...\"',
+            'aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com',
+            'echo \"Pulling new image for ${service}...\"',
+            'docker-compose pull ${service}',
+            'echo \"Restarting ${service} service...\"',
+            'docker-compose up -d ${service}',
+            'echo \"Waiting for service to start...\"',
+            'sleep 15',
+            'echo \"Container status:\"',
+            'docker ps --format \"table {{.Names}}\t{{.Status}}\t{{.CreatedAt}}\" | grep ${service} || true',
+            'echo \"Health check:\"',
+            'curl -sf http://localhost:${port}/health || echo \"Health check pending - service may still be loading model\"'
         ]" \
         --region "$AWS_REGION" \
         --query 'Command.CommandId' \
-        --output text)
+        --output text 2>/dev/null)
     
-    echo "Waiting for service restart..."
-    sleep 15
+    if [ -z "$COMMAND_ID" ]; then
+        echo -e "${RED}❌ Error: Failed to send SSM command${NC}"
+        exit 1
+    fi
     
-    # Check command status
-    aws ssm get-command-invocation \
-        --command-id "$COMMAND_ID" \
-        --instance-id "$EC2_INSTANCE_ID" \
-        --region "$AWS_REGION" \
-        --query 'StandardOutputContent' \
-        --output text
+    echo "SSM Command ID: $COMMAND_ID"
     
-    echo -e "${GREEN}✅ Service restarted${NC}"
+    # Wait for command completion (5 minutes for large image pulls)
+    if wait_for_ssm_command "$COMMAND_ID" "$EC2_INSTANCE_ID" 300; then
+        # Show output
+        echo ""
+        echo "Command output:"
+        aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$EC2_INSTANCE_ID" \
+            --region "$AWS_REGION" \
+            --query 'StandardOutputContent' \
+            --output text
+        echo -e "${GREEN}✅ Service restarted${NC}"
+    else
+        echo -e "${RED}❌ Service restart may have failed - check EC2 manually${NC}"
+    fi
 }
 
 # ============================================================================

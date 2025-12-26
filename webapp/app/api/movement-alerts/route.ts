@@ -1,12 +1,12 @@
-// app/api/smart-alerts/route.ts
+// app/api/movement-alerts/route.ts
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getCachedSnapshots } from "@/lib/tickerCache";
-import { computeSmartAlerts } from "@/lib/smartAlerts";
+import { computeMovementAlerts } from "@/lib/movementAlerts";
 
 /**
- * Get smart alerts summary for all symbols in the watchlist
+ * Get movement alerts summary for all symbols in the watchlist
  */
 export async function GET(req: Request) {
   const session = await auth();
@@ -42,7 +42,7 @@ export async function GET(req: Request) {
 
     // Process alerts (synchronous computation, no database calls)
     for (const snapshot of snapshots) {
-      const alertFlags = computeSmartAlerts(
+      const alertFlags = computeMovementAlerts(
         snapshot.symbol,
         snapshot.changePct,
         snapshot.price,
@@ -72,7 +72,7 @@ export async function GET(req: Request) {
       details,
     });
   } catch (error) {
-    console.error("[SmartAlerts] Error computing alerts:", error);
+    console.error("[MovementAlerts] Error computing alerts:", error);
     return NextResponse.json(
       { error: "Failed to compute alerts" },
       { status: 500 }

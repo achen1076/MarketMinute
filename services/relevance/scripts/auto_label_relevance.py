@@ -9,6 +9,10 @@ import numpy as np
 from tqdm import tqdm
 from openai import AsyncOpenAI
 import asyncio
+from dotenv import load_dotenv
+
+# Load .env file from parent directory
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 # Initialize OpenAI async client
 client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -26,15 +30,28 @@ async def gpt_relevance_score(headline, ticker, retries=3):
                     "role": "system",
                     "content": (
                         "You are a financial news relevance classifier. "
-                        "Rate how relevant a news headline is to a specific stock ticker on a scale of 0.0 to 1.0. "
-                        "Be precise - use any decimal value, not just numbers ending in 0 and 5, dont be rigid and only use round clean numbers"
-                        "\n\nScoring guidelines:\n"
-                        "- 0.9-1.0: Headline directly mentions the company or is primarily about it. Or mentions its subsidiaries or divisions\n"
-                        "- 0.7-0.9: Strong indirect relevance (major impact, key partnership, competitor news)\n"
-                        "- 0.5-0.7: Moderate relevance (sector news, industry trends affecting the company)\n"
-                        "- 0.3-0.5: Weak relevance (tangential mention or minor market connection)\n"
-                        "- 0.0-0.3: Little to no relevance\n"
-                        "\nOnly return the number with no explanation."
+                        "Your task is to rate how relevant a news headline is to a specific stock ticker "
+                        "based on its **direct or material impact on that company specifically**, "
+                        "not on the general market or sector.\n\n"
+
+                        "IMPORTANT RULES:\n"
+                        "- Do NOT score based on general market importance.\n"
+                        "- Do NOT score high just because the headline involves technology, large companies, or negative/positive events.\n"
+                        "- If the company is not mentioned explicitly, relevance must be justified by a clear, material second-order impact.\n"
+                        "- If no such link is obvious, the score MUST be below 0.4.\n\n"
+
+                        "Scoring guidelines:\n"
+                        "- 0.90–1.00: Headline explicitly mentions the company, its ticker, or its core products, services, subsidiaries, or divisions.\n"
+                        "- 0.70–0.89: Strong indirect relevance with a clear causal link (e.g., major competitor action, key supplier/customer event, regulatory action directly affecting the company).\n"
+                        "- 0.50–0.69: Moderate relevance (industry-wide developments that reasonably affect the company’s fundamentals).\n"
+                        "- 0.30–0.49: Weak or speculative relevance (broad sector news with limited or unclear impact).\n"
+                        "- 0.00–0.29: Little to no relevance (news about other companies with no clear connection).\n\n"
+
+                        "If the headline does NOT mention the company and you cannot clearly articulate a direct impact, "
+                        "the score should generally be **below 0.30**.\n\n"
+
+                        "Return ONLY a single decimal number between 0.0 and 1.0. "
+                        "Use precise values (do not round to clean numbers)."
                     )
                 },
                 {"role": "user", "content": f"Headline: {headline}\nTicker: {ticker}"}
@@ -54,7 +71,7 @@ async def gpt_relevance_score(headline, ticker, retries=3):
                 await asyncio.sleep(1)
             else:
                 print(f"  ⚠️  Failed to score: {headline[:50]}... - {e}")
-                return 0.5  # Default to neutral relevance on error
+                return 0.5
 
 
 async def label_ticker_news(input_file="data/ticker_news_training_unlabeled.csv",

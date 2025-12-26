@@ -28,9 +28,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   ...props
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { isMobile, isTablet } = useWindowSize();
-
-  const isSmallScreen = isMobile || isTablet;
+  const { isMobile } = useWindowSize();
 
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
   const closeMenu = () => setIsMenuOpen(false);
@@ -38,7 +36,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
       {/* Mobile overlay - click outside to close */}
-      {isSmallScreen && isMenuOpen && (
+      {isMobile && isMenuOpen && (
         <div
           className="fixed inset-0 z-20 bg-black/50 backdrop-blur-sm"
           onClick={closeMenu}
@@ -46,7 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         />
       )}
 
-      {isSmallScreen && (
+      {isMobile && (
         <header
           className="fixed top-0 left-0 z-40 flex h-14 w-full items-center justify-between px-4"
           style={{ backgroundColor: SIDEBAR_BG_COLOR, color: COLORS.text.main }}
@@ -55,42 +53,44 @@ const Sidebar: React.FC<SidebarProps> = ({
             MarketMinute
           </Link>
 
-          <button
-            onClick={toggleMenu}
-            className="text-white focus:outline-none"
-            aria-label="Toggle sidebar"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleMenu}
+              className="text-white focus:outline-none"
+              aria-label="Toggle sidebar"
             >
-              {isMenuOpen ? (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              ) : (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              )}
-            </svg>
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                {isMenuOpen ? (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                ) : (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                )}
+              </svg>
+            </button>
+          </div>
         </header>
       )}
 
       <aside
         className={cn(
           "fixed left-0 z-30 flex h-screen flex-col border-r transition-transform duration-300",
-          isSmallScreen
+          isMobile
             ? isMenuOpen
               ? "translate-x-0 w-64 pt-14"
               : "-translate-x-full w-64 pt-14"
@@ -104,9 +104,11 @@ const Sidebar: React.FC<SidebarProps> = ({
         }}
         {...props}
       >
-        {!isSmallScreen && (
-          <div className="mb-4 px-4 text-xl font-bold">
-            <Link href="/">MarketMinute</Link>
+        {!isMobile && (
+          <div className="mb-4 px-4">
+            <Link href="/" className="text-xl font-bold">
+              MarketMinute
+            </Link>
           </div>
         )}
 

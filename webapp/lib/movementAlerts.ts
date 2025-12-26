@@ -1,34 +1,34 @@
-// lib/smartAlerts.ts
+// lib/movementAlerts.ts
 import "server-only";
 
-export type SmartAlert = {
+export type MovementAlert = {
   type: "price_move" | "near_52w_high" | "near_52w_low" | "earnings_soon";
   message: string;
   severity: "info" | "warning" | "critical";
   direction?: "up" | "down";
 };
 
-export type SmartAlertFlags = {
+export type MovementAlertFlags = {
   hit_3pct_today: boolean;
   within_2pct_52w_high: boolean;
   within_2pct_52w_low: boolean;
   earnings_within_5_days: boolean;
-  alerts: SmartAlert[];
+  alerts: MovementAlert[];
 };
 
 /**
  * Compute smart alert flags for a symbol
  * Pure computation - no async operations needed
  */
-export function computeSmartAlerts(
+export function computeMovementAlerts(
   symbol: string,
   changePct: number,
   price: number,
   high52w?: number,
   low52w?: number,
   earningsDate?: string
-): SmartAlertFlags {
-  const alerts: SmartAlert[] = [];
+): MovementAlertFlags {
+  const alerts: MovementAlert[] = [];
 
   // Check for significant price move (±3%)
   const hit_3pct_today = Math.abs(changePct) >= 3;
@@ -112,7 +112,7 @@ export function computeSmartAlerts(
  * Generate a summary line for dashboard about alerts across all symbols
  */
 export function summarizeAlerts(
-  symbolAlerts: Map<string, SmartAlertFlags>
+  symbolAlerts: Map<string, MovementAlertFlags>
 ): string {
   let big_movers = 0;
   let near_highs = 0;

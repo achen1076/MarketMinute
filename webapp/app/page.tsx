@@ -9,7 +9,7 @@ import { TickerListClient } from "@/components/molecules/TickerListClient";
 import { MarketMinuteSummary } from "@/components/organisms/MarketMinuteSummary";
 import { AdminSettings } from "@/components/organisms/AdminSettings";
 import { EventsTimeline } from "@/components/organisms/EventsTimeline";
-import { SmartAlertsBar } from "@/components/organisms/SmartAlertsBar";
+import { MovementAlertsBar } from "@/components/organisms/MovementAlertsBar";
 import SentinelExplainToday from "@/components/organisms/SentinelExplainToday";
 import Link from "next/link";
 import { Metadata } from "next";
@@ -181,8 +181,8 @@ export default async function HomePage() {
             <SentinelExplainToday />
             {/* Upcoming Events */}
             {snapshots.length > 0 && <EventsTimeline symbols={symbols} />}
-            {/* Smart Alerts */}
-            {snapshots.length > 0 && <SmartAlertsBar symbols={symbols} />}
+            {/* Movement Alerts */}
+            {snapshots.length > 0 && <MovementAlertsBar symbols={symbols} />}
 
             {/* Sentinel Intelligence Panel */}
 

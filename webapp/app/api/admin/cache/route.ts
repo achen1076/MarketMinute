@@ -17,7 +17,7 @@ export async function POST(req: Request) {
 
   if (action === "clear") {
     const explanationCount = await clearExplanationCache();
-    const summaryCount = clearSummaryCache();
+    const summaryCount = await clearSummaryCache();
     const eventsCount = await clearEventsDb();
     const totalCleared = explanationCount + summaryCount + eventsCount;
 
@@ -41,12 +41,13 @@ export async function GET() {
   }
 
   const explanationStats = await getExplanationCacheStats();
-  const summaryStats = getSummaryCacheStats();
+  const summaryStats = await getSummaryCacheStats();
   const eventsStats = await getEventsDbStats();
 
   const explanationSize =
     explanationStats.redis?.size || explanationStats.memory?.size || 0;
-  const summarySize = summaryStats.size || 0;
+  const summarySize =
+    summaryStats.redis?.size || summaryStats.memory?.size || 0;
   const eventsSize = eventsStats.size || 0;
 
   console.log("[Admin Cache] Stats requested:", {
@@ -64,6 +65,8 @@ export async function GET() {
     },
     summaries: {
       size: summarySize,
+      redis: summaryStats.redis,
+      memory: summaryStats.memory,
       registered: true,
     },
     events: {

@@ -22,6 +22,9 @@ model User {
   sentinelFocus    String?      @default("balanced") @map("sentinel_focus") // "tech", "macro", "volatility", "balanced"
   sentinelDepth    String?      @default("standard") @map("sentinel_depth") // "brief", "standard", "detailed"
 
+  // Alert preferences
+  alertPreference  String?      @default("on") @map("alert_preference") // "on", "off"
+
   // Subscription fields
   subscriptionTier   String?    @default("free") @map("subscription_tier") // "free", "basic", "pro", etc.
   stripeCustomerId   String?    @unique @map("stripe_customer_id")
@@ -37,6 +40,7 @@ model User {
   activeWatchlist  Watchlist?   @relation("ActiveWatchlist", fields: [activeWatchlistId], references: [id])
   watchlists       Watchlist[]  @relation("UserWatchlists")
   usageLogs        UsageLog[]
+  alerts           Alert[]
 
   @@map("users")
 }
@@ -112,6 +116,7 @@ model Watchlist {
   usersWithAsActive User[]   @relation("ActiveWatchlist")
   items      WatchlistItem[]
   macros     Macro[]
+  alerts     Alert[]
 
   @@map("watchlists")
 }
@@ -381,4 +386,59 @@ model UsageLog {
   @@index([userId, date])
   @@index([feature])
   @@map("usage_logs")
+}
+
+model Alert {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  watchlistId String?   @map("watchlist_id")
+  type        String    // "sentiment_shift", "price_move", "earnings", "52w_high", "52w_low", "test"
+  title       String
+  message     String    @db.Text
+  symbol      String?   // Ticker symbol related to alert
+  metadata    Json?     // Additional data (e.g., sentiment values, price changes)
+  severity    String    @default("info") // "info", "warning", "critical"
+  read        Boolean   @default(false)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  watchlist   Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: SetNull)
+
+  @@index([userId, read])
+  @@index([watchlistId])
+  @@index([createdAt])
+  @@map("alerts")
+}
+
+model SentimentHistory {
+  id        String   @id @default(cuid())
+  symbol    String
+  date      DateTime @db.Date
+  sentiment Float    // Average sentiment score for the day (-1 to 1)
+  newsCount Int      @default(0) @map("news_count")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([symbol, date])
+  @@index([symbol])
+  @@index([date])
+  @@map("sentiment_history")
+}
+
+model TickerAlert {
+  id        String   @id @default(cuid())
+  symbol    String
+  type      String   // "sentiment_shift", "price_move", "earnings", "52w_high", "52w_low", etc.
+  title     String
+  message   String   @db.Text
+  severity  String   @default("info") // "info", "warning", "critical"
+  metadata  Json?    // Additional data (e.g., sentiment values, price changes)
+  expiresAt DateTime? @map("expires_at") // Optional expiration for time-sensitive alerts
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([symbol, type, createdAt]) // Prevent duplicate alerts for same symbol/type at same time
+  @@index([symbol])
+  @@index([type])
+  @@index([createdAt])
+  @@index([expiresAt])
+  @@map("ticker_alerts")
 }

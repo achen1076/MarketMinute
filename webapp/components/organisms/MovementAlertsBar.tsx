@@ -27,7 +27,7 @@ type AlertsSummary = {
   }>;
 };
 
-export function SmartAlertsBar({ symbols }: Props) {
+export function MovementAlertsBar({ symbols }: Props) {
   const [summary, setSummary] = useState<AlertsSummary | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -44,7 +44,7 @@ export function SmartAlertsBar({ symbols }: Props) {
           symbols: symbols.join(","),
         });
 
-        const response = await fetch(`/api/smart-alerts?${params}`);
+        const response = await fetch(`/api/movement-alerts?${params}`);
 
         if (!response.ok) {
           throw new Error("Failed to fetch alerts");
@@ -53,7 +53,7 @@ export function SmartAlertsBar({ symbols }: Props) {
         const data = await response.json();
         setSummary(data);
       } catch (error) {
-        console.error("Error fetching smart alerts:", error);
+        console.error("Error fetching movement alerts:", error);
       } finally {
         setLoading(false);
       }

@@ -54,7 +54,7 @@ export async function buildSummary(
     .join(",");
 
   // Check cache first
-  const cachedSummary = getSummaryFromCache(listName, symbolsKey);
+  const cachedSummary = await getSummaryFromCache(listName, symbolsKey);
   if (cachedSummary) {
     return cachedSummary;
   }
@@ -304,7 +304,7 @@ export async function buildSummary(
   };
 
   // Cache the result
-  setSummaryInCache(listName, symbolsKey, summary);
+  await setSummaryInCache(listName, symbolsKey, summary);
 
   return summary;
 }

@@ -135,10 +135,47 @@ def process_news_for_all_tickers():
         return {
             'status': 'success',
             'processed': data.get('processed', 0),
-            'saved': data.get('saved', 0)
+            'saved': data.get('saved', 0),
+            'sentiment_data': data.get('sentiment_data', [])
         }
     except Exception as e:
         print(f"[Lambda] News processing error: {str(e)}")
+        return {'status': 'error', 'error': str(e)}
+
+
+def process_sentiment_alerts(sentiment_data=None):
+    """Process sentiment alerts for all tickers"""
+    if not WEBAPP_URL:
+        print("[Lambda] WEBAPP_URL not configured, skipping sentiment alerts")
+        return {'status': 'skipped', 'reason': 'No WEBAPP_URL configured'}
+
+    try:
+        alerts_url = f"{WEBAPP_URL}/api/cron/process-sentiment-alerts"
+        print(f"[Lambda] Processing sentiment alerts at {alerts_url}")
+
+        payload = {}
+        if sentiment_data:
+            payload['symbols'] = sentiment_data
+
+        response = requests.post(
+            alerts_url,
+            json=payload,
+            headers={'x-api-key': LAMBDA_API_KEY} if LAMBDA_API_KEY else {},
+            timeout=60
+        )
+        response.raise_for_status()
+
+        data = response.json()
+        print(
+            f"[Lambda] Sentiment alerts: {data.get('alertsCreated', 0)} alerts created")
+
+        return {
+            'status': 'success',
+            'processed': data.get('processed', 0),
+            'alertsCreated': data.get('alertsCreated', 0)
+        }
+    except Exception as e:
+        print(f"[Lambda] Sentiment alerts error: {str(e)}")
         return {'status': 'error', 'error': str(e)}
 
 
@@ -154,7 +191,11 @@ def handler(event, context):
             # Step 1: Process news FIRST
             news_result = process_news_for_all_tickers()
 
-            # Step 2: Fetch market data and generate predictions
+            # Step 2: Process sentiment alerts based on news
+            sentiment_data = news_result.get('sentiment_data', [])
+            alerts_result = process_sentiment_alerts(sentiment_data)
+
+            # Step 3: Fetch market data and generate predictions
             features, prices, volatilities, raw_data = fetch_market_data()
             raw_predictions = get_predictions(features)
             live_predictions = generate_live_predictions(
@@ -175,6 +216,7 @@ def handler(event, context):
                 'statusCode': 200,
                 'body': json.dumps({
                     'news_processing': news_result,
+                    'sentiment_alerts': alerts_result,
                     'live_predictions': live_predictions,
                     'distributional_forecasts': distributional_forecasts,
                     'sentinel': sentinel_result,

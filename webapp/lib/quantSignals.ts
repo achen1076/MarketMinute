@@ -103,17 +103,20 @@ export function calculateSignalMetrics(pred: Prediction): EnhancedSignal {
 
   const signalDescription = (() => {
     if (quantScore >= 70) {
-      return `Strong ${directionalBias > 0 ? "Bullish" : "Bearish"} Edge (+${(
-        Math.abs(expectedReturn) * 100
-      ).toFixed(2)}%) — ${regime}`;
-    } else if (quantScore >= 50) {
-      return `${
+      const sign = expectedReturn >= 0 ? "+" : "";
+      return `Strong ${
         directionalBias > 0 ? "Bullish" : "Bearish"
-      } Bias — ${regime} regime`;
+      } Edge (${sign}${(expectedReturn * 100).toFixed(2)}%) — ${regime}`;
+    } else if (quantScore >= 50) {
+      const sign = expectedReturn >= 0 ? "+" : "";
+      return `${directionalBias > 0 ? "Bullish" : "Bearish"} Bias (${sign}${(
+        expectedReturn * 100
+      ).toFixed(2)}%) — ${regime} regime`;
     } else if (quantScore >= 30) {
+      const sign = expectedReturn >= 0 ? "+" : "";
       return `Weak ${
         directionalBias > 0 ? "bullish" : "bearish"
-      } lean — ${regime}`;
+      } lean (${sign}${(expectedReturn * 100).toFixed(2)}%) — ${regime}`;
     } else {
       return `Neutral — ${regime}`;
     }

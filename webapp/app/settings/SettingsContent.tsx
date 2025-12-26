@@ -70,9 +70,50 @@ export default function SettingsContent({
   const [subscriptionData, setSubscriptionData] =
     useState<SubscriptionData | null>(null);
 
+  // Alert preference
+  const [alertsEnabled, setAlertsEnabled] = useState(true);
+  const [alertLoading, setAlertLoading] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+
   useEffect(() => {
     fetchSubscriptionStatus();
+    fetchAlertPreference();
   }, []);
+
+  const fetchAlertPreference = async () => {
+    try {
+      const res = await fetch("/api/user/alert-preference");
+      if (res.ok) {
+        const data = await res.json();
+        setAlertsEnabled(data.alertPreference !== "off");
+      }
+    } catch (err) {
+      console.error("Failed to fetch alert preference");
+    }
+  };
+
+  const handleAlertToggle = async () => {
+    setAlertLoading(true);
+    setAlertMessage("");
+    const newValue = !alertsEnabled;
+    try {
+      const res = await fetch("/api/user/alert-preference", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ alertPreference: newValue ? "on" : "off" }),
+      });
+      if (res.ok) {
+        setAlertsEnabled(newValue);
+        setAlertMessage(newValue ? "Alerts enabled" : "Alerts disabled");
+      } else {
+        setAlertMessage("Failed to update preference");
+      }
+    } catch (err) {
+      setAlertMessage("An error occurred");
+    } finally {
+      setAlertLoading(false);
+    }
+  };
 
   const fetchSubscriptionStatus = async () => {
     try {
@@ -415,6 +456,51 @@ export default function SettingsContent({
           </form>
         </div>
       )}
+
+      {/* Alert Preferences */}
+      <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+        <h2 className="text-xl font-semibold mb-4">Alert Preferences</h2>
+        <p className="text-slate-400 mb-4">
+          Get notified about significant market movements and events for your
+          watchlist. Alerts appear in your inbox.
+        </p>
+
+        <label className="flex items-center justify-between cursor-pointer">
+          <div>
+            <span className="text-slate-200 font-medium">Enable Alerts</span>
+            <p className="text-slate-500 text-sm">
+              Receive alerts in your inbox
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleAlertToggle}
+            disabled={alertLoading}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              alertsEnabled ? "bg-teal-500" : "bg-slate-600"
+            } ${alertLoading ? "opacity-50" : ""}`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                alertsEnabled ? "translate-x-6" : "translate-x-1"
+              }`}
+            />
+          </button>
+        </label>
+
+        {alertMessage && (
+          <p
+            className={`mt-4 text-sm ${
+              alertMessage.includes("enabled") ||
+              alertMessage.includes("disabled")
+                ? "text-emerald-400"
+                : "text-red-400"
+            }`}
+          >
+            {alertMessage}
+          </p>
+        )}
+      </div>
 
       {/* Support & Feedback */}
       <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">

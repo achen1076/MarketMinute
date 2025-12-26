@@ -215,6 +215,69 @@ export function getPasswordResetEmailHTML(resetUrl: string, userEmail: string) {
   `;
 }
 
+export function getTestAlertEmailHTML(userEmail: string): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Alert</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td align="center" style="padding: 40px 0;">
+        <table role="presentation" style="width: 600px; max-width: 100%; border-collapse: collapse; background-color: #1e293b; border-radius: 8px; overflow: hidden;">
+          <!-- Header -->
+          <tr>
+            <td style="padding: 40px 40px 20px; text-align: center;">
+              <h1 style="margin: 0; color: #14b8a6; font-size: 28px; font-weight: bold;">MarketMinute</h1>
+            </td>
+          </tr>
+          
+          <!-- Content -->
+          <tr>
+            <td style="padding: 20px 40px 40px;">
+              <h2 style="margin: 0 0 20px; color: #f1f5f9; font-size: 24px; font-weight: 600;">🔔 Test Alert</h2>
+              
+              <p style="margin: 0 0 20px; color: #cbd5e1; font-size: 16px; line-height: 1.6;">
+                This is a test alert sent to <strong style="color: #f1f5f9;">${userEmail}</strong>.
+              </p>
+              
+              <p style="margin: 0 0 20px; color: #cbd5e1; font-size: 16px; line-height: 1.6;">
+                If you're seeing this email, your alert notifications are working correctly!
+              </p>
+              
+              <div style="margin: 30px 0; padding: 20px; background-color: #0f172a; border-radius: 8px; border-left: 4px solid #14b8a6;">
+                <p style="margin: 0; color: #94a3b8; font-size: 14px;">
+                  <strong style="color: #14b8a6;">Smart Alerts</strong> will notify you about significant market movements, earnings announcements, and other important events for your watchlist.
+                </p>
+              </div>
+              
+              <p style="margin: 0; color: #94a3b8; font-size: 14px; line-height: 1.6;">
+                You can manage your alert preferences in Settings.
+              </p>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 20px 40px; background-color: #0f172a; text-align: center;">
+              <p style="margin: 0; color: #64748b; font-size: 12px;">
+                © ${new Date().getFullYear()} MarketMinute. Built for people who actually watch the market.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+}
+
 export function getSupportEmailHTML(
   email: string,
   subject: string,

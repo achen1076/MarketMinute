@@ -11,7 +11,7 @@ import {
   formatCacheAge,
   type ExplanationCacheEntry,
 } from "@/lib/explainCache";
-import { computeSmartAlerts, SmartAlert } from "@/lib/smartAlerts";
+import { computeMovementAlerts, MovementAlert } from "@/lib/movementAlerts";
 import { getCachedSnapshots } from "@/lib/tickerCache";
 import {
   checkRateLimit,
@@ -32,7 +32,7 @@ type ExplainPayload = {
     relevanceScore?: number;
     sentiment?: "positive" | "negative" | "neutral";
   }>;
-  smartAlerts: SmartAlert[];
+  movementAlerts: MovementAlert[];
 };
 
 // Zod schema for structured output
@@ -146,7 +146,7 @@ export async function POST(req: Request) {
   const snapshot = snapshots[0];
 
   // Compute smart alerts with full data (synchronous computation)
-  const alertFlags = computeSmartAlerts(
+  const alertFlags = computeMovementAlerts(
     symbol,
     changePct,
     price || 0,
@@ -168,7 +168,7 @@ export async function POST(req: Request) {
       relevanceScore: n.relevanceScore,
       sentiment: n.sentiment,
     })),
-    smartAlerts: alertFlags.alerts,
+    movementAlerts: alertFlags.alerts,
   };
 
   const systemPrompt = `
@@ -182,7 +182,7 @@ export async function POST(req: Request) {
       - news: array of recent headlines specific to this symbol only, each with:
         * relevanceScore (0-1): computed by ML model, indicates how relevant the headline is to this specific ticker (1 = highly relevant, 0 = not relevant)
         * sentiment: "positive", "negative", or "neutral" - computed by ML model analyzing the headline tone
-      - smartAlerts: array with contextual information (e.g., "near 52-week high", "earnings in 3 days", "hit ±3% move")
+      - movementAlerts: array with contextual information (e.g., "near 52-week high", "earnings in 3 days", "hit ±3% move")
 
       Important: The "news" array contains ONLY headlines for this specific symbol. Do not reference or invent news from other stocks.
 
@@ -192,8 +192,8 @@ export async function POST(req: Request) {
          - Key points: Only 2-4 most critical factors
          - Each explanation: 1-2 sentences maximum
       
-      2. SMART ALERTS PRIORITY:
-         - If smartAlerts exist, mention in the summary
+      2. MOVEMENT ALERTS PRIORITY:
+         - If movementAlerts exist, mention in the summary
          - Be specific: "hit a ±3% move" or "near 52-week high"
          
       3. Use ACTUAL news content directly:
@@ -295,7 +295,7 @@ async function refreshExplanation(
     const snapshot = snapshots[0];
 
     // Compute smart alerts
-    const alertFlags = computeSmartAlerts(
+    const alertFlags = computeMovementAlerts(
       symbol,
       changePct,
       price || 0,
@@ -317,7 +317,7 @@ async function refreshExplanation(
         relevanceScore: n.relevanceScore,
         sentiment: n.sentiment,
       })),
-      smartAlerts: alertFlags.alerts,
+      movementAlerts: alertFlags.alerts,
     };
 
     const systemPrompt = `
@@ -331,7 +331,7 @@ async function refreshExplanation(
       - news: array of recent headlines specific to this symbol only, each with:
         * relevanceScore (0-1): computed by ML model, indicates how relevant the headline is to this specific ticker (1 = highly relevant, 0 = not relevant)
         * sentiment: "positive", "negative", or "neutral" - computed by ML model analyzing the headline tone
-      - smartAlerts: array with contextual information (e.g., "near 52-week high", "earnings in 3 days", "hit ±3% move")
+      - movementAlerts: array with contextual information (e.g., "near 52-week high", "earnings in 3 days", "hit ±3% move")
 
       Important: The "news" array contains ONLY headlines for this specific symbol. Do not reference or invent news from other stocks.
 
@@ -341,8 +341,8 @@ async function refreshExplanation(
          - Key points: Only 2-4 most critical factors
          - Each explanation: 1-2 sentences maximum
       
-      2. SMART ALERTS PRIORITY:
-         - If smartAlerts exist, mention in the summary
+      2. MOVEMENT ALERTS PRIORITY:
+         - If movementAlerts exist, mention in the summary
          - Be specific: "hit a ±3% move" or "near 52-week high"
          
       3. Use ACTUAL news content directly:

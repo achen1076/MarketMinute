@@ -40,7 +40,7 @@ from src.models.base.lgbm_classifier import LGBMClassifier
 from src.models.base.xgb_classifier import XGBClassifier
 from src.models.ensemble_classifier import QuantModel
 
-from src.models.hyperparameter_tuner import LightGBMHyperparameterTuner
+from src.models.lgbm_hyperparameter_tuner import LightGBMHyperparameterTuner
 from src.models.xgb_hyperparameter_tuner import XGBHyperparameterTuner
 
 

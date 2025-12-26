@@ -15,7 +15,6 @@ export async function POST() {
     const session = await auth();
 
     // Rate limiting: 3 requests per 5 minutes per user
-    // Sentinel is expensive (multiple AI calls), so we limit it heavily
     const identifier = session?.user?.email || "anonymous";
     const rateLimitResult = checkRateLimit(
       "sentinel",
