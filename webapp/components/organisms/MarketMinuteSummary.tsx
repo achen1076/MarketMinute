@@ -317,7 +317,7 @@ export function MarketMinuteSummary({ watchlistId }: Props) {
 
       <div className="prose prose-invert max-w-none">
         <div className="whitespace-pre-wrap text-sm leading-relaxed text-slate-300">
-          {highlightedBody}
+          {summary.body}
         </div>
       </div>
     </Card>
