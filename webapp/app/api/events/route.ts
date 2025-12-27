@@ -306,10 +306,11 @@ function getOfficialJobsReportDates(): string[] {
   ];
 }
 
-// Request deduplication cache (prevents duplicate calls within 1 second)
+// Request deduplication cache (prevents duplicate API calls within 1 second)
+// Stores the resolved data, not the Response object (which can only be read once)
 const requestCache = new Map<
   string,
-  { promise: Promise<NextResponse>; timestamp: number }
+  { data: UpcomingEventsResponse; timestamp: number }
 >();
 const REQUEST_CACHE_TTL = 1000; // 1 second
 
@@ -345,74 +346,69 @@ export async function GET(request: Request) {
       .map((s) => s.trim().toUpperCase())
       .filter(Boolean);
 
-    // Request deduplication: if same request within 1 second, return cached promise
+    // Request deduplication: if same request within 1 second, return cached data
     const cacheKey = `${session.user.email}:${symbols.sort().join(",")}`;
     const now = Date.now();
     const cached = requestCache.get(cacheKey);
 
     if (cached && now - cached.timestamp < REQUEST_CACHE_TTL) {
-      return cached.promise;
+      return NextResponse.json(cached.data);
     }
 
-    // Create new request promise
-    const requestPromise = (async () => {
-      // Clean expired events from database
-      await cleanExpiredEventsFromDb();
+    // Clean expired events from database
+    await cleanExpiredEventsFromDb();
 
-      // BATCH: Check which symbols need fresh data (1 query instead of N)
-      const symbolsToFetch = Array.from(await getSymbolsNeedingFetch(symbols));
+    // BATCH: Check which symbols need fresh data (1 query instead of N)
+    const symbolsToFetch = Array.from(await getSymbolsNeedingFetch(symbols));
 
-      // BATCH: Get cached events for all symbols (1 query instead of N)
-      const cachedEventsMap = await getBatchTickerEventsFromDb(symbols);
+    // BATCH: Get cached events for all symbols (1 query instead of N)
+    const cachedEventsMap = await getBatchTickerEventsFromDb(symbols);
 
-      const stockEvents: StockEvent[] = [];
+    const stockEvents: StockEvent[] = [];
 
-      // Add cached events
-      for (const [symbol, events] of cachedEventsMap.entries()) {
-        stockEvents.push(...events);
-      }
+    // Add cached events
+    for (const [symbol, events] of cachedEventsMap.entries()) {
+      stockEvents.push(...events);
+    }
 
-      // Fetch fresh events for symbols that need it
-      if (symbolsToFetch.length > 0) {
-        const fetchPromises = symbolsToFetch.map(async (symbol) => {
-          const events = await fetchTickerEvents(symbol);
-          await setTickerEventsInDb(symbol, events);
-          return events;
-        });
+    // Fetch fresh events for symbols that need it
+    if (symbolsToFetch.length > 0) {
+      const fetchPromises = symbolsToFetch.map(async (symbol) => {
+        const events = await fetchTickerEvents(symbol);
+        await setTickerEventsInDb(symbol, events);
+        return events;
+      });
 
-        const results = await Promise.all(fetchPromises);
-        stockEvents.push(...results.flat());
-      }
+      const results = await Promise.all(fetchPromises);
+      stockEvents.push(...results.flat());
+    }
 
-      // Fetch macro events (24-hour caching)
-      let macroEvents: MacroEvent[];
-      const shouldFetchMacro = await shouldFetchMacroEvents();
+    // Fetch macro events (24-hour caching)
+    let macroEvents: MacroEvent[];
+    const shouldFetchMacro = await shouldFetchMacroEvents();
 
-      if (!shouldFetchMacro) {
-        macroEvents = await getMacroEventsFromDb();
-      } else {
-        macroEvents = await fetchMacroEvents();
-        // Store in database (updated_at timestamp tracks when fetched)
-        await setMacroEventsInDb(macroEvents);
-      }
+    if (!shouldFetchMacro) {
+      macroEvents = await getMacroEventsFromDb();
+    } else {
+      macroEvents = await fetchMacroEvents();
+      // Store in database (updated_at timestamp tracks when fetched)
+      await setMacroEventsInDb(macroEvents);
+    }
 
-      // Sort by date
-      stockEvents.sort((a, b) => a.date.localeCompare(b.date));
-      macroEvents.sort((a, b) => a.date.localeCompare(b.date));
+    // Sort by date
+    stockEvents.sort((a, b) => a.date.localeCompare(b.date));
+    macroEvents.sort((a, b) => a.date.localeCompare(b.date));
 
-      const response: UpcomingEventsResponse = {
-        stockEvents,
-        macroEvents,
-        fetchedAt: Date.now(),
-      };
+    const response: UpcomingEventsResponse = {
+      stockEvents,
+      macroEvents,
+      fetchedAt: Date.now(),
+    };
 
-      return NextResponse.json(response);
-    })();
+    // Cache the response data
+    requestCache.set(cacheKey, { data: response, timestamp: now });
 
-    // Cache the request promise
-    requestCache.set(cacheKey, { promise: requestPromise, timestamp: now });
-
-    return requestPromise;
+    return NextResponse.json(response);
   } catch (error) {
     console.error("[Events] Error fetching events:", error);
     return NextResponse.json(

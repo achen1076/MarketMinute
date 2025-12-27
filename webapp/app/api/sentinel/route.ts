@@ -9,12 +9,10 @@ import {
   getRateLimitHeaders,
 } from "@/lib/rateLimit";
 
-export async function POST() {
+export async function POST(req: Request) {
   try {
-    // Get user session (required for rate limiting)
     const session = await auth();
 
-    // Rate limiting: 3 requests per 5 minutes per user
     const identifier = session?.user?.email || "anonymous";
     const rateLimitResult = checkRateLimit(
       "sentinel",
@@ -24,6 +22,40 @@ export async function POST() {
 
     if (!rateLimitResult.allowed) {
       return createRateLimitResponse(rateLimitResult);
+    }
+
+    // Check if a report already exists for today (unless force=true)
+    const { searchParams } = new URL(req.url);
+    const force = searchParams.get("force") === "true";
+
+    if (!force) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      const existingReport = await prisma.sentinelReport.findFirst({
+        where: {
+          createdAt: {
+            gte: today,
+            lt: tomorrow,
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (existingReport) {
+        return NextResponse.json(
+          {
+            ok: true,
+            skipped: true,
+            reason: "Report already exists for today",
+            reportId: existingReport.id,
+            timestamp: existingReport.createdAt.toISOString(),
+          },
+          { headers: getRateLimitHeaders(rateLimitResult) }
+        );
+      }
     }
 
     const { context, report } = await runSentinelAgent();
