@@ -9,6 +9,7 @@ import LambdaCronRunner from "@/components/admin/LambdaCronRunner";
 import NewsProcessor from "@/components/admin/NewsProcessor";
 import SentimentAlertsTester from "@/components/admin/SentimentAlertsTester";
 import TickerAlertCreator from "@/components/admin/TickerAlertCreator";
+import SubscriptionManager from "@/components/admin/SubscriptionManager";
 
 // Configure admin emails
 const ADMIN_EMAILS = ["achen1076@gmail.com"];
@@ -59,6 +60,7 @@ export default async function AdminPage() {
           showManageButton
         />
 
+        <SubscriptionManager />
         <LambdaCronRunner />
         <NewsProcessor />
         {/* <QuantScriptRunner />

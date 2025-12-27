@@ -40,6 +40,7 @@ type Watchlist = {
 type Props = {
   initialWatchlists: Watchlist[];
   userName: string;
+  maxSymbols?: number;
 };
 
 type SortableItemProps = {
@@ -108,6 +109,7 @@ function SortableItem({ item, onRemove, disabled }: SortableItemProps) {
 export default function WatchlistsClient({
   initialWatchlists,
   userName,
+  maxSymbols,
 }: Props) {
   const [watchlists, setWatchlists] = useState<Watchlist[]>(initialWatchlists);
   const [name, setName] = useState("");
@@ -119,6 +121,7 @@ export default function WatchlistsClient({
   );
   const [editSymbols, setEditSymbols] = useState<string[]>([]);
   const [editName, setEditName] = useState("");
+  const [editError, setEditError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [watchlistToDelete, setWatchlistToDelete] = useState<{
     id: string;
@@ -329,7 +332,15 @@ export default function WatchlistsClient({
         });
 
         if (!res.ok) {
-          console.error("Failed to add symbols");
+          const errorData = await res.json();
+          if (res.status === 403) {
+            setEditError(
+              errorData.error ||
+                "Watchlist item limit reached. Upgrade for unlimited tickers."
+            );
+          } else {
+            console.error("Failed to add symbols");
+          }
           return;
         }
 
@@ -405,6 +416,7 @@ export default function WatchlistsClient({
     if (editSymbols.length === 0) return;
 
     setLoading(true);
+    setEditError(null);
     try {
       const res = await fetch("/api/watchlist/items", {
         method: "POST",
@@ -416,7 +428,15 @@ export default function WatchlistsClient({
       });
 
       if (!res.ok) {
-        console.error("Failed to add symbols");
+        const errorData = await res.json();
+        if (res.status === 403) {
+          setEditError(
+            errorData.error ||
+              "Watchlist item limit reached. Upgrade for unlimited tickers."
+          );
+        } else {
+          console.error("Failed to add symbols");
+        }
         return;
       }
 
@@ -532,6 +552,7 @@ export default function WatchlistsClient({
               selectedSymbols={selectedSymbols}
               onSymbolsChange={setSelectedSymbols}
               disabled={loading}
+              maxSymbols={maxSymbols}
             />
             <p className="mt-2 text-xs text-slate-500">
               💡 Tip: Smaller watchlists (10-20 stocks) produce more accurate
@@ -683,7 +704,23 @@ export default function WatchlistsClient({
                         selectedSymbols={editSymbols}
                         onSymbolsChange={setEditSymbols}
                         disabled={loading}
+                        maxSymbols={
+                          maxSymbols !== undefined
+                            ? Math.max(0, maxSymbols - w.items.length)
+                            : undefined
+                        }
                       />
+                      {editError && (
+                        <div className="mt-2 rounded-lg bg-red-500/10 border border-red-500/50 p-2 text-xs text-red-400">
+                          {editError}{" "}
+                          <a
+                            href="/settings"
+                            className="underline hover:text-red-300"
+                          >
+                            Upgrade
+                          </a>
+                        </div>
+                      )}
                     </div>
                     <div className="flex justify-end gap-2">
                       <button
@@ -691,6 +728,7 @@ export default function WatchlistsClient({
                           setEditingWatchlistId(null);
                           setEditSymbols([]);
                           setEditName("");
+                          setEditError(null);
                           setDraggedItems((prev) => {
                             const updated = { ...prev };
                             delete updated[w.id];

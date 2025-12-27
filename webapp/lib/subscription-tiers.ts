@@ -14,6 +14,7 @@ export interface TierLimits {
   stripePriceId?: string; // Stripe Price ID
   features: {
     maxWatchlists: number | "unlimited";
+    maxWatchlistItems: number | "unlimited";
     quantLab: {
       enabled: boolean;
       topSignals: boolean;
@@ -32,6 +33,7 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierLimits> = {
     price: 0,
     features: {
       maxWatchlists: 2,
+      maxWatchlistItems: 20,
       quantLab: {
         enabled: true,
         topSignals: true,
@@ -49,6 +51,7 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, TierLimits> = {
     stripePriceId: process.env.STRIPE_BASIC_PRICE_ID,
     features: {
       maxWatchlists: "unlimited",
+      maxWatchlistItems: "unlimited",
       quantLab: {
         enabled: true,
         topSignals: true,
@@ -75,7 +78,7 @@ export function getTierConfig(tier: string = "free"): TierLimits {
  */
 export function checkLimit(
   tier: SubscriptionTier,
-  limitType: "watchlist" | "quantSignal",
+  limitType: "watchlist" | "watchlistItems" | "quantSignal",
   currentUsage: number
 ): { allowed: boolean; limit: number | "unlimited"; message?: string } {
   const config = getTierConfig(tier);
@@ -92,6 +95,20 @@ export function checkLimit(
         message:
           currentUsage >= watchlistLimit
             ? `You've reached your limit of ${watchlistLimit} watchlists. Upgrade to get unlimited!`
+            : undefined,
+      };
+
+    case "watchlistItems":
+      const itemsLimit = config.features.maxWatchlistItems;
+      if (itemsLimit === "unlimited") {
+        return { allowed: true, limit: "unlimited" };
+      }
+      return {
+        allowed: currentUsage < itemsLimit,
+        limit: itemsLimit,
+        message:
+          currentUsage >= itemsLimit
+            ? `You've reached your limit of ${itemsLimit} tickers per watchlist. Upgrade for unlimited!`
             : undefined,
       };
 

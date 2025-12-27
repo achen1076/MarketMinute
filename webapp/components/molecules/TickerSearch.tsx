@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { X } from "lucide-react";
 
 type Ticker = {
@@ -12,12 +12,14 @@ type Props = {
   selectedSymbols: string[];
   onSymbolsChange: (symbols: string[]) => void;
   disabled?: boolean;
+  maxSymbols?: number;
 };
 
 export default function TickerSearch({
   selectedSymbols,
   onSymbolsChange,
   disabled = false,
+  maxSymbols,
 }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -25,6 +27,18 @@ export default function TickerSearch({
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Keep refs to latest values to avoid stale closures when adding symbols quickly
+  const selectedSymbolsRef = useRef(selectedSymbols);
+  const onSymbolsChangeRef = useRef(onSymbolsChange);
+
+  useEffect(() => {
+    selectedSymbolsRef.current = selectedSymbols;
+  }, [selectedSymbols]);
+
+  useEffect(() => {
+    onSymbolsChangeRef.current = onSymbolsChange;
+  }, [onSymbolsChange]);
 
   // Search tickers from API
   useEffect(() => {
@@ -74,38 +88,51 @@ export default function TickerSearch({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleAddSymbol = (symbol: string) => {
-    if (!selectedSymbols.includes(symbol)) {
-      onSymbolsChange([...selectedSymbols, symbol]);
+  const handleAddSymbol = useCallback((symbol: string, limit?: number) => {
+    const current = selectedSymbolsRef.current;
+    // Check limit before adding
+    if (limit !== undefined && current.length >= limit) {
+      return;
+    }
+    if (!current.includes(symbol)) {
+      onSymbolsChangeRef.current([...current, symbol]);
     }
     setSearchQuery("");
     setShowDropdown(false);
     inputRef.current?.focus();
-  };
+  }, []);
 
-  const handleRemoveSymbol = (symbol: string) => {
-    onSymbolsChange(selectedSymbols.filter((s) => s !== symbol));
-  };
+  const handleRemoveSymbol = useCallback((symbol: string) => {
+    onSymbolsChangeRef.current(
+      selectedSymbolsRef.current.filter((s) => s !== symbol)
+    );
+  }, []);
+
+  const isAtLimit =
+    maxSymbols !== undefined && selectedSymbols.length >= maxSymbols;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && searchQuery.trim()) {
       e.preventDefault();
+      if (isAtLimit) return;
       if (filteredTickers.length > 0) {
-        handleAddSymbol(filteredTickers[0].symbol);
+        handleAddSymbol(filteredTickers[0].symbol, maxSymbols);
       } else {
         // Allow manual entry
         const symbol = searchQuery.trim().toUpperCase();
-        if (symbol && !selectedSymbols.includes(symbol)) {
-          handleAddSymbol(symbol);
+        if (symbol && !selectedSymbolsRef.current.includes(symbol)) {
+          handleAddSymbol(symbol, maxSymbols);
         }
       }
-    } else if (
-      e.key === "Backspace" &&
-      searchQuery === "" &&
-      selectedSymbols.length > 0
-    ) {
-      // Remove last symbol on backspace when input is empty
-      handleRemoveSymbol(selectedSymbols[selectedSymbols.length - 1]);
+      // } else if (
+      //   e.key === "Backspace" &&
+      //   searchQuery === "" &&
+      //   selectedSymbolsRef.current.length > 0
+      // ) {
+      //   // Remove last symbol on backspace when input is empty
+      //   handleRemoveSymbol(
+      //     selectedSymbolsRef.current[selectedSymbolsRef.current.length - 1]
+      //   );
     }
   };
 
@@ -162,12 +189,19 @@ export default function TickerSearch({
               </div>
             ) : filteredTickers.length > 0 ? (
               <div className="max-h-60 overflow-y-auto">
+                {isAtLimit && (
+                  <div className="px-4 py-2 text-xs text-amber-400 bg-amber-500/10 border-b border-slate-700">
+                    Limit of {maxSymbols} symbols reached
+                  </div>
+                )}
                 {filteredTickers.map((ticker) => (
                   <button
                     key={ticker.symbol}
                     type="button"
-                    onClick={() => handleAddSymbol(ticker.symbol)}
-                    disabled={selectedSymbols.includes(ticker.symbol)}
+                    onClick={() => handleAddSymbol(ticker.symbol, maxSymbols)}
+                    disabled={
+                      selectedSymbols.includes(ticker.symbol) || isAtLimit
+                    }
                     className="flex w-full items-center justify-between px-4 py-2.5 text-left transition-colors hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <div className="flex-1 overflow-hidden">
@@ -199,12 +233,16 @@ export default function TickerSearch({
       </div>
 
       {/* Helper Text */}
-      <p className="text-xs text-slate-500">
+      <p
+        className={`text-xs ${isAtLimit ? "text-amber-400" : "text-slate-500"}`}
+      >
         {selectedSymbols.length === 0
           ? "Start typing to search for stocks, or press Enter to add symbols manually"
-          : `${selectedSymbols.length} symbol${
-              selectedSymbols.length === 1 ? "" : "s"
-            } selected`}
+          : maxSymbols
+          ? `${selectedSymbols.length}/${maxSymbols} symbols (free tier)${
+              isAtLimit ? " (limit reached)" : ""
+            }`
+          : `${selectedSymbols.length} symbol`}
       </p>
     </div>
   );

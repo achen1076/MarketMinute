@@ -339,6 +339,7 @@ export default function SettingsContent({
               currentTier={subscriptionData.subscription.tier}
               features={[
                 { text: "2 Watchlists maximum", included: true },
+                { text: "20 Watchlist symbols maximum", included: true },
                 { text: "Top Quant Lab signals", included: true },
                 { text: "3 signals from your watchlist", included: true },
                 { text: "Sentinel market reports", included: true },
@@ -355,6 +356,7 @@ export default function SettingsContent({
               loading={loading}
               features={[
                 { text: "Unlimited Watchlists", included: true },
+                { text: "Unlimited Watchlist Symbols", included: true },
                 { text: "Top Quant Lab signals", included: true },
                 { text: "All signals from your watchlists", included: true },
                 { text: "Sentinel market reports", included: true },

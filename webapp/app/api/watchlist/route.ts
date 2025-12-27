@@ -7,6 +7,7 @@ import {
   RateLimitPresets,
   createRateLimitResponse,
 } from "@/lib/rateLimit";
+import { getTierConfig, SubscriptionTier } from "@/lib/subscription-tiers";
 
 export async function GET() {
   const session = await auth();
@@ -85,12 +86,18 @@ export async function POST(req: Request) {
     );
   }
 
+  // Enforce max items per watchlist limit
+  const tierConfig = getTierConfig(tier as SubscriptionTier);
+  const maxItems = tierConfig.features.maxWatchlistItems;
+  const symbolsToAdd =
+    maxItems === "unlimited" ? symbols : symbols.slice(0, maxItems);
+
   const watchlist = await prisma.watchlist.create({
     data: {
       name,
       userId: user.id,
       items: {
-        create: symbols.map((symbol, index) => ({ symbol, order: index })),
+        create: symbolsToAdd.map((symbol, index) => ({ symbol, order: index })),
       },
     },
     include: {

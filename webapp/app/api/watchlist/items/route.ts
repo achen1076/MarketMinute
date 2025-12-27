@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { checkLimit, SubscriptionTier } from "@/lib/subscription-tiers";
 
 // Add items to watchlist
 export async function POST(req: Request) {
@@ -21,6 +22,14 @@ export async function POST(req: Request) {
       status: 400,
     });
   }
+
+  // Get user with subscription tier
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { subscriptionTier: true },
+  });
+
+  const tier = (user?.subscriptionTier || "free") as SubscriptionTier;
 
   // Verify user owns the watchlist
   const watchlist = await prisma.watchlist.findFirst({
@@ -45,6 +54,24 @@ export async function POST(req: Request) {
     return NextResponse.json(watchlist);
   }
 
+  // Check watchlist items limit
+  const currentCount = watchlist.items.length;
+  const limitCheck = checkLimit(tier, "watchlistItems", currentCount);
+
+  if (!limitCheck.allowed) {
+    return NextResponse.json(
+      { error: limitCheck.message, limit: limitCheck.limit },
+      { status: 403 }
+    );
+  }
+
+  // Cap new symbols to stay within limit
+  const remainingSlots =
+    limitCheck.limit === "unlimited"
+      ? newSymbols.length
+      : limitCheck.limit - currentCount;
+  const symbolsToAdd = newSymbols.slice(0, remainingSlots);
+
   // Get the max order value to append new items
   const maxOrder = watchlist.items.reduce(
     (max, item) => Math.max(max, item.order || 0),
@@ -53,7 +80,7 @@ export async function POST(req: Request) {
 
   // Add new items with proper ordering
   await prisma.watchlistItem.createMany({
-    data: newSymbols.map((symbol, index) => ({
+    data: symbolsToAdd.map((symbol, index) => ({
       watchlistId,
       symbol,
       order: maxOrder + index + 1,
