@@ -291,9 +291,9 @@ Ticker: AAPL
 
 ### Design System
 
-- **Atoms** - Button, Card, Dialog, Stack, Box
-- **Molecules** - TickerSearch, TickerListClient, VolatilityCard, MarketSignalsCard, MarketSummaryCard, RegimeComponentsCard
-- **Organisms** - Sidebar, MarketTicker, MarketMinuteSummary, SmartAlertsBar, EventsTimeline, SentinelExplainToday, WhatThisMeans, ProfessionalInsights
+- **Atoms** - Badge, Box, Button, Card, Container, Dialog, EmptyState, Label, MiniSparkline, SectionHeader, SignOutButton, Stack, StatusBadge
+- **Molecules** - Accordion, AlertCard, EnhancedPredictionCard, ForecastCard, IconLabel, MarketSignalsCard, MarketSummaryCard, NavLink, QuantLabAvailableTickers, QuantLabLimitations, QuantLabMethodology, RegimeComponentsCard, TickerListClient, TickerSearch, TopSignalsView, UserInfo, VolatilityCard
+- **Organisms** - AdminSettings, DistributionalForecasts, EmailVerificationBanner, EventsTimeline, InsightCards, MarketForecastsClient, MarketMinuteSummary, MarketTicker, MovementAlertsBar, ProfessionalInsights, QuantLabClient, SentinelExplainToday, SentinelPreferences, SinceLastVisit, WatchlistSelector, WatchlistTimeline, WhatThisMeans, Sidebar
 
 ### Key Hooks
 
@@ -551,72 +551,112 @@ MarketMinute/
 │   │   ├── (auth)/           # Authentication pages
 │   │   │   ├── login/        # Login page
 │   │   │   └── signup/       # Signup page
+│   │   ├── about/            # About page
 │   │   ├── admin/            # Admin dashboard
-│   │   │   └── page.tsx      # Admin interface
-│   │   ├── api/              # API routes (30+ endpoints)
+│   │   ├── api/              # API routes (58 endpoints)
 │   │   │   ├── auth/         # Authentication endpoints
 │   │   │   ├── quant/        # Quant data endpoints
 │   │   │   ├── sentinel/     # Sentinel agent endpoints
 │   │   │   ├── watchlist/    # Watchlist endpoints
 │   │   │   └── ...           # Market data, news, etc.
+│   │   ├── features/         # Features showcase page
 │   │   ├── forecasts/        # ML forecasts page
-│   │   │   └── page.tsx      # Forecasts dashboard
 │   │   ├── history/          # Historical data view
-│   │   │   └── page.tsx      # History dashboard
+│   │   ├── how-it-works/     # How it works page
+│   │   ├── privacy/          # Privacy policy
 │   │   ├── quant/            # Quant lab interface
-│   │   │   └── page.tsx      # Quant dashboard
 │   │   ├── sentinel/         # Sentinel AI dashboard
 │   │   │   ├── page.tsx      # Sentinel dashboard
 │   │   │   └── [reportId]/   # Individual report view
+│   │   ├── settings/         # User settings
+│   │   ├── subscription/     # Subscription management
+│   │   ├── support/          # Support pages
+│   │   ├── terms/            # Terms of service
+│   │   ├── use-cases/        # Use cases page
 │   │   ├── watchlist/        # Watchlist management
 │   │   │   ├── page.tsx      # Watchlist dashboard
 │   │   │   └── [symbol]/     # Individual stock view
+│   │   ├── why-marketminute/ # Why MarketMinute page
 │   │   ├── DashboardClient.tsx  # Main dashboard client
 │   │   ├── layout.tsx        # Root layout
 │   │   ├── page.tsx          # Homepage
+│   │   ├── sitemap.ts        # Dynamic sitemap
 │   │   └── globals.css       # Global styles
 │   │
 │   ├── agents/               # AI agent systems
 │   │   └── sentinel/         # Sentinel agent implementation
 │   │       ├── agent/        # Core agent logic
-│   │       │   ├── drilldown.ts  # Drilldown causation
 │   │       │   ├── context.ts    # Context builder
+│   │       │   ├── drilldown.ts  # Drilldown causation
 │   │       │   ├── loop.ts       # Main execution loop
 │   │       │   ├── report.ts     # Report generation
+│   │       │   ├── triggers.ts   # Anomaly trigger detection
 │   │       │   └── types.ts      # Type definitions
 │   │       ├── config/       # Configuration
 │   │       │   ├── prompts.ts    # LLM prompts
 │   │       │   └── types.ts      # Config types
 │   │       ├── llm/          # LLM integration
-│   │       │   ├── client.ts     # OpenAI client
-│   │       │   ├── schemas.ts    # Response schemas
-│   │       │   └── ...       # Prompt engineering
+│   │       │   ├── openai.ts     # OpenAI client
+│   │       │   └── prompts/      # Prompt engineering templates
 │   │       └── services/     # Market data fetchers
-│   │           ├── marketData.ts    # Price data
-│   │           ├── newsService.ts   # News aggregation
-│   │           └── ...       # Sentiment, sector data
+│   │           ├── macro/        # Macro event services
+│   │           ├── market/       # Market snapshot (get_market_snapshot.ts)
+│   │           ├── notify/       # Notification services
+│   │           └── volatility/   # Volatility data services
 │   │
 │   ├── components/           # React components
 │   │   ├── README.md         # Component documentation
-│   │   ├── atoms/            # Basic UI components
+│   │   ├── atoms/            # Basic UI components (13)
 │   │   │   ├── Badge.tsx
+│   │   │   ├── Box.tsx
 │   │   │   ├── Button.tsx
 │   │   │   ├── Card.tsx
-│   │   │   ├── Input.tsx
-│   │   │   ├── LoadingSpinner.tsx
-│   │   │   └── ...           # 12 atomic components
-│   │   ├── molecules/        # Composite components
+│   │   │   ├── Container.tsx
+│   │   │   ├── Dialog.tsx
+│   │   │   ├── EmptyState.tsx
+│   │   │   ├── Label.tsx
+│   │   │   ├── MiniSparkline.tsx
+│   │   │   ├── SectionHeader.tsx
+│   │   │   ├── SignOutButton.tsx
+│   │   │   ├── Stack.tsx
+│   │   │   └── StatusBadge.tsx
+│   │   ├── molecules/        # Composite components (17)
+│   │   │   ├── Accordion.tsx
+│   │   │   ├── AlertCard.tsx
+│   │   │   ├── EnhancedPredictionCard.tsx
+│   │   │   ├── ForecastCard.tsx
+│   │   │   ├── IconLabel.tsx
 │   │   │   ├── MarketSignalsCard.tsx
 │   │   │   ├── MarketSummaryCard.tsx
+│   │   │   ├── NavLink.tsx
+│   │   │   ├── QuantLabAvailableTickers.tsx
+│   │   │   ├── QuantLabLimitations.tsx
+│   │   │   ├── QuantLabMethodology.tsx
 │   │   │   ├── RegimeComponentsCard.tsx
-│   │   │   ├── VolatilityCard.tsx
-│   │   │   └── ...           # 11 molecular components
-│   │   └── organisms/        # Complex feature components
-│   │       ├── LambdaCronRunner.tsx
+│   │   │   ├── TickerListClient.tsx
+│   │   │   ├── TickerSearch.tsx
+│   │   │   ├── TopSignalsView.tsx
+│   │   │   ├── UserInfo.tsx
+│   │   │   └── VolatilityCard.tsx
+│   │   └── organisms/        # Complex feature components (18)
+│   │       ├── AdminSettings.tsx
+│   │       ├── DistributionalForecasts.tsx
+│   │       ├── EmailVerificationBanner.tsx
+│   │       ├── EventsTimeline.tsx
+│   │       ├── InsightCards.tsx
+│   │       ├── MarketForecastsClient.tsx
+│   │       ├── MarketMinuteSummary.tsx
+│   │       ├── MarketTicker.tsx
+│   │       ├── MovementAlertsBar.tsx
 │   │       ├── ProfessionalInsights.tsx
+│   │       ├── QuantLabClient.tsx
 │   │       ├── SentinelExplainToday.tsx
+│   │       ├── SentinelPreferences.tsx
+│   │       ├── SinceLastVisit.tsx
+│   │       ├── WatchlistSelector.tsx
+│   │       ├── WatchlistTimeline.tsx
 │   │       ├── WhatThisMeans.tsx
-│   │       └── ...           # 20 organism components
+│   │       └── sidebar.tsx
 │   │
 │   ├── hooks/                # Custom React hooks
 │   │   ├── useMarketData.tsx

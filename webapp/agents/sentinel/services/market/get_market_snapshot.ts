@@ -83,11 +83,26 @@ async function fetchFMPQuotes(symbols: string[]): Promise<MarketIndex[]> {
 
       const quote = data[0];
       const price = quote.price ?? null;
-      const changePct = quote.changesPercentage ?? quote.changePercentage ?? 0;
+
+      // FMP returns changesPercentage as a percentage value (e.g., -1.5 for -1.5%)
+      // Debug log to catch incorrect values
+      const rawChangePct =
+        quote.changesPercentage ?? quote.changePercentage ?? 0;
+      let changePct = Number(rawChangePct) || 0;
+
+      // Sanity check: if changePct is unreasonably large, log and clamp
+      if (Math.abs(changePct) > 20) {
+        console.warn(
+          `[Sentinel] Suspicious changePct for ${symbol}: ${changePct}%. ` +
+            `Raw quote data: ${JSON.stringify(quote)}`
+        );
+        // Cap to prevent hallucinated reports
+        changePct = 0;
+      }
 
       results.push({
         symbol: symbol.toUpperCase(),
-        changePct: Number(changePct) || 0,
+        changePct,
         price: price ? Number(price) : null,
       });
     } catch (error) {

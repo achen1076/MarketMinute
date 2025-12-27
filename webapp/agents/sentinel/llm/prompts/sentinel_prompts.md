@@ -69,9 +69,9 @@ Rules:
 
 Examples:
 
-- “Small-cap stocks rose over 2%, leading the market higher.”
+- “Small-cap stocks rose about X% (use exact changePct from JSON), leading the market higher.”
 - “Materials and health-care sectors were among the strongest performers.”
-- “Volatility fell sharply, suggesting investors were less worried today.”
+- “Volatility fell, suggesting investors were less worried today.”
 
 ---
 
@@ -127,6 +127,7 @@ Examples of good questions:
 - Never assume user portfolios or preferences.
 - Use only information present in the JSON data.
 - Keep the tone friendly and clear.
+- **CRITICAL: When citing percentages, use ONLY the exact `changePct` values from the JSON data. Do NOT estimate, round significantly, or invent percentage values. If changePct is 0.01, say "about 0.01%" not "about 2%". If you're unsure of the exact value, describe the direction (up/down) without citing a specific percentage.**
 
 ---
 

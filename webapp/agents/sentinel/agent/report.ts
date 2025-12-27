@@ -22,9 +22,21 @@ async function loadPrompt(): Promise<string> {
 function buildPrompt(template: string, context: SentinelContext): string {
   const json = JSON.stringify(context, null, 2);
 
+  // Pre-format percentages so LLM can't hallucinate them
+  const indexSummary = context.market.indices
+    .map((i) => `${i.symbol}: ${i.changePct.toFixed(2)}%`)
+    .join(", ");
+  const sectorSummary = context.market.sectors
+    .map((s) => `${s.symbol}: ${s.changePct.toFixed(2)}%`)
+    .join(", ");
+
   return `${template}
 
 ---
+
+# EXACT PERCENTAGE VALUES (USE THESE EXACTLY)
+**Indices:** ${indexSummary}
+**Sectors:** ${sectorSummary}
 
 # CONTEXT DATA (JSON)
 ${json}
@@ -36,6 +48,8 @@ Return ONLY valid JSON with:
   "keyDrivers": ["..."],
   "macroContext": "..."
 }
+
+REMINDER: Use ONLY the exact percentages shown above. Do NOT invent different values.
 `;
 }
 
