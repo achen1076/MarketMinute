@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { CACHE_TTL_MS } from "@/lib/constants";
 import { isMarketOpen } from "@/lib/marketHours";
 
@@ -13,23 +13,24 @@ type TickerItem = {
 
 export function MarketTicker() {
   const [tickers, setTickers] = useState<TickerItem[]>([]);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollPositionRef = useRef(0);
+  const animationFrameRef = useRef<number | null>(null);
+  const isAnimatingRef = useRef(false);
 
-  const fetchTickers = async () => {
-    setIsRefreshing(true);
+  const fetchTickers = useCallback(async () => {
     try {
       const res = await fetch("/api/market-ticker");
       if (res.ok) {
         const data = await res.json();
-        setTickers(data.tickers || []);
+        if (data.tickers?.length > 0) {
+          setTickers(data.tickers);
+        }
       }
     } catch (error) {
       console.error("Failed to fetch market tickers:", error);
-    } finally {
-      setIsRefreshing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchTickers();
@@ -44,33 +45,39 @@ export function MarketTicker() {
     }, CACHE_TTL_MS);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchTickers]);
 
+  // Start animation once when tickers are first loaded
   useEffect(() => {
     const scrollContainer = scrollRef.current;
-    if (!scrollContainer || tickers.length === 0) return;
+    if (!scrollContainer || tickers.length === 0 || isAnimatingRef.current)
+      return;
 
-    let scrollPosition = 0;
-    const scrollSpeed = 1;
-    let animationFrameId: number;
+    isAnimatingRef.current = true;
+    const vwPerSecond = 7.5;
+    let lastTime = performance.now();
 
-    const animate = () => {
-      scrollPosition += scrollSpeed;
+    const animate = (currentTime: number) => {
+      const deltaTime = (currentTime - lastTime) / 1000;
+      lastTime = currentTime;
 
+      const pixelsPerSecond = (window.innerWidth * vwPerSecond) / 100;
       const singleSetWidth = scrollContainer.scrollWidth / 2;
 
-      if (scrollPosition >= singleSetWidth) {
-        scrollPosition = 0;
+      scrollPositionRef.current += pixelsPerSecond * deltaTime;
+
+      if (scrollPositionRef.current >= singleSetWidth) {
+        scrollPositionRef.current = 0;
       }
 
-      scrollContainer.scrollLeft = scrollPosition;
-      animationFrameId = requestAnimationFrame(animate);
+      scrollContainer.scrollLeft = scrollPositionRef.current;
+      animationFrameRef.current = requestAnimationFrame(animate);
     };
 
-    animationFrameId = requestAnimationFrame(animate);
+    animationFrameRef.current = requestAnimationFrame(animate);
 
     const handleResize = () => {
-      scrollPosition = 0;
+      scrollPositionRef.current = 0;
       if (scrollContainer) {
         scrollContainer.scrollLeft = 0;
       }
@@ -79,12 +86,13 @@ export function MarketTicker() {
     window.addEventListener("resize", handleResize);
 
     return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
       }
       window.removeEventListener("resize", handleResize);
+      isAnimatingRef.current = false;
     };
-  }, [tickers.length]);
+  }, [tickers.length > 0]); // Only run when tickers become available
 
   return (
     <div
