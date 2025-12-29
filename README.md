@@ -10,6 +10,25 @@ MarketMinute is a full-stack financial intelligence platform that combines real-
 
 ## 🆕 Recent Updates
 
+### AI Chat Agent & MCP Tools (v2.3 - Dec 2025)
+
+- **🤖 AI Chat Interface** - Conversational agent for market queries at `/chat`
+- **🔧 Model Context Protocol (MCP)** - 20+ tools for AI agent to access MarketMinute data
+  - Market: `get_quote_snapshot`, `get_top_movers`, `get_market_summary`
+  - User: `get_watchlists`, `get_alerts`, `create_watchlist`, `edit_watchlist`
+  - QuantLab: `get_quant_signals`, `get_model_quality`, `get_top_signals`
+  - Sentinel: `get_sentinel_report`, `get_insights`
+  - News: `get_ticker_news`, `get_ticker_events`, `get_macro_events`
+  - Analysis: `get_sentiment`, `get_ticker_alerts`, `get_explanation`
+  - Info: `about_marketminute`
+- **📊 Model Quality Tiers** - Quality classification for ML models
+  - **Best** (🏆) - Excellent Sharpe ratio (>3) and Profit Factor (>2)
+  - **Excellent** (✓) - Good metrics, recommended for trading
+  - **Good** - Marginal performance
+  - **Low Quality** (⚠) - Poor metrics, not recommended
+- **⚡ Lambda Agent** - Serverless agent orchestrator with OpenAI GPT-5-mini
+- **🔄 Type Coercion** - Automatic argument type conversion for tool calls
+
 ### News-Aware Predictions (v2.2 - Dec 2025)
 
 - **📰 Bayesian News Integration** - ML model probabilities adjusted using news sentiment and relevance
@@ -175,6 +194,14 @@ The system uses a serverless architecture with three main components:
 - **Infrastructure as Code** - Terraform configuration for reproducible deployments
 - **Simple API Authentication** - FMP API key for data access (no OAuth required)
 - **Database Integration** - Lambda saves results directly to production database
+
+### 💬 AI Chat Agent
+
+- **Conversational Interface** - Natural language queries about markets, watchlists, and signals
+- **MCP Tool Integration** - 20+ tools for real-time data access
+- **Lambda Orchestrator** - Serverless agent with GPT-5-mini reasoning
+- **Context Awareness** - Maintains conversation history for follow-up questions
+- **Auto Type Coercion** - Handles OpenAI's string-typed arguments automatically
 
 ### 🎨 User Experience
 
@@ -510,6 +537,36 @@ MarketMinute/
 ├── .gitignore                 # Git ignore rules
 ├── README.md                  # Project documentation
 ├── deploy.sh                  # Main deployment script
+│
+├── platform/                  # AI Agent & MCP infrastructure
+│   ├── agent/                 # Lambda agent orchestrator
+│   │   ├── scripts/
+│   │   │   └── build-lambda.sh  # Build and deploy script
+│   │   ├── src/
+│   │   │   ├── lambda/
+│   │   │   │   ├── handler.ts    # Lambda entry point
+│   │   │   │   └── orchestrator.ts  # Agentic loop with tool calling
+│   │   │   └── tools/
+│   │   │       └── registry.ts   # Tool registry for Lambda
+│   │   ├── Dockerfile         # Lambda container
+│   │   └── package.json
+│   │
+│   ├── mcp/                   # Model Context Protocol tools
+│   │   └── src/
+│   │       ├── tools/         # Tool implementations
+│   │       │   ├── market/    # get_quote_snapshot, get_top_movers, etc.
+│   │       │   ├── user/      # get_watchlists, create_watchlist, etc.
+│   │       │   ├── quantlab/  # get_quant_signals, get_model_quality, etc.
+│   │       │   ├── sentinel/  # get_sentinel_report, get_insights
+│   │       │   ├── news/      # get_ticker_news, get_ticker_events, etc.
+│   │       │   ├── analysis/  # get_sentiment, get_explanation, etc.
+│   │       │   └── info/      # about_marketminute
+│   │       └── ops/           # Shared operations (db, time)
+│   │
+│   └── shared/                # Shared schemas and types
+│       ├── schemas/
+│       │   └── tools/         # Zod schemas for all tools
+│       └── types/
 │
 ├── services/                  # ML microservices (EC2-hosted)
 │   ├── redeploy_models.sh     # Model redeployment script

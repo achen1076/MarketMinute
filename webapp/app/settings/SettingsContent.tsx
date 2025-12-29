@@ -345,6 +345,7 @@ export default function SettingsContent({
                 { text: "Sentinel market reports", included: true },
                 { text: "Price forecasts", included: true },
                 { text: "Unlimited watchlists", included: false },
+                { text: "Unlimited watchlist symbols", included: false },
                 { text: "All quant signals", included: false },
               ]}
             />
