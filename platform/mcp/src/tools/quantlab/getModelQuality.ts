@@ -16,7 +16,7 @@ const QUALITY_LABELS: Record<string, string> = {
 };
 
 async function fetchModelMetadata(): Promise<Record<string, any>> {
-  const apiUrl = process.env.WEBAPP_URL || "https://market-minute.vercel.app";
+  const apiUrl = process.env.WEBAPP_URL;
 
   try {
     const response = await fetch(`${apiUrl}/api/quant/model-metadata`, {

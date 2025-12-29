@@ -34,6 +34,59 @@ RULES:
 const MAX_TOOL_CALLS = 10;
 
 /**
+ * Coerce tool arguments to correct types.
+ * OpenAI sometimes passes strings instead of arrays/numbers/booleans.
+ */
+function coerceToolArgs(args: Record<string, any>): Record<string, any> {
+  const coerced = { ...args };
+
+  for (const [key, value] of Object.entries(coerced)) {
+    if (typeof value !== "string") continue;
+
+    // Array fields - convert comma-separated string or single value to array
+    if (["tickers", "eventTypes", "types", "watchlistIds"].includes(key)) {
+      if (value.startsWith("[")) {
+        try {
+          coerced[key] = JSON.parse(value);
+        } catch {
+          coerced[key] = value.split(",").map((s) => s.trim());
+        }
+      } else {
+        coerced[key] = value.split(",").map((s) => s.trim());
+      }
+      continue;
+    }
+
+    // Number fields - convert string to number
+    if (
+      [
+        "maxAgeSeconds",
+        "limit",
+        "days",
+        "daysAhead",
+        "topN",
+        "changePct",
+        "price",
+      ].includes(key)
+    ) {
+      const num = parseFloat(value);
+      if (!isNaN(num)) {
+        coerced[key] = num;
+      }
+      continue;
+    }
+
+    // Boolean fields - convert string to boolean
+    if (["includeForecasts", "deployableOnly", "includeEmpty"].includes(key)) {
+      coerced[key] = value === "true" || value === "1";
+      continue;
+    }
+  }
+
+  return coerced;
+}
+
+/**
  * Lambda-compatible orchestrator that calls tools directly (no MCP subprocess).
  */
 export class LambdaOrchestrator {
@@ -97,7 +150,7 @@ export class LambdaOrchestrator {
       for (const toolCall of toolCalls) {
         toolCallCount++;
         const name = toolCall.name;
-        const args = JSON.parse(toolCall.arguments);
+        const args = coerceToolArgs(JSON.parse(toolCall.arguments));
 
         // Inject userId for user-specific tools
         if (
