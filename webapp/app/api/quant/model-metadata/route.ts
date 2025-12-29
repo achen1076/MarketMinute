@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 
 const S3_BUCKET = process.env.MODEL_METADATA_S3_BUCKET;
@@ -60,11 +59,6 @@ async function fetchModelMetadata(): Promise<Record<string, ModelQuality>> {
 }
 
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.email) {
-    return new NextResponse("Unauthorized", { status: 401 });
-  }
-
   try {
     const metadata = await fetchModelMetadata();
 
