@@ -59,8 +59,7 @@ export async function GET(request: NextRequest) {
 
     switch (range) {
       case "1D":
-        const oneDayFrom = getFromDate(3);
-        url = `https://financialmodelingprep.com/stable/historical-chart/1min?symbol=${symbol}&from=${oneDayFrom}&to=${oneDayFrom}&apikey=${apiKey}`;
+        url = `https://financialmodelingprep.com/stable/historical-chart/1min?symbol=${symbol}&apikey=${apiKey}`;
         break;
       case "5D":
         const fiveDayFrom = getFromDate(7);
