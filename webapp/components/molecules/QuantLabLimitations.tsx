@@ -39,6 +39,13 @@ export function QuantLabLimitations() {
       {showLimitations && (
         <ul className="space-y-2 text-sm text-slate-300">
           <li>
+            • <strong>Model Quality Varies:</strong> Not every model can be
+            great. Each ticker has its own model trained on historical data.
+            Some stocks are more predictable than others. Quality ratings (Best,
+            Excellent, Good, Losing) reflect backtested performance and are
+            updated with each retrain.
+          </li>
+          <li>
             • <strong>Daily Bar Only:</strong> Predictions are based on daily
             closing prices and does not capture intraday movements. A stock
             could have significant intraday volatility even if it closes near
@@ -53,7 +60,8 @@ export function QuantLabLimitations() {
           <li>
             • <strong>Past ≠ Future:</strong> Models learn from historical
             patterns. If market dynamics change (regime shift, new regulations,
-            unprecedented events), historical patterns may not hold.
+            unprecedented events), historical patterns may not hold. Model
+            quality can improve or degrade over time as markets evolve.
           </li>
           <li>
             • <strong>Probability, Not Certainty:</strong> A 70% confidence

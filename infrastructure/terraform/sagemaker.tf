@@ -29,5 +29,3 @@ resource "aws_sagemaker_endpoint" "quant" {
   endpoint_config_name = aws_sagemaker_endpoint_configuration.quant.name
 }
 
-# Sentiment and Relevance models moved to EC2
-# See ec2_ml_services.tf

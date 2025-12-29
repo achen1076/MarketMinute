@@ -1,13 +1,13 @@
 """
 Quick data prep script to create processed data for institutional system.
-Uses existing Schwab data fetcher.
+Uses FMP (Financial Modeling Prep) API for market data.
 """
 import yaml
 from datetime import datetime, timedelta
 import pandas as pd
 from pathlib import Path
 
-from src.data.schwab_data import SchwabDataFetcher
+from src.data.fmp_data import FMPDataFetcher
 
 
 def main():
@@ -25,8 +25,7 @@ def main():
     print(f"Total: {total_tickers} tickers")
 
     print("PROGRESS:10:Initializing data fetcher...", flush=True)
-    # Initialize fetcher
-    fetcher = SchwabDataFetcher()
+    fetcher = FMPDataFetcher()
 
     # Fetch data for each ticker
     print("PROGRESS:15:Starting data fetch...", flush=True)

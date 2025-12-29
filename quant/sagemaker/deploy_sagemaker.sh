@@ -63,13 +63,35 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR"
 
 rm -rf models src
-if [ ! -d "../models/lgbm" ]; then
-    echo -e "${RED}❌ Error: Models not found at ../models/lgbm${NC}"
+mkdir -p models
+
+# Copy return models (preferred) and lgbm models as fallback
+if [ -d "../models/return" ]; then
+    cp ../models/return/*.pkl models/ 2>/dev/null || true
+    RETURN_COUNT=$(ls -1 models/*_return.pkl 2>/dev/null | wc -l | tr -d ' ')
+    echo -e "${GREEN}✅ Copied $RETURN_COUNT return models${NC}"
+fi
+
+if [ -d "../models/lgbm" ]; then
+    cp ../models/lgbm/*.pkl models/ 2>/dev/null || true
+    LGBM_COUNT=$(ls -1 models/*_lgbm.pkl 2>/dev/null | wc -l | tr -d ' ')
+    echo -e "${GREEN}✅ Copied $LGBM_COUNT lgbm models${NC}"
+fi
+
+# Also copy model metadata for the endpoint
+if [ -f "../models/model_metadata.json" ]; then
+    cp ../models/model_metadata.json models/
+    echo -e "${GREEN}✅ Copied model_metadata.json${NC}"
+fi
+
+TOTAL_MODELS=$(ls -1 models/*.pkl 2>/dev/null | wc -l | tr -d ' ')
+if [ "$TOTAL_MODELS" -eq 0 ]; then
+    echo -e "${RED}❌ Error: No models found${NC}"
     exit 1
 fi
-cp -r ../models/lgbm models
+
 cp -r ../src src
-echo -e "${GREEN}✅ Copied models and src/ to build context${NC}"
+echo -e "${GREEN}✅ Total models: $TOTAL_MODELS${NC}"
 echo
 
 # 4) Build image (disable provenance to avoid OCI manifest issues with SageMaker)

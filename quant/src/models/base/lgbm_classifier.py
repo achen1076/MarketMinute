@@ -90,8 +90,9 @@ def compute_class_weights(y):
 class LGBMClassifier:
     """LightGBM classifier with hybrid imbalance handling."""
 
-    def __init__(self, params=None, use_tuning=False, use_gpu='auto'):
+    def __init__(self, params=None, use_tuning=False, use_gpu='auto', confidence_threshold=0.65):
         self.use_tuning = use_tuning
+        self.confidence_threshold = confidence_threshold
 
         if use_gpu == "auto":
             self.use_gpu = check_gpu_available()
@@ -120,7 +121,15 @@ class LGBMClassifier:
             default_params["gpu_platform_id"] = 0
             default_params["gpu_device_id"] = 0
 
-        self.params = params or default_params
+        # Merge tuned params with defaults (tuned params override, but keep required base params)
+        if params:
+            self.params = {**default_params, **params}
+            # Ensure critical multiclass params are always set
+            self.params['objective'] = 'multiclass'
+            self.params['num_class'] = 3
+            self.params['metric'] = 'multi_logloss'
+        else:
+            self.params = default_params
         self.model = None
         self.scaler = StandardScaler()
         self.feature_names = None
@@ -184,6 +193,16 @@ class LGBMClassifier:
     def predict(self, X):
         probas = self.predict_proba(X)
         labels = np.argmax(probas, axis=1)
+        max_probs = np.max(probas, axis=1)
+
+        # Apply confidence threshold: only predict directional (±1) if confident
+        # Otherwise default to neutral (0)
+        neutral_idx = 1  # Neutral class in 0,1,2 mapping
+        labels = np.where(
+            (labels != neutral_idx) & (max_probs < self.confidence_threshold),
+            neutral_idx,  # Force to neutral if not confident
+            labels
+        )
 
         # Map back to -1,0,1
         label_map_reverse = {0: -1, 1: 0, 2: 1}

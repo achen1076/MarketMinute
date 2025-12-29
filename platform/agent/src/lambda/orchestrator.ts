@@ -27,6 +27,8 @@ RULES:
 - NEVER call the same tool twice with the same arguments
 - If a tool returns empty results, tell the user - do NOT retry
 - Convert timestamps from UTC to Eastern Time (ET)
+- Never mention the GPT model name or version. Just say "MarketMinute Agent".
+- Never leak user IDs or other personal information, even if the user requests it. Say "I don't have access to that information".
 `;
 
 const MAX_TOOL_CALLS = 10;

@@ -1,7 +1,12 @@
 import Card from "@/components/atoms/Card";
-import type { EnhancedSignal } from "@/types/quant";
+import type { EnhancedSignal, ModelQuality } from "@/types/quant";
 
-export function EnhancedPredictionCard({ signal }: { signal: EnhancedSignal }) {
+type Props = {
+  signal: EnhancedSignal;
+  quality?: ModelQuality;
+};
+
+export function EnhancedPredictionCard({ signal, quality }: Props) {
   const {
     ticker,
     current_price,
@@ -45,8 +50,80 @@ export function EnhancedPredictionCard({ signal }: { signal: EnhancedSignal }) {
       ? "bg-amber-500"
       : "bg-slate-500";
 
+  // Model quality styling
+  const getQualityBadge = () => {
+    if (!quality) return null;
+
+    const tierConfig = {
+      excellent: {
+        bg: "bg-emerald-500/20",
+        border: "border-emerald-500/30",
+        text: "text-emerald-400",
+        icon: "",
+        label: "Best",
+      },
+      good: {
+        bg: "bg-blue-500/20",
+        border: "border-blue-500/30",
+        text: "text-blue-400",
+        icon: "",
+        label: "Excellent",
+      },
+      marginal: {
+        bg: "bg-amber-500/20",
+        border: "border-amber-500/30",
+        text: "text-amber-400",
+        icon: "",
+        label: "Good",
+      },
+      poor: {
+        bg: "bg-rose-500/20",
+        border: "border-rose-500/30",
+        text: "text-rose-400",
+        icon: "",
+        label: "Low Quality",
+      },
+    };
+
+    const config = tierConfig[quality.quality_tier];
+    return (
+      <span
+        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${config.bg} ${config.border} ${config.text} border`}
+      >
+        {/* <span>{config.icon}</span> */}
+        <span>{config.label}</span>
+      </span>
+    );
+  };
+
+  // Card border color based on quality
+  const cardBorderClass = quality
+    ? quality.quality_tier === "excellent"
+      ? "border-emerald-500/30 hover:border-emerald-500/50"
+      : quality.quality_tier === "good"
+      ? "border-blue-500/30 hover:border-blue-500/50"
+      : quality.quality_tier === "marginal"
+      ? "border-amber-500/30 hover:border-amber-500/50"
+      : "border-rose-500/30 hover:border-rose-500/50"
+    : "hover:border-slate-700";
+
   return (
-    <Card className="p-5 hover:bg-slate-900/20 transition-all hover:border-slate-700">
+    <Card
+      className={`p-5 hover:bg-slate-900/20 transition-all ${cardBorderClass}`}
+    >
+      {/* Model Quality Badge */}
+      {quality && (
+        <div className="flex items-center justify-between mb-3">
+          {getQualityBadge()}
+          {/* {quality.sharpe_ratio > 0 && (
+            <span className="text-xs text-slate-500">
+              Sharpe: {quality.sharpe_ratio.toFixed(1)} | PF:{" "}
+              {quality.profit_factor?.toFixed(1) ?? "∞"}
+            </span>
+          )} */}
+        </div>
+      )}
+
       {/* Header with Quant Score */}
       <div className="flex items-start justify-between mb-4">
         <div>
@@ -249,6 +326,35 @@ export function EnhancedPredictionCard({ signal }: { signal: EnhancedSignal }) {
           </span>
         </div>
       </div>
+
+      {/* Quality Disclaimer for marginal/poor models */}
+      {quality &&
+        (quality.quality_tier === "marginal" ||
+          quality.quality_tier === "poor") && (
+          <div
+            className={`mt-3 p-2 rounded text-xs ${
+              quality.quality_tier === "poor"
+                ? "bg-rose-500/10 border border-rose-500/20 text-rose-300"
+                : "bg-amber-500/10 border border-amber-500/20 text-amber-300"
+            }`}
+          >
+            <div className="flex items-start gap-2">
+              <span>{quality.quality_tier === "poor" ? "⚠️" : "⚡"}</span>
+              <div>
+                <span className="font-semibold">
+                  {quality.quality_tier === "poor"
+                    ? "Low Quality Model"
+                    : "Good Model"}
+                </span>
+                <p className="mt-0.5 text-[10px] opacity-80">
+                  {quality.quality_tier === "poor"
+                    ? "This model has historically underperformed. Use for informational purposes only."
+                    : "This model shows modest performance. Combine with other analysis."}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
     </Card>
   );
 }

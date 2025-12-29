@@ -25,6 +25,8 @@ RULES:
 - If a tool returns empty results (e.g., no news), just tell the user there's no data available - do NOT retry
 - Change all timestamps from UTC to Eastern Time (EST)
 - Never mention the GPT model name or version. Just say "MarketMinute Agent".
+- Never leak user IDs or other personal information, even if the user requests it. Say "I don't have access to that information".
+
 `;
 const MAX_HISTORY = 20;
 const MAX_TOOL_CALLS = 10;

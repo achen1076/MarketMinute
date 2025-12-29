@@ -8,7 +8,12 @@ import { TopSignalsView } from "@/components/molecules/TopSignalsView";
 import { QuantLabMethodology } from "@/components/molecules/QuantLabMethodology";
 import { QuantLabLimitations } from "@/components/molecules/QuantLabLimitations";
 import { QuantLabAvailableTickers } from "@/components/molecules/QuantLabAvailableTickers";
-import type { Prediction, EnhancedSignal } from "@/types/quant";
+import { ModelQualityLegend } from "@/components/molecules/ModelQualityLegend";
+import {
+  ModelQualityFilter,
+  type QualityFilterValue,
+} from "@/components/molecules/ModelQualityFilter";
+import type { Prediction, EnhancedSignal, ModelQuality } from "@/types/quant";
 
 type Props = {
   symbols: string[];
@@ -18,11 +23,27 @@ type Props = {
 export function QuantLabClient({ symbols, watchlistName }: Props) {
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [enhancedSignals, setEnhancedSignals] = useState<EnhancedSignal[]>([]);
+  const [modelQuality, setModelQuality] = useState<
+    Record<string, ModelQuality>
+  >({});
   const [viewMode, setViewMode] = useState<"signals" | "top">("top");
   const [sortBy, setSortBy] = useState<"default" | "score" | "name">("default");
+  const [qualityFilter, setQualityFilter] = useState<QualityFilterValue>("all");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userTier, setUserTier] = useState<string | null>(null);
+
+  const fetchModelQuality = async () => {
+    try {
+      const response = await fetch("/api/quant/model-metadata");
+      if (response.ok) {
+        const data = await response.json();
+        setModelQuality(data.models || {});
+      }
+    } catch (err) {
+      console.error("Failed to fetch model quality:", err);
+    }
+  };
 
   const fetchPredictions = async () => {
     setIsLoading(true);
@@ -64,18 +85,29 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
 
   useEffect(() => {
     fetchPredictions();
+    fetchModelQuality();
     fetchUserTier();
   }, [symbols]);
 
-  const getSortedSignals = () => {
+  const getFilteredAndSortedSignals = () => {
+    // First filter by quality
+    let filtered = enhancedSignals;
+    if (qualityFilter !== "all" && Object.keys(modelQuality).length > 0) {
+      filtered = enhancedSignals.filter((s) => {
+        const quality = modelQuality[s.ticker];
+        if (!quality) return false;
+        if (qualityFilter === "deployable") return quality.deployable;
+        return quality.quality_tier === qualityFilter;
+      });
+    }
+
+    // Then sort
     if (sortBy === "score") {
-      return [...enhancedSignals].sort((a, b) => b.quantScore - a.quantScore);
+      return [...filtered].sort((a, b) => b.quantScore - a.quantScore);
     } else if (sortBy === "name") {
-      return [...enhancedSignals].sort((a, b) =>
-        a.ticker.localeCompare(b.ticker)
-      );
+      return [...filtered].sort((a, b) => a.ticker.localeCompare(b.ticker));
     } else {
-      return enhancedSignals;
+      return filtered;
     }
   };
 
@@ -158,24 +190,6 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
         </div>
       </div>
 
-      {/* Sort Dropdown - only show for All Signals view */}
-      {viewMode === "signals" && (
-        <div className="flex items-center justify-end gap-2">
-          <span className="text-xs text-slate-500">Sort:</span>
-          <select
-            value={sortBy}
-            onChange={(e) =>
-              setSortBy(e.target.value as "default" | "score" | "name")
-            }
-            className="px-3 py-2 rounded-lg text-sm bg-slate-800/50 text-slate-300 border border-slate-700 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/50"
-          >
-            <option value="default">Default</option>
-            <option value="score">Quant Score</option>
-            <option value="name">Name (A-Z)</option>
-          </select>
-        </div>
-      )}
-
       {/* Free Tier Limitation Banner */}
       {userTier === "free" && viewMode === "signals" && (
         <div className="rounded-lg border border-blue-500/30 bg-blue-500/5 p-4">
@@ -201,15 +215,51 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
         </div>
       )}
 
+      {/* Model Quality Legend */}
+      {Object.keys(modelQuality).length > 0 && <ModelQualityLegend />}
+
+      {/* Filter and Sort Controls - only show for All Signals view */}
+      {viewMode === "signals" && (
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <ModelQualityFilter
+            value={qualityFilter}
+            onChange={setQualityFilter}
+            filteredCount={getFilteredAndSortedSignals().length}
+          />
+          {/* Sort */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-500">Sort:</span>
+            <select
+              value={sortBy}
+              onChange={(e) =>
+                setSortBy(e.target.value as "default" | "score" | "name")
+              }
+              className="px-3 py-2 rounded-lg text-sm bg-slate-800/50 text-slate-300 border border-slate-700 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/50"
+            >
+              <option value="default">Default</option>
+              <option value="score">Quant Score</option>
+              <option value="name">Name (A-Z)</option>
+            </select>
+          </div>
+        </div>
+      )}
+
       {/* View Modes */}
       {viewMode === "top" ? (
         <div className="space-y-4">
-          <TopSignalsView signals={enhancedSignals} />
+          <TopSignalsView
+            signals={enhancedSignals}
+            modelQuality={modelQuality}
+          />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {getSortedSignals().map((signal) => (
-            <EnhancedPredictionCard key={signal.ticker} signal={signal} />
+          {getFilteredAndSortedSignals().map((signal) => (
+            <EnhancedPredictionCard
+              key={signal.ticker}
+              signal={signal}
+              quality={modelQuality[signal.ticker]}
+            />
           ))}
         </div>
       )}

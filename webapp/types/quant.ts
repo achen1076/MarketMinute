@@ -1,3 +1,13 @@
+export type ModelQuality = {
+  sharpe_ratio: number;
+  profit_factor: number | null;
+  win_rate: number;
+  num_trades: number;
+  max_drawdown: number;
+  deployable: boolean;
+  quality_tier: "excellent" | "good" | "marginal" | "poor";
+};
+
 export type Prediction = {
   ticker: string;
   timestamp: string;
@@ -17,6 +27,8 @@ export type Prediction = {
   take_profit: number | null;
   stop_loss: number | null;
   atr: number;
+  // Model quality metrics
+  model_quality?: ModelQuality;
 };
 
 export type EnhancedSignal = Prediction & {

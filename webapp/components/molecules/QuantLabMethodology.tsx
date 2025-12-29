@@ -76,29 +76,69 @@ export function QuantLabMethodology() {
             predictions.
           </div>
 
+          {/* Model Quality Details */}
+          <details className="mt-4">
+            <summary className="cursor-pointer text-slate-400 hover:text-teal-400 transition-colors text-xs">
+              Model Quality Metrics
+            </summary>
+            <div className="mt-3 space-y-2 text-xs text-slate-400 pl-4 border-l-2 border-slate-700">
+              <p>
+                <strong className="text-slate-300">Quality Tiers:</strong> Each
+                model is rated based on backtested performance metrics.
+              </p>
+              <div className="mt-2 space-y-1">
+                <p>
+                  <span className="text-emerald-400">Best:</span> Sharpe Ratio
+                  &gt;5, Profit Factor &gt;3 — Top performing models
+                </p>
+                <p>
+                  <span className="text-blue-400">Excellent:</span> Sharpe Ratio
+                  &gt;1, Profit Factor &gt;1.5 — Profitable models
+                </p>
+                <p>
+                  <span className="text-amber-400">Good:</span> Profit Factor
+                  1.0-1.5 — Break-even to modest performance
+                </p>
+                <p>
+                  <span className="text-rose-400">Low Quality:</span> Profit
+                  Factor &lt;1.0 — Historically underperforming
+                </p>
+              </div>
+              <p className="mt-2">
+                <strong className="text-slate-300">Sharpe Ratio:</strong>{" "}
+                Risk-adjusted return metric. Higher is better. Values above 1.0
+                indicate returns exceed the risk taken.
+              </p>
+              <p>
+                <strong className="text-slate-300">Profit Factor:</strong> Gross
+                profits ÷ gross losses. Above 1.0 means profitable overall. A
+                value of 2.0 means $2 gained for every $1 lost.
+              </p>
+              <p className="italic mt-2">
+                Quality ratings are updated each time models are retrained.
+                Performance can change as market conditions evolve.
+              </p>
+            </div>
+          </details>
+
           {/* Technical Details Subsection */}
           <details className="mt-4">
             <summary className="cursor-pointer text-slate-400 hover:text-teal-400 transition-colors text-xs">
-              Model Details (Technical)
+              Model Architecture (Technical)
             </summary>
             <div className="mt-3 space-y-2 text-xs text-slate-400 pl-4 border-l-2 border-slate-700">
               <p>
                 <strong className="text-slate-300">Architecture:</strong>{" "}
-                LightGBM gradient boosting classifier with hybrid class
-                balancing
+                LightGBM gradient boosting with return prediction
               </p>
               <p>
-                <strong className="text-slate-300">Features:</strong> 39+
-                technical indicators including lag features (prev_close_return,
-                prev_body, prev_range) for momentum context
+                <strong className="text-slate-300">Features:</strong> 36+
+                technical indicators including regime detection, momentum, and
+                volatility features
               </p>
               <p>
-                <strong className="text-slate-300">Labeling:</strong>{" "}
-                Two-threshold system with dominant neutral class
-              </p>
-              <p>
-                <strong className="text-slate-300">Dynamic Thresholds:</strong>{" "}
-                Volatility-aware bands (30-day window) adapt to market regimes
+                <strong className="text-slate-300">Prediction:</strong>{" "}
+                Return-based regression model with directional thresholding
               </p>
               <p>
                 <strong className="text-slate-300">Training Data:</strong> Up to

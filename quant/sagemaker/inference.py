@@ -16,22 +16,30 @@ def model_fn(model_dir):
     Models are loaded on-demand in predict_fn to save memory.
     """
     model_path = Path(MODEL_DIR)
-    available_models = [f.stem.replace("_lgbm", "")
-                        for f in model_path.glob("*_lgbm.pkl")]
+    # Support both return and lgbm models
+    available_return = [f.stem.replace("_return", "")
+                        for f in model_path.glob("*_return.pkl")]
+    available_lgbm = [f.stem.replace("_lgbm", "")
+                      for f in model_path.glob("*_lgbm.pkl")]
 
-    print(
-        f"Model directory ready with {len(available_models)} models available")
+    total = len(available_return) + len(available_lgbm)
+    print(f"Model directory ready with {total} models available")
+    print(f"  - Return models: {len(available_return)}")
+    print(f"  - LGBM models: {len(available_lgbm)}")
     print(f"Memory optimization: Models will be lazy-loaded on demand")
 
     return model_path
 
 
 def load_model(ticker):
-    """Lazy-load a model only when needed"""
+    """Lazy-load a model only when needed. Prefers return model over lgbm."""
     if ticker in _model_cache:
         return _model_cache[ticker]
 
-    model_path = Path(MODEL_DIR) / f"{ticker}_lgbm.pkl"
+    # Try return model first (better performance), then lgbm
+    model_path = Path(MODEL_DIR) / f"{ticker}_return.pkl"
+    if not model_path.exists():
+        model_path = Path(MODEL_DIR) / f"{ticker}_lgbm.pkl"
     if not model_path.exists():
         return None
 

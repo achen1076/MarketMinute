@@ -1,14 +1,46 @@
-import Card from "@/components/atoms/Card";
-import type { EnhancedSignal } from "@/types/quant";
+"use client";
 
-export function TopSignalsView({ signals }: { signals: EnhancedSignal[] }) {
+import { useState } from "react";
+import Card from "@/components/atoms/Card";
+import {
+  ModelQualityFilter,
+  type QualityFilterValue,
+} from "@/components/molecules/ModelQualityFilter";
+import type { EnhancedSignal, ModelQuality } from "@/types/quant";
+
+type Props = {
+  signals: EnhancedSignal[];
+  modelQuality?: Record<string, ModelQuality>;
+};
+
+export function TopSignalsView({ signals, modelQuality = {} }: Props) {
+  const [qualityFilter, setQualityFilter] = useState<QualityFilterValue>("all");
+
   const tradeableSignals = signals
-    .filter((s) => s.isTradeable)
+    .filter((s) => {
+      if (!s.isTradeable) return false;
+      if (qualityFilter === "all") return true;
+      const quality = modelQuality[s.ticker];
+      if (!quality) return false;
+      if (qualityFilter === "deployable") return quality.deployable;
+      return quality.quality_tier === qualityFilter;
+    })
     .sort((a, b) => b.quantScore - a.quantScore)
     .slice(0, 10);
 
+  const hasQualityData = Object.keys(modelQuality).length > 0;
+
   return (
     <div className="space-y-6">
+      {/* Quality Filter */}
+      {hasQualityData && (
+        <ModelQualityFilter
+          value={qualityFilter}
+          onChange={setQualityFilter}
+          filteredCount={tradeableSignals.length}
+        />
+      )}
+
       {/* Top Signals List */}
       {tradeableSignals.length > 0 ? (
         <div className="space-y-3">
@@ -49,6 +81,33 @@ export function TopSignalsView({ signals }: { signals: EnhancedSignal[] }) {
                     >
                       Score: {signal.quantScore}
                     </div>
+                    {/* Model Quality Badge */}
+                    {modelQuality[signal.ticker] && (
+                      <span
+                        className={`px-2 py-0.5 rounded text-xs font-medium border ${
+                          modelQuality[signal.ticker].quality_tier ===
+                          "excellent"
+                            ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-400"
+                            : modelQuality[signal.ticker].quality_tier ===
+                              "good"
+                            ? "bg-blue-500/20 border-blue-500/30 text-blue-400"
+                            : modelQuality[signal.ticker].quality_tier ===
+                              "marginal"
+                            ? "bg-amber-500/20 border-amber-500/30 text-amber-400"
+                            : "bg-rose-500/20 border-rose-500/30 text-rose-400"
+                        }`}
+                      >
+                        {modelQuality[signal.ticker].quality_tier ===
+                        "excellent"
+                          ? "Best"
+                          : modelQuality[signal.ticker].quality_tier === "good"
+                          ? "Excellent"
+                          : modelQuality[signal.ticker].quality_tier ===
+                            "marginal"
+                          ? "Good"
+                          : "Low Quality"}
+                      </span>
+                    )}
                   </div>
                   <p className="text-sm text-slate-300 mb-2">
                     {signal.signalDescription}
