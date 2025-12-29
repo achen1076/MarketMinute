@@ -102,7 +102,13 @@ export class LambdaOrchestrator {
         // Inject userId for user-specific tools
         if (
           userId &&
-          ["get_top_movers", "get_watchlists", "get_alerts"].includes(name)
+          [
+            "get_top_movers",
+            "get_watchlists",
+            "get_alerts",
+            "create_watchlist",
+            "edit_watchlist",
+          ].includes(name)
         ) {
           args.userId = userId;
         }

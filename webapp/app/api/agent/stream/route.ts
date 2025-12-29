@@ -14,7 +14,6 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Lambda returns JSON, localhost returns SSE stream
     const endpoint = IS_LAMBDA ? AGENT_URL : `${AGENT_URL}/chat/stream`;
 
     const response = await fetch(endpoint, {
@@ -31,7 +30,6 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Lambda returns JSON - convert to SSE format for frontend compatibility
     if (IS_LAMBDA) {
       const data = await response.json();
       const sseResponse = `data: ${JSON.stringify({
@@ -45,7 +43,6 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Forward the SSE stream from localhost
     return new Response(response.body, {
       headers: {
         "Content-Type": "text/event-stream",

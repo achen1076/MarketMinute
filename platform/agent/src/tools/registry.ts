@@ -11,9 +11,13 @@ import { handleGetMarketSummary } from "../../../mcp/src/tools/market/getMarketS
 // User tools
 import { handleGetWatchlists } from "../../../mcp/src/tools/user/getWatchlists";
 import { handleGetAlerts } from "../../../mcp/src/tools/user/getAlerts";
+import { handleCreateWatchlist } from "../../../mcp/src/tools/user/createWatchlist";
+import { handleEditWatchlist } from "../../../mcp/src/tools/user/editWatchlist";
 
 // QuantLab tools
 import { handleGetQuantSignals } from "../../../mcp/src/tools/quantlab/getQuantSignals";
+import { handleGetModelQuality } from "../../../mcp/src/tools/quantlab/getModelQuality";
+import { handleGetTopSignals } from "../../../mcp/src/tools/quantlab/getTopSignals";
 
 // Sentinel tools
 import { handleGetSentinelReport } from "../../../mcp/src/tools/sentinel/getSentinelReport";
@@ -27,6 +31,10 @@ import { handleGetMacroEvents } from "../../../mcp/src/tools/news/getMacroEvents
 // Analysis tools
 import { handleGetSentiment } from "../../../mcp/src/tools/analysis/getSentiment";
 import { handleGetTickerAlerts } from "../../../mcp/src/tools/analysis/getTickerAlerts";
+import { handleGetExplanation } from "../../../mcp/src/tools/analysis/getExplanation";
+
+// Info tools
+import { handleAboutMarketMinute } from "../../../mcp/src/tools/info/aboutMarketMinute";
 
 // Schemas for OpenAI tool definitions
 import { GetQuoteSnapshotToolSpec } from "../../../shared/schemas/tools/getQuoteSnapshot.schema";
@@ -34,7 +42,11 @@ import { GetTopMoversToolSpec } from "../../../shared/schemas/tools/getTopMovers
 import { GetMarketSummaryToolSpec } from "../../../shared/schemas/tools/getMarketSummary.schema";
 import { GetWatchlistsToolSpec } from "../../../shared/schemas/tools/getWatchlists.schema";
 import { GetAlertsToolSpec } from "../../../shared/schemas/tools/getAlerts.schema";
+import { CreateWatchlistToolSpec } from "../../../shared/schemas/tools/createWatchlist.schema";
+import { EditWatchlistToolSpec } from "../../../shared/schemas/tools/editWatchlist.schema";
 import { GetQuantSignalsToolSpec } from "../../../shared/schemas/tools/getQuantSignals.schema";
+import { GetModelQualityToolSpec } from "../../../shared/schemas/tools/getModelQuality.schema";
+import { GetTopSignalsToolSpec } from "../../../shared/schemas/tools/getTopSignals.schema";
 import { GetSentinelReportToolSpec } from "../../../shared/schemas/tools/getSentinelReport.schema";
 import { GetInsightsToolSpec } from "../../../shared/schemas/tools/getInsights.schema";
 import { GetTickerNewsToolSpec } from "../../../shared/schemas/tools/getTickerNews.schema";
@@ -42,6 +54,8 @@ import { GetTickerEventsToolSpec } from "../../../shared/schemas/tools/getTicker
 import { GetMacroEventsToolSpec } from "../../../shared/schemas/tools/getMacroEvents.schema";
 import { GetSentimentToolSpec } from "../../../shared/schemas/tools/getSentiment.schema";
 import { GetTickerAlertsToolSpec } from "../../../shared/schemas/tools/getTickerAlerts.schema";
+import { ExplainTickerToolSpec } from "../../../shared/schemas/tools/explainTicker.schema";
+import { AboutMarketMinuteToolSpec } from "../../../shared/schemas/tools/aboutMarketMinute.schema";
 
 export interface ToolDefinition {
   name: string;
@@ -83,12 +97,36 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     inputSchema: GetAlertsToolSpec.inputSchema,
     handler: handleGetAlerts,
   },
+  {
+    name: CreateWatchlistToolSpec.name,
+    description: CreateWatchlistToolSpec.description,
+    inputSchema: CreateWatchlistToolSpec.inputSchema,
+    handler: handleCreateWatchlist,
+  },
+  {
+    name: EditWatchlistToolSpec.name,
+    description: EditWatchlistToolSpec.description,
+    inputSchema: EditWatchlistToolSpec.inputSchema,
+    handler: handleEditWatchlist,
+  },
   // QuantLab
   {
     name: GetQuantSignalsToolSpec.name,
     description: GetQuantSignalsToolSpec.description,
     inputSchema: GetQuantSignalsToolSpec.inputSchema,
     handler: handleGetQuantSignals,
+  },
+  {
+    name: GetModelQualityToolSpec.name,
+    description: GetModelQualityToolSpec.description,
+    inputSchema: GetModelQualityToolSpec.inputSchema,
+    handler: handleGetModelQuality,
+  },
+  {
+    name: GetTopSignalsToolSpec.name,
+    description: GetTopSignalsToolSpec.description,
+    inputSchema: GetTopSignalsToolSpec.inputSchema,
+    handler: handleGetTopSignals,
   },
   // Sentinel
   {
@@ -134,6 +172,19 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     description: GetTickerAlertsToolSpec.description,
     inputSchema: GetTickerAlertsToolSpec.inputSchema,
     handler: handleGetTickerAlerts,
+  },
+  {
+    name: ExplainTickerToolSpec.name,
+    description: ExplainTickerToolSpec.description,
+    inputSchema: ExplainTickerToolSpec.inputSchema,
+    handler: handleGetExplanation,
+  },
+  // Info
+  {
+    name: AboutMarketMinuteToolSpec.name,
+    description: AboutMarketMinuteToolSpec.description,
+    inputSchema: AboutMarketMinuteToolSpec.inputSchema,
+    handler: handleAboutMarketMinute,
   },
 ];
 

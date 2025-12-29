@@ -219,6 +219,8 @@ export default function AgentTestPage() {
                   "TSLA quant signals",
                   "Upcoming macro events",
                   "News on my tech watchlist",
+                  "Create me a watchlist with AAPL, MSFT, and TSLA",
+                  "Add TSLA to my tech watchlist",
                 ].map((suggestion) => (
                   <button
                     key={suggestion}

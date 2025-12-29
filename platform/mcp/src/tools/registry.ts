@@ -3,7 +3,11 @@ import { getTopMoversTool } from "./market/getTopMovers";
 import { getMarketSummaryTool } from "./market/getMarketSummary";
 import { getWatchlistsTool } from "./user/getWatchlists";
 import { getAlertsTool } from "./user/getAlerts";
+import { createWatchlistTool } from "./user/createWatchlist";
+import { editWatchlistTool } from "./user/editWatchlist";
 import { getQuantSignalsTool } from "./quantlab/getQuantSignals";
+import { getModelQualityTool } from "./quantlab/getModelQuality";
+import { getTopSignalsTool } from "./quantlab/getTopSignals";
 import { getSentinelReportTool } from "./sentinel/getSentinelReport";
 import { getInsightsTool } from "./sentinel/getInsights";
 import { getTickerNewsTool } from "./news/getTickerNews";
@@ -11,6 +15,8 @@ import { getTickerEventsTool } from "./news/getTickerEvents";
 import { getMacroEventsTool } from "./news/getMacroEvents";
 import { getSentimentTool } from "./analysis/getSentiment";
 import { getTickerAlertsTool } from "./analysis/getTickerAlerts";
+import { getExplanationTool } from "./analysis/getExplanation";
+import { aboutMarketMinuteTool } from "./info/aboutMarketMinute";
 
 export const toolRegistry = {
   get_quote_snapshot: getQuoteSnapshotTool,
@@ -18,7 +24,11 @@ export const toolRegistry = {
   get_market_summary: getMarketSummaryTool,
   get_watchlists: getWatchlistsTool,
   get_alerts: getAlertsTool,
+  create_watchlist: createWatchlistTool,
+  edit_watchlist: editWatchlistTool,
   get_quant_signals: getQuantSignalsTool,
+  get_model_quality: getModelQualityTool,
+  get_top_signals: getTopSignalsTool,
   get_sentinel_report: getSentinelReportTool,
   get_insights: getInsightsTool,
   get_ticker_news: getTickerNewsTool,
@@ -26,6 +36,8 @@ export const toolRegistry = {
   get_macro_events: getMacroEventsTool,
   get_sentiment: getSentimentTool,
   get_ticker_alerts: getTickerAlertsTool,
+  get_explanation: getExplanationTool,
+  about_marketminute: aboutMarketMinuteTool,
 } as const;
 
 export type ToolName = keyof typeof toolRegistry;

@@ -8,9 +8,13 @@ import { getMarketSummaryTool } from "./market/getMarketSummary";
 // User tools
 import { getWatchlistsTool } from "./user/getWatchlists";
 import { getAlertsTool } from "./user/getAlerts";
+import { createWatchlistTool } from "./user/createWatchlist";
+import { editWatchlistTool } from "./user/editWatchlist";
 
 // QuantLab tools
 import { getQuantSignalsTool } from "./quantlab/getQuantSignals";
+import { getModelQualityTool } from "./quantlab/getModelQuality";
+import { getTopSignalsTool } from "./quantlab/getTopSignals";
 
 // Sentinel tools
 import { getSentinelReportTool } from "./sentinel/getSentinelReport";
@@ -24,6 +28,10 @@ import { getMacroEventsTool } from "./news/getMacroEvents";
 // Analysis tools
 import { getSentimentTool } from "./analysis/getSentiment";
 import { getTickerAlertsTool } from "./analysis/getTickerAlerts";
+import { getExplanationTool } from "./analysis/getExplanation";
+
+// Info tools
+import { aboutMarketMinuteTool } from "./info/aboutMarketMinute";
 
 /**
  * Automatically registers all tools with the MCP server instance.
@@ -38,8 +46,12 @@ export function registerAllTools(server: McpServer) {
     // User
     getWatchlistsTool,
     getAlertsTool,
+    createWatchlistTool,
+    editWatchlistTool,
     // QuantLab
     getQuantSignalsTool,
+    getModelQualityTool,
+    getTopSignalsTool,
     // Sentinel
     getSentinelReportTool,
     getInsightsTool,
@@ -50,6 +62,9 @@ export function registerAllTools(server: McpServer) {
     // Analysis
     getSentimentTool,
     getTickerAlertsTool,
+    getExplanationTool,
+    // Info
+    aboutMarketMinuteTool,
   ];
 
   for (const tool of tools) {
