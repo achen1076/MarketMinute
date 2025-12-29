@@ -7,6 +7,15 @@ export type TickerSnapshot = {
   high52w?: number;
   low52w?: number;
   earningsDate?: string;
+  marketCap?: number;
+  volume?: number;
+  avgVolume?: number;
+  open?: number;
+  previousClose?: number;
+  dayLow?: number;
+  dayHigh?: number;
+  // eps?: number;
+  // pe?: number;
 };
 
 const apiCallTimestamps: number[] = [];
@@ -123,6 +132,17 @@ export async function getSnapshotsForSymbols(
               high52w: quote.yearHigh ? Number(quote.yearHigh) : undefined,
               low52w: quote.yearLow ? Number(quote.yearLow) : undefined,
               earningsDate: earningsCalendar[key],
+              marketCap: quote.marketCap ? Number(quote.marketCap) : undefined,
+              volume: quote.volume ? Number(quote.volume) : undefined,
+              avgVolume: quote.avgVolume ? Number(quote.avgVolume) : undefined,
+              open: quote.open ? Number(quote.open) : undefined,
+              previousClose: quote.previousClose
+                ? Number(quote.previousClose)
+                : undefined,
+              dayLow: quote.dayLow ? Number(quote.dayLow) : undefined,
+              dayHigh: quote.dayHigh ? Number(quote.dayHigh) : undefined,
+              // eps: quote.eps ? Number(quote.eps) : undefined,
+              // pe: quote.pe ? Number(quote.pe) : undefined,
             };
           });
           results.push(...batchResults);

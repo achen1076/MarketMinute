@@ -85,10 +85,6 @@ export async function handleEditWatchlist(
       break;
 
     case "set_favorite":
-      await prisma.watchlist.updateMany({
-        where: { userId: input.userId, isFavorite: true },
-        data: { isFavorite: false },
-      });
       await prisma.watchlist.update({
         where: { id: input.watchlistId },
         data: { isFavorite: true },

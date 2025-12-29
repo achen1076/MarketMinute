@@ -5,11 +5,20 @@ import type { TickerSnapshot } from "@/lib/marketData";
 import Card from "@/components/atoms/Card";
 import Button from "@/components/atoms/Button";
 import { MiniSparkline } from "@/components/atoms/MiniSparkline";
-import { RefreshCw, Search, Star, Bell, X } from "lucide-react";
+import {
+  RefreshCw,
+  Search,
+  Star,
+  Bell,
+  X,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { CACHE_TTL_MS } from "@/lib/constants";
 import ReactMarkdown from "react-markdown";
 import { isMarketOpen } from "@/lib/marketHours";
 import { COLORS } from "@/lib/colors";
+import { TickerChart } from "@/components/molecules/TickerChart";
 
 interface TickerAlert {
   id: string;
@@ -64,10 +73,12 @@ export function TickerListClient({
   );
   const [alertsOpen, setAlertsOpen] = useState(false);
   const alertsDropdownRef = useRef<HTMLDivElement>(null);
+  const [expandedSymbols, setExpandedSymbols] = useState<Set<string>>(
+    new Set()
+  );
 
   const activeAlerts = alerts.filter((a) => !dismissedAlertIds.has(a.id));
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -205,7 +216,6 @@ export function TickerListClient({
       });
 
       if (res.ok) {
-        // Optimistically update the UI
         setSnapshots((prev) =>
           prev.map((s) =>
             s.symbol === snapshot.symbol
@@ -237,6 +247,12 @@ export function TickerListClient({
       });
       return;
     }
+
+    setExpandedSymbols((prev) => {
+      const next = new Set(prev);
+      next.delete(s.symbol);
+      return next;
+    });
 
     setLoadingSymbol(s.symbol);
     try {
@@ -486,8 +502,8 @@ export function TickerListClient({
                           priceHistory[s.symbol].length >= 2 && (
                             <MiniSparkline
                               data={priceHistory[s.symbol]}
-                              width={40}
-                              height={16}
+                              width={60}
+                              height={20}
                             />
                           )} */}
                       </div>
@@ -523,17 +539,51 @@ export function TickerListClient({
                   </div>
                 </div>
 
-                <div className="mt-2">
+                <div className="mt-2 flex items-center justify-between">
                   <button
                     onClick={() => handleExplainToggle(s)}
                     disabled={loadingSymbol === s.symbol}
-                    className="text-sm py-1 px-2 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 text-slate-300 hover:text-slate-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-slate-700/50"
+                    className="text-xs text-slate-500/70 hover:text-slate-400 hover:underline transition-colors disabled:opacity-50 cursor-pointer"
                   >
                     {loadingSymbol === s.symbol
                       ? "Explaining..."
                       : hasExplanation
                       ? "Close"
-                      : "Explain move"}
+                      : "↳ Why this moved"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Close explanation when opening expanded data
+                      if (!expandedSymbols.has(s.symbol)) {
+                        setExplanations((prev) => {
+                          const next = { ...prev };
+                          delete next[s.symbol];
+                          return next;
+                        });
+                        setExplanationMeta((prev) => {
+                          const next = { ...prev };
+                          delete next[s.symbol];
+                          return next;
+                        });
+                      }
+
+                      setExpandedSymbols((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(s.symbol)) {
+                          next.delete(s.symbol);
+                        } else {
+                          next.add(s.symbol);
+                        }
+                        return next;
+                      });
+                    }}
+                    className="text-slate-500 hover:text-slate-300 transition-colors p-1 rounded hover:bg-slate-800/50"
+                  >
+                    {expandedSymbols.has(s.symbol) ? (
+                      <ChevronUp size={18} />
+                    ) : (
+                      <ChevronDown size={18} />
+                    )}
                   </button>
                 </div>
 
@@ -564,6 +614,115 @@ export function TickerListClient({
                         <span>{explanationMeta[s.symbol].age}</span>
                       </div>
                     )}
+                  </div>
+                )}
+
+                {expandedSymbols.has(s.symbol) && (
+                  <div className="mt-3 rounded bg-slate-800/50 p-3 space-y-4">
+                    {/* Chart */}
+                    <div className="pb-3 border-b border-slate-700/50">
+                      <TickerChart
+                        symbol={s.symbol}
+                        currentPrice={s.price}
+                        changePct={s.changePct}
+                        previousClose={s.previousClose}
+                      />
+                    </div>
+
+                    {/* Details grid */}
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      {s.marketCap !== undefined && (
+                        <div>
+                          <div className="text-slate-500">Market Cap</div>
+                          <div className="text-slate-200 font-medium">
+                            $
+                            {s.marketCap >= 1e12
+                              ? (s.marketCap / 1e12).toFixed(2) + "T"
+                              : (s.marketCap / 1e9).toFixed(2) + "B"}
+                          </div>
+                        </div>
+                      )}
+                      {s.volume !== undefined && (
+                        <div>
+                          <div className="text-slate-500">Volume</div>
+                          <div className="text-slate-200 font-medium">
+                            {(s.volume / 1e6).toFixed(2)}M
+                          </div>
+                        </div>
+                      )}
+                      {s.avgVolume !== undefined && (
+                        <div>
+                          <div className="text-slate-500">Avg Volume</div>
+                          <div className="text-slate-200 font-medium">
+                            {(s.avgVolume / 1e6).toFixed(2)}M
+                          </div>
+                        </div>
+                      )}
+                      {/* {s.pe !== undefined && s.pe !== null && (
+                        <div>
+                          <div className="text-slate-500">P/E Ratio</div>
+                          <div className="text-slate-200 font-medium">
+                            {s.pe.toFixed(2)}
+                          </div>
+                        </div>
+                      )}
+                      {s.eps !== undefined && s.eps !== null && (
+                        <div>
+                          <div className="text-slate-500">EPS</div>
+                          <div className="text-slate-200 font-medium">
+                            ${s.eps.toFixed(2)}
+                          </div>
+                        </div>
+                      )} */}
+                      {s.open !== undefined && (
+                        <div>
+                          <div className="text-slate-500">Open</div>
+                          <div className="text-slate-200 font-medium">
+                            ${s.open.toFixed(2)}
+                          </div>
+                        </div>
+                      )}
+                      {s.previousClose !== undefined && (
+                        <div>
+                          <div className="text-slate-500">Prev Close</div>
+                          <div className="text-slate-200 font-medium">
+                            ${s.previousClose.toFixed(2)}
+                          </div>
+                        </div>
+                      )}
+                      {s.dayLow !== undefined && (
+                        <div>
+                          <div className="text-slate-500">Day Low</div>
+                          <div className="text-slate-200 font-medium">
+                            ${s.dayLow.toFixed(2)}
+                          </div>
+                        </div>
+                      )}
+                      {s.dayHigh !== undefined && (
+                        <div>
+                          <div className="text-slate-500">Day High</div>
+                          <div className="text-slate-200 font-medium">
+                            ${s.dayHigh.toFixed(2)}
+                          </div>
+                        </div>
+                      )}
+                      {s.high52w !== undefined && (
+                        <div>
+                          <div className="text-slate-500">52W High</div>
+                          <div className="text-slate-200 font-medium">
+                            ${s.high52w.toFixed(2)}
+                          </div>
+                        </div>
+                      )}
+                      {s.low52w !== undefined && (
+                        <div>
+                          <div className="text-slate-500">52W Low</div>
+                          <div className="text-slate-200 font-medium">
+                            ${s.low52w.toFixed(2)}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

@@ -14,14 +14,6 @@ export async function handleCreateWatchlist(
   const input: CreateWatchlistInput =
     CreateWatchlistInputSchema.parse(rawInput);
 
-  // If setting as favorite, unfavorite existing favorites
-  if (input.setAsFavorite) {
-    await prisma.watchlist.updateMany({
-      where: { userId: input.userId, isFavorite: true },
-      data: { isFavorite: false },
-    });
-  }
-
   // Create the watchlist
   const watchlist = await prisma.watchlist.create({
     data: {
