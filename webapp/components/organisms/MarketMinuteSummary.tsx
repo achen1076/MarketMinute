@@ -22,6 +22,7 @@ type SummaryData = {
     worst: { symbol: string; changePct: number } | null;
   };
   tickerPerformance?: TickerPerformance[];
+  generatedAt: string;
 };
 
 type Props = {
@@ -249,6 +250,17 @@ export function MarketMinuteSummary({ watchlistId }: Props) {
     ? highlightTickers(summary.body, summary.tickerPerformance)
     : summary.body;
 
+  const formatTimestamp = (isoString: string) => {
+    const date = new Date(isoString);
+    return date.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
   return (
     <Card className="p-6">
       <div className="mb-4 flex items-center justify-between">
@@ -273,7 +285,12 @@ export function MarketMinuteSummary({ watchlistId }: Props) {
               {isPlaying ? "Stop" : "Listen"}
             </span>
           </button>
-          <span className="text-xs text-slate-500">MarketMinute</span>
+          <div className="flex flex-col items-end">
+            <span className="text-xs text-slate-500">MarketMinute</span>
+            <span className="text-[10px] text-slate-600">
+              {formatTimestamp(summary.generatedAt)}
+            </span>
+          </div>
         </div>
       </div>
 

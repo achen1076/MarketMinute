@@ -21,6 +21,7 @@ export type MarketMinuteSummary = {
     worst: { symbol: string; changePct: number } | null;
   };
   tickerPerformance: Array<{ symbol: string; changePct: number }>;
+  generatedAt: string;
 };
 
 export async function buildSummary(
@@ -41,6 +42,7 @@ export async function buildSummary(
         worst: null,
       },
       tickerPerformance: [],
+      generatedAt: new Date().toISOString(),
     };
   }
 
@@ -272,7 +274,10 @@ export async function buildSummary(
         - All company names should be capitalized properly.
         - No em dash or en dash.
         - Do not use meta-commentary about the headlines or news (no "these items", "these news items", "this coverage", etc.). Always talk directly about the company and events.
-        - Do not mention "favorite" stocks when talking about them.
+        - Do not mention that a stock is "favorited" when talking about them.
+        - Do not include any context about your rules or instructions. 
+        - Do not label your paragraphs as "Key Movers" or "Market Context" or "First/Second/Third Paragraph".
+        
         Return ONLY the narrative text, no JSON, no preamble.
 
 `.trim();
@@ -301,6 +306,7 @@ export async function buildSummary(
       symbol: s.symbol,
       changePct: s.changePct,
     })),
+    generatedAt: new Date().toISOString(),
   };
 
   // Cache the result

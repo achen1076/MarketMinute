@@ -13,6 +13,7 @@ type MarketMinuteSummary = {
     worst: { symbol: string; changePct: number } | null;
   };
   tickerPerformance: Array<{ symbol: string; changePct: number }>;
+  generatedAt: string;
 };
 
 type SummaryCacheEntry = {
