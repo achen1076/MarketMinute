@@ -166,12 +166,12 @@ export default async function RootLayout({
         {/* Sidebar handles its own responsive behavior */}
         <Sidebar user={session?.user} />
 
+        {/* Market ticker - fixed at very top */}
+        <MarketTicker />
+
         {/* Main content area */}
         <div className="min-h-screen">
-          <div className="md:ml-64">
-            <MarketTicker />
-          </div>
-          <main className="mx-auto max-w-[1800px] px-4 py-6 pt-20 md:ml-64 md:pt-8 md:px-8">
+          <main className="mx-auto max-w-[1800px] px-4 py-6 pt-[105px] md:ml-64 md:pt-14 md:px-8">
             {/* Email Verification Banner */}
             {needsVerification && (
               <div className="mb-6">

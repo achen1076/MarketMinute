@@ -46,7 +46,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {isMobile && (
         <header
-          className="fixed top-0 left-0 z-40 flex h-14 w-full items-center justify-between px-4"
+          className="fixed top-[41px] left-0 z-40 flex h-14 w-full items-center justify-between px-4"
           style={{ backgroundColor: SIDEBAR_BG_COLOR, color: COLORS.text.main }}
         >
           <Link href="/" className="text-lg font-bold" onClick={closeMenu}>
@@ -92,9 +92,9 @@ const Sidebar: React.FC<SidebarProps> = ({
           "fixed left-0 z-30 flex h-screen flex-col border-r transition-transform duration-300",
           isMobile
             ? isMenuOpen
-              ? "translate-x-0 w-64 pt-14"
-              : "-translate-x-full w-64 pt-14"
-            : "w-64 translate-x-0 pt-4",
+              ? "translate-x-0 w-64 pt-[97px]"
+              : "-translate-x-full w-64 pt-[97px]"
+            : "w-64 translate-x-0 pt-[49px]",
           className
         )}
         style={{

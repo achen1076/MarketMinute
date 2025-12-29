@@ -15,7 +15,6 @@ interface ModelQualityData {
   sharpe_ratio: number;
   profit_factor: number | null;
   win_rate: number;
-  accuracy: number;
 }
 
 const QUALITY_LABELS: Record<string, string> = {
@@ -26,7 +25,7 @@ const QUALITY_LABELS: Record<string, string> = {
 };
 
 async function fetchModelQuality(): Promise<Record<string, ModelQualityData>> {
-  const apiUrl = process.env.WEBAPP_URL || "https://market-minute.vercel.app";
+  const apiUrl = process.env.WEBAPP_URL;
 
   try {
     const response = await fetch(`${apiUrl}/api/quant/model-metadata`);
@@ -123,7 +122,6 @@ export async function handleGetQuantSignals(
       sharpeRatio: quality?.sharpe_ratio,
       profitFactor: quality?.profit_factor,
       winRate: quality?.win_rate,
-      accuracy: quality?.accuracy,
     };
   });
 
