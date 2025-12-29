@@ -20,6 +20,14 @@ export const QuantSignalSchema = z.object({
   stopLoss: z.number().optional(),
   currentPrice: z.number(),
   timestamp: z.string(),
+  // Model quality fields
+  qualityTier: z.enum(["excellent", "good", "marginal", "poor"]).optional(),
+  qualityLabel: z.string().optional(),
+  deployable: z.boolean().optional(),
+  sharpeRatio: z.number().optional(),
+  profitFactor: z.number().nullable().optional(),
+  winRate: z.number().optional(),
+  accuracy: z.number().optional(),
 });
 
 export const DistributionalForecastSchema = z.object({

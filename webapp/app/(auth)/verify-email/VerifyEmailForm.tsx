@@ -4,11 +4,12 @@ import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Button from "@/components/atoms/Button";
 import Link from "next/link";
-import { signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 
 export default function VerifyEmailForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { update: updateSession } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error" | "info";
@@ -55,15 +56,14 @@ export default function VerifyEmailForm() {
       if (response.ok) {
         setMessage({
           type: "success",
-          text: "Email verified successfully! Signing you out to refresh your session...",
+          text: "Email verified successfully! Redirecting...",
         });
-        // Sign out and redirect to clear session cache
-        setTimeout(async () => {
-          // Sign out to force session refresh
-          await signOut({ redirect: false });
-          // Hard redirect to sign in page
-          window.location.href = "/signin?verified=true";
-        }, 2000);
+        // Update session to reflect verified status without logging out
+        await updateSession();
+        // Redirect to dashboard after short delay
+        setTimeout(() => {
+          router.push("/");
+        }, 1500);
       } else {
         setMessage({
           type: "error",

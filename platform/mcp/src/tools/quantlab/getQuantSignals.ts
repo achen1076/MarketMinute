@@ -9,6 +9,37 @@ import {
 import { prisma } from "../../ops/dbcache";
 import { nowIso } from "../../ops/time";
 
+interface ModelQualityData {
+  quality_tier: "excellent" | "good" | "marginal" | "poor";
+  deployable: boolean;
+  sharpe_ratio: number;
+  profit_factor: number | null;
+  win_rate: number;
+  accuracy: number;
+}
+
+const QUALITY_LABELS: Record<string, string> = {
+  excellent: "Best",
+  good: "Excellent",
+  marginal: "Good",
+  poor: "Low Quality",
+};
+
+async function fetchModelQuality(): Promise<Record<string, ModelQualityData>> {
+  const apiUrl = process.env.WEBAPP_URL || "https://market-minute.vercel.app";
+
+  try {
+    const response = await fetch(`${apiUrl}/api/quant/model-metadata`);
+    if (!response.ok) return {};
+    const data = (await response.json()) as {
+      models?: Record<string, ModelQualityData>;
+    };
+    return data.models || {};
+  } catch {
+    return {};
+  }
+}
+
 function calculateQuantScore(
   probUp: number,
   probDown: number,
@@ -55,32 +86,46 @@ export async function handleGetQuantSignals(
 
   const tickers = input.tickers.map((t) => t.toUpperCase());
 
-  // Get latest predictions for each ticker
-  const predictions = await prisma.livePrediction.findMany({
-    where: { ticker: { in: tickers } },
-    orderBy: { createdAt: "desc" },
-    distinct: ["ticker"],
-  });
+  // Get latest predictions and model quality in parallel
+  const [predictions, modelQuality] = await Promise.all([
+    prisma.livePrediction.findMany({
+      where: { ticker: { in: tickers } },
+      orderBy: { createdAt: "desc" },
+      distinct: ["ticker"],
+    }),
+    fetchModelQuality(),
+  ]);
 
-  const signals = predictions.map((p) => ({
-    ticker: p.ticker,
-    signal: p.signal as "BUY" | "SELL" | "NEUTRAL",
-    confidence: p.confidence,
-    probUp: p.probUp,
-    probNeutral: p.probNeutral,
-    probDown: p.probDown,
-    quantScore: calculateQuantScore(
-      p.probUp,
-      p.probDown,
-      p.probNeutral,
-      p.confidence
-    ),
-    shouldTrade: p.shouldTrade,
-    takeProfit: p.takeProfit ?? undefined,
-    stopLoss: p.stopLoss ?? undefined,
-    currentPrice: p.currentPrice,
-    timestamp: p.timestamp.toISOString(),
-  }));
+  const signals = predictions.map((p) => {
+    const quality = modelQuality[p.ticker];
+    return {
+      ticker: p.ticker,
+      signal: p.signal as "BUY" | "SELL" | "NEUTRAL",
+      confidence: p.confidence,
+      probUp: p.probUp,
+      probNeutral: p.probNeutral,
+      probDown: p.probDown,
+      quantScore: calculateQuantScore(
+        p.probUp,
+        p.probDown,
+        p.probNeutral,
+        p.confidence
+      ),
+      shouldTrade: p.shouldTrade,
+      takeProfit: p.takeProfit ?? undefined,
+      stopLoss: p.stopLoss ?? undefined,
+      currentPrice: p.currentPrice,
+      timestamp: p.timestamp.toISOString(),
+      // Model quality fields
+      qualityTier: quality?.quality_tier,
+      qualityLabel: quality ? QUALITY_LABELS[quality.quality_tier] : undefined,
+      deployable: quality?.deployable,
+      sharpeRatio: quality?.sharpe_ratio,
+      profitFactor: quality?.profit_factor,
+      winRate: quality?.win_rate,
+      accuracy: quality?.accuracy,
+    };
+  });
 
   let forecasts;
   if (input.includeForecasts) {
