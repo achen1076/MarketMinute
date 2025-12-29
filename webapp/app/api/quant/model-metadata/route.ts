@@ -2,11 +2,9 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 
-// S3 configuration
-const S3_BUCKET =
-  process.env.MODEL_METADATA_S3_BUCKET || "marketminute-quant-models";
-const S3_KEY = process.env.MODEL_METADATA_S3_KEY || "model_metadata.json";
-const AWS_REGION = process.env.AWS_REGION || "us-east-1";
+const S3_BUCKET = process.env.MODEL_METADATA_S3_BUCKET;
+const S3_KEY = process.env.MODEL_METADATA_S3_KEY;
+const AWS_REGION = process.env.AWS_REGION;
 
 export type ModelQuality = {
   ticker: string;
@@ -24,10 +22,9 @@ export type ModelQuality = {
   trained_at: string;
 };
 
-// Cache the metadata for 1 hour
 let cachedMetadata: Record<string, ModelQuality> | null = null;
 let cacheTimestamp = 0;
-const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+const CACHE_DURATION = 60 * 60 * 1000;
 
 const s3Client = new S3Client({ region: AWS_REGION });
 
@@ -71,7 +68,6 @@ export async function GET() {
   try {
     const metadata = await fetchModelMetadata();
 
-    // Transform to a simpler format keyed by ticker
     const byTicker: Record<string, ModelQuality> = {};
     for (const [key, value] of Object.entries(metadata)) {
       const ticker = value.ticker;
