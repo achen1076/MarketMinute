@@ -89,7 +89,7 @@ export async function getCachedSnapshots(symbols: string[]): Promise<{
 
     const cacheTTL = CACHE_TTL_SECONDS;
 
-    if (redis) {
+    if (redis && fresh.length > 0) {
       try {
         const pipeline = redis.pipeline();
         for (const snapshot of fresh) {
