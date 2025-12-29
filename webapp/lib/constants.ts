@@ -11,7 +11,7 @@
  * Note: When market is closed, cache TTL is extended to 30 minutes (CACHE_TTL_SECONDS * 60)
  * since prices don't change outside trading hours.
  */
-export const CACHE_TTL_SECONDS = 1;
+export const CACHE_TTL_SECONDS = 5;
 
 /**
  * Cache TTL in milliseconds
