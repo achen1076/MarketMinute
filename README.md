@@ -47,7 +47,6 @@ MarketMinute is a full-stack financial intelligence platform that combines real-
   - Relevance service (:8002) - Headlines + ticker → relevance scores (0 to 1) + category
 - **🎯 Intelligent News Filtering** - ML models filter and score news for explain API and daily summaries
 - **🚀 One-Command Redeployment** - `./services/redeploy_models.sh` for model updates
-- **💰 Cost-Effective** - ~$30/month for always-on EC2 vs serverless SageMaker
 - **🔄 Model Training Pipeline** - Train locally, deploy to EC2 with Docker
 
 ### AWS Serverless Infrastructure (v2.0)
@@ -148,7 +147,7 @@ The system uses a serverless architecture with three main components:
   - Sector rotation detection and analysis
   - Macro event integration and surprise detection
   - Historical report tracking with expandable insights
-- **Real-time Market Data** - Live quotes with 30s cache via FMP Premium batch API
+- **Real-time Market Data** - Live quotes with 5s cache via FMP Premium batch API
 - **Redis-Powered Caching** - Shared app-level cache with Upstash Redis for instant updates
 - **AI Market Summaries** - Natural language summaries powered by LangChain & OpenAI
 - **Smart Alerts** - Automated notifications for price movements, volume spikes, and 52-week highs
@@ -208,7 +207,7 @@ The system uses a serverless architecture with three main components:
 - **Modern UI** - Tailwind CSS with custom animations and responsive design
 - **Dark Theme** - Professional dark color scheme optimized for extended viewing
 - **Authentication** - Secure OAuth with NextAuth.js (Google)
-- **Real-time Updates** - 30-second cache revalidation for live data
+- **Real-time Updates** - 5-second cache revalidation for live data
 - **Admin Tools** - Cache management and system configuration
 
 ---
@@ -224,7 +223,7 @@ The system uses a serverless architecture with three main components:
 - **Authentication:** NextAuth.js 5 (Beta)
 - **Database ORM:** Prisma
 - **Database:** PostgreSQL (Vercel Postgres)
-- **Caching:** Upstash Redis (30s TTL, shared app-level cache)
+- **Caching:** Upstash Redis (TTL, shared app-level cache)
 
 ### AI & ML (Web App)
 

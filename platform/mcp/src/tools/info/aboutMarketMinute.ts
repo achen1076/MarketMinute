@@ -7,62 +7,90 @@ import {
 } from "@/shared/schemas/tools/aboutMarketMinute.schema";
 
 const PLATFORM_INFO = {
-  overview: `MarketMinute is an AI-powered market intelligence platform that helps traders and investors make informed decisions. It combines real-time market data, AI-generated insights, machine learning predictions, and personalized briefings to provide a comprehensive view of the markets.`,
+  overview: `MarketMinute is a financial intelligence platform that combines real-time market data, AI-powered insights, and quantitative trading signals. Get instant market summaries, track custom watchlists, and leverage machine learning models for trading signals—all in one unified dashboard. The platform serves both active traders and long-term investors with concise insights across stocks, ETFs, and broader market trends.`,
 
   features: [
     {
-      name: "Real-time Market Data",
+      name: "Real-Time Market Data",
       description:
-        "Live quotes, price movements, and market summaries for stocks, ETFs, and indices.",
+        "Live quotes, intraday price movements, and market summaries for stocks, ETFs, and major indices with instant updates.",
     },
     {
-      name: "QuantLab ML Predictions",
+      name: "AI Chat Agent",
       description:
-        "Machine learning models that generate BUY/SELL/NEUTRAL signals with confidence scores and quality ratings.",
+        "Ask questions about markets, watchlists, signals, news, and analysis in natural language. Get instant answers with access to all your data.",
     },
     {
-      name: "Sentinel AI Briefings",
+      name: "QuantLab Signals",
       description:
-        "Personalized daily market briefings powered by AI, analyzing your watchlist and market conditions.",
+        "Machine learning models generate BUY, SELL, or NEUTRAL signals with confidence scores. Predictions are adjusted in real-time based on breaking news sentiment and relevance to give you the most current analysis.",
     },
     {
-      name: "News & Events",
+      name: "Sentinel Intelligence",
       description:
-        "Curated financial news with AI-powered sentiment analysis and relevance scoring.",
+        "AI-powered market analyst that monitors price action, volatility, and market events. Provides anomaly detection, sector rotation analysis, and plain English explanations of what's happening in the markets and why it matters.",
+    },
+    {
+      name: "News & Events Analysis",
+      description:
+        "Curated financial news with AI-powered sentiment and relevance scoring. Automatically filters and prioritizes the most impactful news for each stock.",
     },
     {
       name: "Smart Alerts",
       description:
-        "Customizable alerts for price movements, sentiment changes, and trading signals.",
+        "Automated notifications for price movements, volume spikes, sentiment changes, and trading signal updates. Get alerted to meaningful market events.",
     },
     {
-      name: "Watchlists",
+      name: "Watchlist Management",
       description:
-        "Create and manage multiple watchlists to track your favorite stocks.",
+        "Create unlimited watchlists with drag-and-drop reordering, ticker search, and favorites. Set custom alerts on price changes and volume spikes.",
+    },
+    {
+      name: "Distributional Forecasts",
+      description:
+        "Probabilistic price predictions with confidence intervals for 200+ tickers, updated daily after market close.",
     },
   ],
 
-  quantlab: `QuantLab is MarketMinute's ML-powered trading signal system. It uses LightGBM models trained on technical indicators and market data to predict 10-day forward returns.
+  quantlab: `QuantLab is MarketMinute's machine learning trading signal system that generates BUY, SELL, or NEUTRAL recommendations for stocks.
 
-Key Metrics:
-- Quant Score (0-100): Overall signal strength
-- Quality Tiers: Best, Excellent, Good, Low Quality based on Sharpe Ratio and Profit Factor
-- Deployable Models: Models with Sharpe > 1 and Profit Factor > 1.5 are recommended for trading
+How it works:
+- Models analyze 30 years of historical price data and technical indicators
+- Signals are automatically adjusted based on breaking news sentiment
+- Each signal includes a confidence score (0-100) and quality rating
 
-The system retrains models regularly and updates quality ratings based on backtested performance.`,
+Signal Quality Tiers:
+- Best: Top-performing models with excellent historical accuracy
+- Excellent: Strong performance, recommended for trading
+- Good: Decent performance
+- Low Quality: Poor historical performance, use with caution
 
-  sentinel: `Sentinel is MarketMinute's AI-powered market briefing system. It generates personalized daily summaries analyzing:
-- Your watchlist performance
-- Key market movements
-- Relevant news and events
-- Trading opportunities from QuantLab signals
+Signals are updated daily after market close and adjusted throughout the day as major news breaks.`,
 
-Briefings are delivered in your preferred format (detailed, concise, or bullet points) and can focus on specific aspects like technicals, news, or signals.`,
+  sentinel: `Sentinel Intelligence is your AI-powered market analyst that monitors the markets 24/7 and explains what's happening in plain English.
 
-  pricing: `MarketMinute offers three tiers:
-- Free: Limited access to basic features, 3 signals, 1 watchlist
-- Basic ($9.99/mo): Full access to all signals for your watchlist, unlimited watchlists
-- Pro ($24.99/mo): Everything in Basic plus Sentinel AI briefings, priority support`,
+What it does:
+- Detects unusual market activity and volatility spikes
+- Identifies sector rotation and emerging trends
+- Explains market moves in simple, conversational language
+- Provides "What This Means" summaries for each market event
+- Tracks macro events and surprises
+
+You get daily market briefings and can generate on-demand analysis anytime. Historical reports are saved so you can review past market events.`,
+
+  pricing: `MarketMinute offers flexible pricing tiers:
+
+Free Tier:
+- Up to 3 QuantLab signals
+- 2 watchlists with 20 tickers each
+- All core features (market data, news, Sentinel, alerts)
+
+Basic ($9.99/month):
+- Full access to all QuantLab signals
+- Unlimited watchlists and tickers
+- Priority support
+
+All tiers include AI Chat Agent, real-time market data, Sentinel analysis, news with sentiment scoring, and smart alerts.`,
 };
 
 export async function handleAboutMarketMinute(
