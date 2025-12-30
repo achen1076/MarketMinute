@@ -51,6 +51,13 @@ variable "webapp_url" {
   default     = ""
 }
 
+variable "lambda_api_key" {
+  description = "API key for Lambda to authenticate with webapp endpoints"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 variable "enable_github_oidc" {
   description = "Enable GitHub OIDC provider for CI/CD (eliminates need for AWS keys in GitHub)"
   type        = bool

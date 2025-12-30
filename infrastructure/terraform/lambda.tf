@@ -72,6 +72,7 @@ resource "aws_lambda_function" "quant_orchestrator" {
       PROJECT_NAME            = var.project_name
       ENVIRONMENT             = var.environment
       WEBAPP_URL              = var.webapp_url
+      LAMBDA_API_KEY          = var.lambda_api_key
     }
   }
 }

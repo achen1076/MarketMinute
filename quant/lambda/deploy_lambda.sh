@@ -18,7 +18,7 @@ NC='\033[0m'
 AWS_REGION="us-east-1"
 REPO_NAME="marketminute-lambda"
 IMAGE_TAG="latest"
-LAMBDA_FUNCTION_NAME="marketminute-quant-orchestrator"
+LAMBDA_FUNCTION_NAME="marketminute-dev-orchestrator"
 
 echo "============================================"
 echo "🚀 Lambda Image Deployment"

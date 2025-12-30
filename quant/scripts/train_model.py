@@ -162,8 +162,6 @@ def train_model(
         return model
 
     elif model_type == "return":
-        # Return predictor uses forward returns directly, not class labels
-        # y_train and y_val should be forward returns for this model type
         model = LGBMReturnPredictor(
             long_threshold=0.015, short_threshold=-0.015)
         model.fit(X_train, y_train, X_val, y_val)
@@ -197,18 +195,15 @@ def save_artifact(model, ticker, model_type, metrics=None):
 
     print(f"\n💾 Saved model → {filename}\n")
 
-    # Save/update model metadata index for frontend consumption
     if metrics:
         save_model_metadata(ticker, model_type, metrics)
 
 
 def save_model_metadata(ticker, model_type, metrics):
-    """Save model metrics to a central JSON file for frontend consumption."""
     import json
 
     metadata_file = Path("models") / "model_metadata.json"
 
-    # Load existing metadata or create new
     if metadata_file.exists():
         try:
             with open(metadata_file, 'r') as f:
@@ -218,29 +213,24 @@ def save_model_metadata(ticker, model_type, metrics):
     else:
         all_metadata = {"models": {}, "last_updated": None}
 
-    # Helper to convert numpy types to Python native types
     def to_native(val):
-        if hasattr(val, 'item'):  # numpy scalar
+        if hasattr(val, 'item'):
             return val.item()
         return val
 
-    # Handle infinity PF - store as null (JSON compatible)
     pf = to_native(metrics.get('profit_factor', 0))
     if pf == float('inf') or pf == float('-inf') or (pf is not None and np.isnan(pf)):
-        pf = None  # Frontend can display as "∞"
+        pf = None
 
-    # Store model metrics - convert all values to native Python types
     sharpe = round(float(to_native(metrics.get('sharpe_ratio', 0))), 2)
     pf_value = round(float(pf), 2) if pf is not None else None
 
-    # Determine if model is deployable (profitable enough to use)
     is_deployable = (
         sharpe > 1.0 and
         pf_value is not None and
         pf_value > 1.5
     )
 
-    # Quality tier for frontend display
     if is_deployable and sharpe > 5.0 and (pf_value or 0) > 3.0:
         quality_tier = "excellent"
     elif is_deployable:
@@ -269,13 +259,11 @@ def save_model_metadata(ticker, model_type, metrics):
 
     all_metadata["last_updated"] = pd.Timestamp.now().isoformat()
 
-    # Save updated metadata
     with open(metadata_file, 'w') as f:
         json.dump(all_metadata, f, indent=2)
 
 
 def get_model_metadata():
-    """Load model metadata for frontend consumption."""
     import json
     metadata_file = Path("models") / "model_metadata.json"
 
@@ -287,7 +275,6 @@ def get_model_metadata():
 
 
 def load_tickers():
-    """Load tickers from SYSTEM_SPEC.yaml"""
     spec_file = Path("SYSTEM_SPEC.yaml")
     if not spec_file.exists():
         raise FileNotFoundError("SYSTEM_SPEC.yaml not found")
@@ -303,13 +290,11 @@ def train_single_ticker(ticker, model_type, label_mode, use_tuning, use_regime=T
     try:
         df = load_dataset(ticker)
 
-        # Detect market regimes before labeling
         regime_detector = RegimeDetector()
         df = regime_detector.detect_regimes(df)
 
         df = generate_labels(df, mode=label_mode)
 
-        # Base exclusions
         exclude_cols = [
             "timestamp", "open", "high", "low", "close", "volume", "ticker",
             "label", "forward_ret", "return_at_label",
@@ -322,7 +307,6 @@ def train_single_ticker(ticker, model_type, label_mode, use_tuning, use_regime=T
             "macd", "macd_signal", "macd_hist"
         ]
 
-        # Include regime features if enabled
         regime_feature_cols = ["regime_score", "trend_regime_num",
                                "volatility_regime_num", "momentum_regime_num"]
 
@@ -343,17 +327,14 @@ def train_single_ticker(ticker, model_type, label_mode, use_tuning, use_regime=T
 
         X_train, X_val, X_test, y_train, y_val, y_test = time_split(X, y)
 
-        # Split forward returns and regime labels for evaluation
         n_train = len(y_train)
         n_val = len(y_val)
         fwd_ret_test = forward_returns[n_train + n_val:]
 
-        # Extract regime labels for validation set (used for regime-aware tuning)
         regime_labels_all = df_clean["trend_regime"].values if "trend_regime" in df_clean.columns else None
         regime_labels_val = regime_labels_all[n_train:n_train +
                                               n_val] if regime_labels_all is not None else None
 
-        # For return model, use forward returns directly (no balancing needed)
         if model_type == "return":
             fwd_ret_train = forward_returns[:n_train]
             fwd_ret_val = forward_returns[n_train:n_train + n_val]
@@ -362,7 +343,6 @@ def train_single_ticker(ticker, model_type, label_mode, use_tuning, use_regime=T
                 use_tuning=False, regime_labels_val=None
             )
         else:
-            # Hybrid balance on training only (for classification models)
             Xb, yb = hybrid_balance(X_train, y_train)
             model = train_model(
                 model_type, Xb, yb, X_val, y_val,
@@ -370,12 +350,10 @@ def train_single_ticker(ticker, model_type, label_mode, use_tuning, use_regime=T
                 regime_labels_val=regime_labels_val if use_tuning and use_regime else None
             )
 
-        # Evaluate on test set
         y_pred = model.predict(X_test)
         from sklearn.metrics import accuracy_score
         acc = accuracy_score(y_test, y_pred)
 
-        # Financial metrics evaluation
         fin_evaluator = FinancialMetrics(transaction_cost_bps=10)
         fin_metrics = fin_evaluator.evaluate(
             y_true=y_test,
@@ -384,15 +362,12 @@ def train_single_ticker(ticker, model_type, label_mode, use_tuning, use_regime=T
             holding_period=10
         )
 
-        # Regime-based evaluation
         df_test = df_clean.iloc[n_train + n_val:].copy()
         regime_eval = regime_detector.evaluate_by_regime(
             df_test, y_test, y_pred)
 
-        # Get regime statistics
         regime_stats = regime_detector.get_regime_statistics(df_clean)
 
-        # Collect metrics for metadata storage
         metrics = {
             "accuracy": acc,
             "samples": len(df_clean),
@@ -404,7 +379,6 @@ def train_single_ticker(ticker, model_type, label_mode, use_tuning, use_regime=T
             "num_trades": fin_metrics.num_trades
         }
 
-        # Save model with metrics for frontend
         save_artifact(model, ticker, model_type, metrics=metrics)
 
         return {
@@ -449,7 +423,6 @@ def main():
     args = parser.parse_args()
     use_regime = not args.no_regime
 
-    # Load tickers from SYSTEM_SPEC.yaml
     tickers = load_tickers()
     total = len(tickers)
 
@@ -475,7 +448,6 @@ def main():
         result["ticker"] = ticker
         results.append(result)
 
-        # Print status
         if result["status"] == "SUCCESS":
             sharpe = result.get('sharpe_ratio', 0)
             pf = result.get('profit_factor', 0)
@@ -487,7 +459,6 @@ def main():
         else:
             print(f"✗ {result['reason']}")
 
-    # Summary
     print(f"\n{'='*70}")
     successful = [r for r in results if r['status'] == 'SUCCESS']
     skipped = [r for r in results if r['status'] == 'SKIP']
@@ -507,7 +478,6 @@ def main():
         avg_win_rate = sum(r.get('win_rate', 0)
                            for r in successful) / len(successful)
 
-        # Filter out infinite profit factors for averaging
         valid_pf = [r.get('profit_factor', 0) for r in successful if r.get(
             'profit_factor', 0) != float('inf')]
         avg_pf = sum(valid_pf) / len(valid_pf) if valid_pf else 0
@@ -521,7 +491,6 @@ def main():
         print(f"      Avg Profit Factor: {avg_pf:.2f}")
         print(f"      Avg Win Rate: {avg_win_rate*100:.1f}%")
 
-        # Regime performance summary
         bull_accs = [r.get('regime_bull_acc')
                      for r in successful if r.get('regime_bull_acc') is not None]
         bear_accs = [r.get('regime_bear_acc')
@@ -543,7 +512,6 @@ def main():
 
     print(f"\n{'='*70}\n")
 
-    # Save summary
     summary_df = pd.DataFrame(results)
     summary_path = Path("models") / args.model / "training_summary.csv"
     summary_path.parent.mkdir(parents=True, exist_ok=True)
