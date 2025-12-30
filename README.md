@@ -26,7 +26,7 @@ MarketMinute is a full-stack financial intelligence platform that combines real-
   - **Excellent** (✓) - Good metrics, recommended for trading
   - **Good** - Marginal performance
   - **Low Quality** (⚠) - Poor metrics, not recommended
-- **⚡ Lambda Agent** - Serverless agent orchestrator with OpenAI GPT-5-mini
+- **⚡ Lambda Agent** - Serverless agent orchestrator
 - **🔄 Type Coercion** - Automatic argument type conversion for tool calls
 
 ### News-Aware Predictions (v2.2 - Dec 2025)

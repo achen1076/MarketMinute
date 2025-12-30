@@ -1,11 +1,7 @@
-# Institutional Quant ML System Specification
-# Version: 1.0.0
-# Last Updated: 2025-11-12
-
 system:
   name: "QuantTrade-ML"
-  version: "1.0.0"
-  objective: "Intraday long/short US equities"
+  version: "3.0"
+  objective: "Daily long/short US equities"
 
 objectives:
   primary_kpi: "after_cost_sharpe"
@@ -549,13 +545,13 @@ data:
     market_hours: "09:30-16:00 ET"
     timezone: "America/New_York"
   bar_types:
-    time_bars: [1, 5, 15] # minutes
+    time_bars: [1, 5, 15]
     event_bars:
-      cusum_threshold: 0.0015 # 0.15% price move
-      dollar_bar_threshold: 1000000 # $1M
-      volume_bar_threshold: 100000 # 100K shares
+      cusum_threshold: 0.0015
+      dollar_bar_threshold: 1000000
+      volume_bar_threshold: 100000
   windows:
-    train_months: 4 # Reduced from 6 to fit 6 months of data
+    train_months: 4
     test_months: 1
     embargo_bars: 10
     min_samples: 800
@@ -600,13 +596,13 @@ features:
       - "spread_proxy"
       - "dollar_volume_ma"
     regime:
-      - "vol_regime" # GMM k=4 classification
+      - "vol_regime"
       - "trend_regime"
       - "liquidity_regime"
   engineering_rules:
     no_lookahead: true
     handle_missing: "forward_fill"
-    outlier_clip: 5.0 # standard deviations
+    outlier_clip: 5.0
 
 labels:
   method: "triple_barrier"
@@ -615,7 +611,7 @@ labels:
     sl_atr_mult: 1.0
     timeout_bars: 15
   classes: ["up", "down", "neutral"]
-  binary_mode: false # 3-class
+  binary_mode: false
   meta_labeling:
     enabled: true
     features: ["base_confidence", "regime", "spread_proxy"]
@@ -674,8 +670,8 @@ execution:
     short_threshold: 0.64
     require_meta_approval: true
     no_trade_windows:
-      - "09:30-09:45" # Market open volatility
-      - "15:45-16:00" # Market close
+      - "09:30-09:45"
+      - "15:45-16:00"
   exit:
     methods: ["tp", "sl", "timeout", "eod"]
     eod_flat_time: "15:58"
@@ -683,28 +679,28 @@ execution:
     cooldown_bars: 2
   position_sizing:
     method: "volatility_scaled"
-    target_risk_pct: 0.25 # 0.25% per trade
-    max_position_pct: 10 # 10% of capital
+    target_risk_pct: 0.25
+    max_position_pct: 10
     scale_by: "atr_14"
   daily_limits:
-    max_loss_multiple: 1.5 # × daily σ
+    max_loss_multiple: 1.5
     max_trades_per_symbol: 10
     max_trades_total: 30
 
 portfolio:
   construction:
-    method: "risk_parity" # or "mean_variance"
+    method: "risk_parity"
     lookback_bars: 60
     turnover_penalty: 0.5
   constraints:
     max_gross_leverage: 1.0
     max_sector_exposure: 0.30
     max_single_name: 0.20
-  rebalance_frequency: "bar" # Every bar
+  rebalance_frequency: "bar"
 
 costs:
   transaction:
-    commission_pct: 0.001 # 0.1%
+    commission_pct: 0.001
     fixed_per_trade: 0
   slippage:
     base_bps: 2.0

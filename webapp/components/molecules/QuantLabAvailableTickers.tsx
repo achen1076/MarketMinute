@@ -645,19 +645,16 @@ export function QuantLabAvailableTickers() {
                 <div className="flex flex-wrap items-center gap-3 text-xs">
                   <span className="text-slate-400 font-medium">Quality:</span>
                   <span className="inline-flex items-center gap-1 text-emerald-400">
-                    🏆 Best
+                    Best
                   </span>
                   <span className="inline-flex items-center gap-1 text-blue-400">
-                    ✓ Excellent
+                    Excellent
                   </span>
                   <span className="inline-flex items-center gap-1 text-amber-400">
                     Good
                   </span>
                   <span className="inline-flex items-center gap-1 text-rose-400">
-                    ⚠ Losing
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-slate-400">
-                    ○ No data
+                    Low Quality
                   </span>
                 </div>
               </div>
@@ -684,10 +681,13 @@ export function QuantLabAvailableTickers() {
                   className="px-3 py-2 text-sm bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500/50"
                 >
                   <option value="all">All Quality</option>
-                  <option value="excellent">🏆 Best</option>
-                  <option value="good">✓ Excellent</option>
+                  <option value="deployable">
+                    Recommended (Best & Excellent)
+                  </option>
+                  <option value="excellent">Best</option>
+                  <option value="good">Excellent</option>
                   <option value="marginal">Good</option>
-                  <option value="poor">⚠ Losing</option>
+                  <option value="poor">Low Quality</option>
                 </select>
               )}
             </div>

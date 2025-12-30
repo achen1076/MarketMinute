@@ -38,7 +38,6 @@ export default function SentinelExplainToday() {
     setReport(null);
 
     try {
-      // Use preview endpoint - doesn't save to database
       const res = await fetch("/api/sentinel/preview", {
         method: "POST",
       });
@@ -143,7 +142,7 @@ export default function SentinelExplainToday() {
             <div className="space-y-6 animate-in fade-in duration-500">
               {/* Summary */}
               <div>
-                <h3 className="text-lg font-semibold text-slate-100 mb-3 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-slate-100 mb-3 mt-4 flex items-center gap-2">
                   <TrendingUp size={18} className="text-indigo-400" />
                   Market Summary
                 </h3>
