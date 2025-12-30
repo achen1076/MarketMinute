@@ -1,5 +1,6 @@
 import "server-only";
 import { redis } from "@/lib/redis";
+import { getLastMarketOpenTime } from "@/lib/marketHours";
 
 type MarketMinuteSummary = {
   headline: string;
@@ -26,6 +27,18 @@ const summaryCache = new Map<string, SummaryCacheEntry>();
 const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour
 const CACHE_DURATION_SECONDS = 60 * 60; // 1 hour
 
+function isCacheFromCurrentSession(timestamp: number): boolean {
+  const lastMarketOpen = getLastMarketOpenTime();
+
+  // If cache was created before the last market open, it's stale
+  // This ensures we get fresh data at the start of each trading day
+  if (timestamp < lastMarketOpen.getTime()) {
+    return false;
+  }
+
+  return true;
+}
+
 export async function getSummaryFromCache(
   listName: string,
   symbolsKey: string
@@ -38,6 +51,13 @@ export async function getSummaryFromCache(
     try {
       const cached = await redis.get<SummaryCacheEntry>(cacheKey);
       if (cached && now - cached.timestamp < CACHE_DURATION_MS) {
+        // Check if cache is from current trading session
+        if (!isCacheFromCurrentSession(cached.timestamp)) {
+          console.log(
+            `[Summary/Redis] Cache stale (from previous session) for ${listName}`
+          );
+          return null;
+        }
         console.log(`[Summary/Redis] Cache hit for ${listName}`);
         return cached.summary;
       }
@@ -49,6 +69,13 @@ export async function getSummaryFromCache(
   // Fallback to in-memory
   const cached = summaryCache.get(cacheKey);
   if (cached && now - cached.timestamp < CACHE_DURATION_MS) {
+    // Check if cache is from current trading session
+    if (!isCacheFromCurrentSession(cached.timestamp)) {
+      console.log(
+        `[Summary/Memory] Cache stale (from previous session) for ${listName}`
+      );
+      return null;
+    }
     console.log(`[Summary/Memory] Cache hit for ${listName}`);
     return cached.summary;
   }

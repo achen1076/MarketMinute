@@ -98,7 +98,7 @@ export async function getSnapshotsForSymbols(
       url.searchParams.set("apikey", apiKey);
 
       const res = await fetch(url.toString(), {
-        next: { revalidate: 5 },
+        cache: "no-store",
       });
 
       if (!res.ok) {
@@ -172,7 +172,7 @@ export async function getSnapshotsForSymbols(
         );
 
         const res = await fetch(url.toString(), {
-          next: { revalidate: 5 },
+          cache: "no-store",
         });
 
         if (res.ok) {

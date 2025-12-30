@@ -91,6 +91,46 @@ export function isTradingActive(): boolean {
 }
 
 /**
+ * Get the last market open time
+ * Returns a Date object for when the market last opened (or today's open if market is open)
+ * Used to determine if cached data is stale (from a previous trading session)
+ */
+export function getLastMarketOpenTime(): Date {
+  const now = new Date();
+  const etTime = new Date(
+    now.toLocaleString("en-US", { timeZone: "America/New_York" })
+  );
+
+  let lastOpen = new Date(etTime);
+  lastOpen.setHours(9, 30, 0, 0);
+
+  const day = etTime.getDay();
+  const hours = etTime.getHours();
+  const minutes = etTime.getMinutes();
+  const timeInMinutes = hours * 60 + minutes;
+  const marketOpenMinutes = 9 * 60 + 30; // 9:30 AM
+
+  // If it's before market open today, use previous trading day
+  if (timeInMinutes < marketOpenMinutes) {
+    lastOpen.setDate(lastOpen.getDate() - 1);
+  }
+
+  // If it's a weekend, go back to Friday
+  if (day === 0) {
+    // Sunday - go back to Friday
+    lastOpen.setDate(lastOpen.getDate() - 2);
+  } else if (day === 6) {
+    // Saturday - go back to Friday
+    lastOpen.setDate(lastOpen.getDate() - 1);
+  } else if (day === 1 && timeInMinutes < marketOpenMinutes) {
+    // Monday before market open - go back to Friday
+    lastOpen.setDate(lastOpen.getDate() - 2);
+  }
+
+  return lastOpen;
+}
+
+/**
  * Get the next market open time
  * Returns a Date object for when the market will next open
  */

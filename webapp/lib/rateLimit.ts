@@ -131,7 +131,7 @@ export const RateLimitPresets = {
    * 10 requests per minute
    */
   AI_EXPLAIN: {
-    maxRequests: 10,
+    maxRequests: 20,
     windowSeconds: 60,
   } as RateLimitConfig,
 

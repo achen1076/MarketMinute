@@ -3,17 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import type { TickerSnapshot } from "@/lib/marketData";
 import Card from "@/components/atoms/Card";
-import Button from "@/components/atoms/Button";
-import { MiniSparkline } from "@/components/atoms/MiniSparkline";
-import {
-  RefreshCw,
-  Search,
-  Star,
-  Bell,
-  X,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { Search, Star, Bell, ChevronDown, ChevronUp } from "lucide-react";
 import { CACHE_TTL_MS } from "@/lib/constants";
 import ReactMarkdown from "react-markdown";
 import { isMarketOpen } from "@/lib/marketHours";
@@ -76,6 +66,10 @@ export function TickerListClient({
   const [expandedSymbols, setExpandedSymbols] = useState<Set<string>>(
     new Set()
   );
+  const [rateLimitError, setRateLimitError] = useState<{
+    symbol: string;
+    retryAfter: number;
+  } | null>(null);
 
   const activeAlerts = alerts.filter((a) => !dismissedAlertIds.has(a.id));
 
@@ -266,7 +260,17 @@ export function TickerListClient({
         }),
       });
 
-      if (!res.ok) return;
+      if (!res.ok) {
+        if (res.status === 429) {
+          const data = await res.json();
+          setRateLimitError({
+            symbol: s.symbol,
+            retryAfter: data.retryAfter || 60,
+          });
+          setTimeout(() => setRateLimitError(null), 5000);
+        }
+        return;
+      }
 
       const data = await res.json();
       setExplanations((prev) => ({
@@ -280,19 +284,21 @@ export function TickerListClient({
           refreshing: false,
         },
       }));
+      setExpandedSymbols((prev) => {
+        const next = new Set(prev);
+        next.delete(s.symbol);
+        return next;
+      });
     } finally {
       setLoadingSymbol(null);
     }
   }
 
-  // Filter and sort snapshots
   const filteredAndSortedSnapshots = useMemo(() => {
-    // Filter by search query
     let filtered = snapshots.filter((s) =>
       s.symbol.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    // Sort based on mode
     switch (sortMode) {
       case "a-z":
         filtered.sort((a, b) => a.symbol.localeCompare(b.symbol));
@@ -413,6 +419,17 @@ export function TickerListClient({
         </div>
       </div>
 
+      {/* Rate Limit Warning */}
+      {rateLimitError && (
+        <div className="mb-3 shrink-0 px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs flex items-center gap-2">
+          <span className="shrink-0">⚠️</span>
+          <span>
+            Too many requests. Please wait {rateLimitError.retryAfter}s before
+            trying again.
+          </span>
+        </div>
+      )}
+
       {/* Search and Sort Controls */}
       <div className="mb-3 shrink-0">
         <div className="bg-slate-900/40 border border-slate-700/50 rounded-lg p-3 space-y-2">
@@ -498,14 +515,6 @@ export function TickerListClient({
                             </span>
                           )}
                         </div>
-                        {/* {priceHistory[s.symbol] &&
-                          priceHistory[s.symbol].length >= 2 && (
-                            <MiniSparkline
-                              data={priceHistory[s.symbol]}
-                              width={60}
-                              height={20}
-                            />
-                          )} */}
                       </div>
                       <div
                         className={`text-md text-slate-200 transition-all ${

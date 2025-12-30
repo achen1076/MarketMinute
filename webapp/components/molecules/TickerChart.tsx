@@ -102,7 +102,6 @@ export function TickerChart({
     }
   };
 
-  // Get custom ticks for 1D chart
   const getCustomTicks = () => {
     if (selectedRange !== "1D" || chartData.length === 0) return undefined;
 
@@ -132,7 +131,6 @@ export function TickerChart({
     return ticks;
   };
 
-  // Use ticker data for 1D, chart data for longer ranges
   const chartOpenPrice = chartData.length > 0 ? chartData[0].close : 0;
 
   const formatTooltip = (value: number | undefined) => {
@@ -152,7 +150,6 @@ export function TickerChart({
   const chartCurrentPrice =
     chartData.length > 0 ? chartData[chartData.length - 1].close : 0;
 
-  // For 1D, use actual ticker data if available
   const useTickerData =
     selectedRange === "1D" &&
     tickerPrice !== undefined &&
@@ -170,12 +167,26 @@ export function TickerChart({
   const isPositive = displayChangePct >= 0;
   const chartColor = isPositive ? "#10b981" : "#ef4444";
 
-  // Reference line: use previous close for 1D, chart first point for 5D/1M
   const showOpenLine = ["1D", "5D", "1M"].includes(selectedRange);
   const referenceLinePrice =
     selectedRange === "1D" && tickerPrevClose
       ? tickerPrevClose
       : chartOpenPrice;
+
+  const calculateYAxisDomain = (): [number, number] => {
+    if (chartData.length === 0) return [0, 100];
+
+    const prices = chartData.map((d) => d.close);
+    let minPrice = Math.min(...prices);
+    let maxPrice = Math.max(...prices);
+
+    if (showOpenLine && referenceLinePrice > 0) {
+      minPrice = Math.min(minPrice, referenceLinePrice);
+      maxPrice = Math.max(maxPrice, referenceLinePrice);
+    }
+
+    return [minPrice, maxPrice];
+  };
 
   return (
     <div className="space-y-3">
@@ -248,15 +259,17 @@ export function TickerChart({
                 style={{ fontSize: "11px" }}
                 tickLine={false}
                 axisLine={false}
-                minTickGap={30}
+                minTickGap={50}
               />
               <YAxis
-                domain={["auto", "auto"]}
+                domain={calculateYAxisDomain()}
                 stroke="#64748b"
                 style={{ fontSize: "11px" }}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(value) => `$${value.toFixed(0)}`}
+                tickFormatter={(value) =>
+                  `$${value > 100 ? value.toFixed(0) : value.toFixed(2)}`
+                }
                 width={45}
               />
               <Tooltip
