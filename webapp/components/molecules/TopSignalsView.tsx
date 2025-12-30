@@ -11,9 +11,14 @@ import type { EnhancedSignal, ModelQuality } from "@/types/quant";
 type Props = {
   signals: EnhancedSignal[];
   modelQuality?: Record<string, ModelQuality>;
+  maxSignals?: number;
 };
 
-export function TopSignalsView({ signals, modelQuality = {} }: Props) {
+export function TopSignalsView({
+  signals,
+  modelQuality = {},
+  maxSignals = 10,
+}: Props) {
   const [qualityFilter, setQualityFilter] = useState<QualityFilterValue>("all");
 
   const tradeableSignals = signals
@@ -26,7 +31,7 @@ export function TopSignalsView({ signals, modelQuality = {} }: Props) {
       return quality.quality_tier === qualityFilter;
     })
     .sort((a, b) => b.quantScore - a.quantScore)
-    .slice(0, 10);
+    .slice(0, maxSignals);
 
   const hasQualityData = Object.keys(modelQuality).length > 0;
 

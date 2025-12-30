@@ -66,27 +66,8 @@ export async function GET() {
       ],
     });
 
-    // Apply tier-based filtering
-    if (tier === "free") {
-      const watchlistLimit =
-        typeof tierConfig.features.quantLab.watchlistSignals === "number"
-          ? tierConfig.features.quantLab.watchlistSignals
-          : watchlistSymbols.length;
-
-      // Get user's watchlist predictions (limit to first N)
-      const watchlistPredictions = predictions
-        .filter((p) => watchlistSymbols.includes(p.ticker))
-        .slice(0, watchlistLimit);
-
-      // Get top signals (not in watchlist)
-      const topSignals = predictions.filter(
-        (p) => !watchlistSymbols.includes(p.ticker)
-      );
-
-      // Combine: top signals + limited watchlist signals
-      predictions = [...topSignals, ...watchlistPredictions];
-    }
-    // Basic tier gets all predictions (no filtering)
+    // No server-side filtering - client handles view-specific filtering
+    // API returns all predictions, tier info, and watchlist symbols
 
     // Transform to match expected format
     const formatted = predictions.map((p) => ({
@@ -114,6 +95,8 @@ export async function GET() {
       predictions: formatted,
       timestamp: latestRun.timestamp.toISOString(),
       runId: latestRun.runId,
+      tier,
+      watchlistSymbols,
     });
   } catch (error) {
     console.error("Failed to load quant predictions:", error);

@@ -135,7 +135,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             Sentinel Dashboard
           </NavLink>
           <NavLink to="/chat" onClick={closeMenu}>
-            MarketMinute Chat Agent
+            MarketMinute Chat
           </NavLink>
           <NavLink to="/quant" onClick={closeMenu}>
             Quant Lab

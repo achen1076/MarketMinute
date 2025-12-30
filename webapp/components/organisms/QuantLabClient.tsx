@@ -21,8 +21,13 @@ type Props = {
 };
 
 export function QuantLabClient({ symbols, watchlistName }: Props) {
-  const [predictions, setPredictions] = useState<Prediction[]>([]);
-  const [enhancedSignals, setEnhancedSignals] = useState<EnhancedSignal[]>([]);
+  const [allPredictions, setAllPredictions] = useState<Prediction[]>([]);
+  const [fullWatchlistSignals, setFullWatchlistSignals] = useState<
+    EnhancedSignal[]
+  >([]);
+  const [limitedWatchlistSignals, setLimitedWatchlistSignals] = useState<
+    EnhancedSignal[]
+  >([]);
   const [modelQuality, setModelQuality] = useState<
     Record<string, ModelQuality>
   >({});
@@ -53,13 +58,27 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
 
       if (response.ok) {
         const data = await response.json();
-        const allPredictions = data.predictions || [];
-        const filtered = allPredictions.filter((p: Prediction) =>
-          symbols.includes(p.ticker)
+        const predictions = data.predictions || [];
+        const tier = data.tier || "free";
+        const watchlistSymbols: string[] = data.watchlistSymbols || symbols;
+        setUserTier(tier);
+
+        // Store all predictions
+        setAllPredictions(predictions);
+
+        // Filter to watchlist
+        const watchlistFiltered = predictions.filter((p: Prediction) =>
+          watchlistSymbols.includes(p.ticker)
         );
-        setPredictions(filtered);
-        const enhanced = filtered.map(calculateSignalMetrics);
-        setEnhancedSignals(enhanced);
+        const watchlistEnhanced = watchlistFiltered.map(calculateSignalMetrics);
+
+        // Full watchlist for Top Signals View (TopSignalsView handles the limit)
+        setFullWatchlistSignals(watchlistEnhanced);
+
+        // Limited watchlist for All Signals View (free users: 3, paid: unlimited)
+        const limitedWatchlist =
+          tier === "free" ? watchlistEnhanced.slice(0, 3) : watchlistEnhanced;
+        setLimitedWatchlistSignals(limitedWatchlist);
       } else {
         setError("Failed to load predictions");
       }
@@ -90,10 +109,10 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
   }, [symbols]);
 
   const getFilteredAndSortedSignals = () => {
-    // First filter by quality
-    let filtered = enhancedSignals;
+    // First filter by quality (using limited watchlist signals for All Signals view)
+    let filtered = limitedWatchlistSignals;
     if (qualityFilter !== "all" && Object.keys(modelQuality).length > 0) {
-      filtered = enhancedSignals.filter((s) => {
+      filtered = limitedWatchlistSignals.filter((s) => {
         const quality = modelQuality[s.ticker];
         if (!quality) return false;
         if (qualityFilter === "deployable") return quality.deployable;
@@ -119,7 +138,7 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
     );
   }
 
-  if (error || predictions.length === 0) {
+  if (error || allPredictions.length === 0) {
     return (
       <div className="space-y-6">
         <Card className="p-8">
@@ -190,19 +209,19 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
         </div>
       </div>
 
-      {/* Free Tier Limitation Banner */}
-      {userTier === "free" && viewMode === "signals" && (
+      {/* Free Tier Info Banner */}
+      {userTier === "free" && (
         <div className="rounded-lg border border-blue-500/30 bg-blue-500/5 p-4">
           <div className="flex items-start gap-3">
             <div className="text-blue-400 text-xl">ℹ️</div>
             <div className="flex-1">
               <h3 className="text-sm font-semibold text-blue-400 mb-1">
-                Free Tier: Limited Watchlist Signals
+                Free Tier: Limited Signals
               </h3>
               <p className="text-xs text-slate-300">
-                You&apos;re viewing the first <strong>3 signals</strong> from
-                your watchlist. Upgrade to <strong>Basic</strong> to see all
-                signals from your watchlist.{" "}
+                You&apos;re viewing up to <strong>3 top signals</strong> and{" "}
+                <strong>3 other signals </strong>from your watchlist. Upgrade to{" "}
+                <strong>Basic</strong> for unlimited signals.{" "}
                 <a
                   href="/settings"
                   className="text-blue-400 hover:text-blue-300 underline"
@@ -248,8 +267,9 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
       {viewMode === "top" ? (
         <div className="space-y-4">
           <TopSignalsView
-            signals={enhancedSignals}
+            signals={fullWatchlistSignals}
             modelQuality={modelQuality}
+            maxSignals={userTier === "free" ? 3 : 10}
           />
         </div>
       ) : (
