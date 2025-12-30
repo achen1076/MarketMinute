@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Search } from "lucide-react";
 import Card from "@/components/atoms/Card";
 import { calculateSignalMetrics } from "@/lib/quantSignals";
 import { EnhancedPredictionCard } from "@/components/molecules/EnhancedPredictionCard";
@@ -37,6 +38,7 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userTier, setUserTier] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchModelQuality = async () => {
     try {
@@ -109,10 +111,14 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
   }, [symbols]);
 
   const getFilteredAndSortedSignals = () => {
-    // First filter by quality (using limited watchlist signals for All Signals view)
-    let filtered = limitedWatchlistSignals;
+    // First filter by search query
+    let filtered = limitedWatchlistSignals.filter((s) =>
+      s.ticker.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    // Then filter by quality
     if (qualityFilter !== "all" && Object.keys(modelQuality).length > 0) {
-      filtered = limitedWatchlistSignals.filter((s) => {
+      filtered = filtered.filter((s) => {
         const quality = modelQuality[s.ticker];
         if (!quality) return false;
         if (qualityFilter === "deployable") return quality.deployable;
@@ -240,6 +246,19 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
       {/* Filter and Sort Controls - only show for All Signals view */}
       {viewMode === "signals" && (
         <div className="flex items-center justify-between gap-4 flex-wrap">
+          {/* Search */}
+          {userTier !== "free" && (
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search ticker..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 pr-3 py-2 w-40 bg-slate-800/50 border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-600"
+              />
+            </div>
+          )}
           <ModelQualityFilter
             value={qualityFilter}
             onChange={setQualityFilter}

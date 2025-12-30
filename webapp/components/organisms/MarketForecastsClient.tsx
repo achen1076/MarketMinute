@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Search } from "lucide-react";
 import Card from "@/components/atoms/Card";
 import { ForecastCard } from "@/components/molecules/ForecastCard";
 import type { DistributionalForecast } from "@/types/quant";
@@ -14,6 +15,11 @@ export function MarketForecastsClient({ symbols, watchlistName }: Props) {
   const [forecasts, setForecasts] = useState<DistributionalForecast[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredForecasts = forecasts.filter((f) =>
+    f.ticker.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const fetchForecasts = async () => {
     setIsLoading(true);
@@ -85,8 +91,20 @@ export function MarketForecastsClient({ symbols, watchlistName }: Props) {
         </p>
       </div>
 
+      {/* Search */}
+      <div className="relative w-fit">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <input
+          type="text"
+          placeholder="Search ticker..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-9 pr-3 py-2 w-40 bg-slate-800/50 border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-600"
+        />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {forecasts.map((forecast) => (
+        {filteredForecasts.map((forecast) => (
           <ForecastCard key={forecast.ticker} forecast={forecast} />
         ))}
       </div>
