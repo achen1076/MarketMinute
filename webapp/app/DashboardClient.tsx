@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Star } from "lucide-react";
-import Button from "@/components/atoms/Button";
 import Card from "@/components/atoms/Card";
 
 type WatchlistItem = {
@@ -61,27 +60,28 @@ export default function DashboardClient({
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Your Market Minute
-          </h1>
-          <p className="mt-1 text-sm text-slate-400">
-            Track your favorite stocks and stay updated on market movements.
-          </p>
-        </div>
-        <Link href="/watchlist">
-          <Button size="md" className="rounded-xl hover:cursor-pointer">
-            Manage Watchlists
-          </Button>
-        </Link>
+      <header>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Your Market Minute
+        </h1>
+        <p className="mt-1 text-sm text-slate-400">
+          Track your favorite stocks and stay updated on market movements.
+        </p>
       </header>
 
       {/* Active Watchlist Selector */}
       <Card className="p-4">
-        <h2 className="mb-3 text-sm font-semibold text-slate-200">
-          Your Watchlists
-        </h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-slate-200">
+            Your Watchlists
+          </h2>
+          <Link
+            href="/watchlist"
+            className="text-xs text-emerald-500 hover:text-emerald-400 hover:underline transition-colors"
+          >
+            Manage
+          </Link>
+        </div>
         {watchlists.length === 0 ? (
           <p className="text-sm text-slate-400">
             No watchlists yet.{" "}

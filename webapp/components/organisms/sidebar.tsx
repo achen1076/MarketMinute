@@ -126,10 +126,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             Home
           </NavLink>
           <NavLink to="/watchlist" onClick={closeMenu}>
-            Watchlist
-          </NavLink>
-          <NavLink to="/quant" onClick={closeMenu}>
-            Quant Lab
+            Watchlists
           </NavLink>
           <NavLink to="/forecasts" onClick={closeMenu}>
             Market Forecasts
@@ -138,7 +135,10 @@ const Sidebar: React.FC<SidebarProps> = ({
             Sentinel Dashboard
           </NavLink>
           <NavLink to="/chat" onClick={closeMenu}>
-            AI Chat
+            MarketMinute Chat Agent
+          </NavLink>
+          <NavLink to="/quant" onClick={closeMenu}>
+            Quant Lab
           </NavLink>
           <NavLink to="/about" onClick={closeMenu}>
             About

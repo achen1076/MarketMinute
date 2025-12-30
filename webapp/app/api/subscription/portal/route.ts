@@ -18,7 +18,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Rate limiting: 5 portal sessions per hour per user
   const rateLimitResult = checkRateLimit(
     "subscription:portal",
     session.user.email,
