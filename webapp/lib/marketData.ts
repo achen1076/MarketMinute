@@ -1,4 +1,5 @@
 import "server-only";
+import { isAfterHours, isPreMarket } from "./marketHours";
 
 export type TickerSnapshot = {
   symbol: string;
@@ -16,6 +17,20 @@ export type TickerSnapshot = {
   dayHigh?: number;
   // eps?: number;
   // pe?: number;
+  // Extended hours data (premarket/postmarket)
+  extendedHoursPrice?: number;
+  extendedHoursChangePct?: number;
+  extendedHoursSession?: "premarket" | "postmarket";
+};
+
+export type AfterMarketQuote = {
+  symbol: string;
+  bidSize: number;
+  bidPrice: number;
+  askSize: number;
+  askPrice: number;
+  volume: number;
+  timestamp: number;
 };
 
 const apiCallTimestamps: number[] = [];
@@ -229,6 +244,37 @@ export async function getSnapshotsForSymbols(
       }
     }
 
+    // Check if we're in extended hours (premarket or postmarket) and fetch data
+    const inPremarket = isPreMarket();
+    const inPostmarket = isAfterHours();
+    const extendedHoursActive = inPremarket || inPostmarket;
+
+    if (extendedHoursActive && regularSymbols.length > 0) {
+      try {
+        const afterMarketQuotes = await getAfterMarketQuotes(regularSymbols);
+
+        // Merge extended hours data into results
+        for (const snapshot of results) {
+          const ahQuote = afterMarketQuotes[snapshot.symbol];
+          if (ahQuote && ahQuote.askPrice > 0) {
+            // Use mid-price (average of bid and ask) as the extended hours price
+            const ahPrice = (ahQuote.bidPrice + ahQuote.askPrice) / 2;
+            const closePrice = snapshot.price; // End of day / previous close price
+            const ahChangePct =
+              closePrice > 0 ? ((ahPrice - closePrice) / closePrice) * 100 : 0;
+
+            snapshot.extendedHoursPrice = ahPrice;
+            snapshot.extendedHoursChangePct = ahChangePct;
+            snapshot.extendedHoursSession = inPremarket
+              ? "premarket"
+              : "postmarket";
+          }
+        }
+      } catch (error) {
+        console.error("[FMP] Error fetching extended hours data:", error);
+      }
+    }
+
     return results;
   } catch (error) {
     console.error(`[FMP] Error fetching batch quotes:`, error);
@@ -252,4 +298,81 @@ async function getEarningsCalendar(): Promise<Record<string, string>> {
     // Example: "AAPL": "2025-01-30",
     // Example: "MSFT": "2025-01-28",
   };
+}
+
+/**
+ * Fetch after-market quotes for symbols
+ * Returns a map of symbol -> after-market quote data
+ */
+export async function getAfterMarketQuotes(
+  symbols: string[]
+): Promise<Record<string, AfterMarketQuote>> {
+  if (!symbols.length) return {};
+
+  const apiKey = process.env.FMP_API_KEY;
+  if (!apiKey) {
+    console.error("[FMP] API key not configured for after-market quotes");
+    return {};
+  }
+
+  // Filter out indices - they don't have after-market quotes
+  const regularSymbols = symbols.filter((s) => !s.startsWith("^"));
+  if (!regularSymbols.length) return {};
+
+  try {
+    const symbolsParam = regularSymbols.join(",");
+    const url = new URL(
+      "https://financialmodelingprep.com/stable/batch-aftermarket-quote"
+    );
+    url.searchParams.set("symbols", symbolsParam);
+    url.searchParams.set("apikey", apiKey);
+
+    console.log(`[FMP] Fetching after-market quotes for: ${symbolsParam}`);
+
+    const res = await fetch(url.toString(), {
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      const errorBody = await res
+        .text()
+        .catch(() => "Unable to read error body");
+      console.error(
+        `[FMP] After-market quote error: ${res.status}\nResponse: ${errorBody}`
+      );
+      return {};
+    }
+
+    const data = await res.json();
+
+    if (!Array.isArray(data)) {
+      console.error("[FMP] Invalid after-market quote response:", data);
+      return {};
+    }
+
+    const result: Record<string, AfterMarketQuote> = {};
+    for (const quote of data) {
+      if (quote.symbol) {
+        result[quote.symbol.toUpperCase()] = {
+          symbol: quote.symbol.toUpperCase(),
+          bidSize: Number(quote.bidSize) || 0,
+          bidPrice: Number(quote.bidPrice) || 0,
+          askSize: Number(quote.askSize) || 0,
+          askPrice: Number(quote.askPrice) || 0,
+          volume: Number(quote.volume) || 0,
+          timestamp: Number(quote.timestamp) || 0,
+        };
+      }
+    }
+
+    console.log(
+      `[FMP] Fetched after-market quotes for ${
+        Object.keys(result).length
+      } symbols`
+    );
+    return result;
+  } catch (error) {
+    console.error("[FMP] Error fetching after-market quotes:", error);
+    return {};
+  }
 }

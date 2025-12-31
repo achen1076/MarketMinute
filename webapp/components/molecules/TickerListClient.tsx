@@ -6,7 +6,7 @@ import Card from "@/components/atoms/Card";
 import { Search, Star, Bell, ChevronDown, ChevronUp } from "lucide-react";
 import { CACHE_TTL_MS } from "@/lib/constants";
 import ReactMarkdown from "react-markdown";
-import { isMarketOpen } from "@/lib/marketHours";
+import { isMarketOpen, isAfterHours, isPreMarket } from "@/lib/marketHours";
 import { COLORS } from "@/lib/colors";
 import { TickerChart } from "@/components/molecules/TickerChart";
 
@@ -182,12 +182,14 @@ export function TickerListClient({
   useEffect(() => {
     if (!watchlistId) return;
 
-    if (!isMarketOpen()) {
+    // Refresh during market hours or extended hours (premarket/postmarket)
+    const shouldRefresh = isMarketOpen() || isAfterHours() || isPreMarket();
+    if (!shouldRefresh) {
       return;
     }
 
     const interval = setInterval(() => {
-      if (isMarketOpen()) {
+      if (isMarketOpen() || isAfterHours() || isPreMarket()) {
         handleRefresh();
       }
     }, CACHE_TTL_MS);
@@ -515,6 +517,13 @@ export function TickerListClient({
                             </span>
                           )}
                         </div>
+                        {s.extendedHoursSession && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-violet-500/20 text-violet-400 font-medium">
+                            {s.extendedHoursSession === "premarket"
+                              ? "Pre-market"
+                              : "After-hours"}
+                          </span>
+                        )}
                       </div>
                       <div
                         className={`text-md text-slate-200 transition-all ${
@@ -527,6 +536,29 @@ export function TickerListClient({
                       >
                         ${s.price.toFixed(2)}
                       </div>
+                      {s.extendedHoursSession &&
+                        s.extendedHoursPrice !== undefined && (
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span className="text-xs text-violet-400">
+                              {s.extendedHoursSession === "premarket"
+                                ? "Pre-market"
+                                : "After-hours"}
+                              : ${s.extendedHoursPrice.toFixed(2)}
+                            </span>
+                            {s.extendedHoursChangePct !== undefined && (
+                              <span
+                                className={`text-xs font-medium ${
+                                  s.extendedHoursChangePct >= 0
+                                    ? "text-emerald-400"
+                                    : "text-rose-400"
+                                }`}
+                              >
+                                {s.extendedHoursChangePct >= 0 ? "+" : ""}
+                                {s.extendedHoursChangePct.toFixed(2)}%
+                              </span>
+                            )}
+                          </div>
+                        )}
                       {s.isFavorite && s.earningsDate && (
                         <div className="text-xs text-amber-400/80 mt-1">
                           📅 Earnings: {s.earningsDate}
@@ -534,17 +566,26 @@ export function TickerListClient({
                       )}
                     </div>
                   </div>
-                  <div
-                    className={`text-sm font-semibold shrink-0 ${
-                      s.changePct > 0
-                        ? "text-emerald-400"
-                        : s.changePct < 0
-                        ? "text-rose-400"
-                        : "text-slate-400"
-                    }`}
-                  >
-                    {s.changePct > 0 ? "+" : ""}
-                    {s.changePct.toFixed(2)}%
+                  <div className="text-right shrink-0">
+                    <div
+                      className={`text-sm font-semibold ${
+                        s.changePct > 0
+                          ? "text-emerald-400"
+                          : s.changePct < 0
+                          ? "text-rose-400"
+                          : "text-slate-400"
+                      }`}
+                    >
+                      {s.changePct > 0 ? "+" : ""}
+                      {s.changePct.toFixed(2)}%
+                    </div>
+                    {s.extendedHoursSession && (
+                      <div className="text-[10px] text-slate-500 mt-0.5">
+                        {s.extendedHoursSession === "premarket"
+                          ? "prev close"
+                          : "at close"}
+                      </div>
+                    )}
                   </div>
                 </div>
 
