@@ -21,6 +21,11 @@ export type TickerSnapshot = {
   extendedHoursPrice?: number;
   extendedHoursChangePct?: number;
   extendedHoursSession?: "premarket" | "postmarket";
+  // Extended hours bid/ask
+  extendedHoursBid?: number;
+  extendedHoursBidSize?: number;
+  extendedHoursAsk?: number;
+  extendedHoursAskSize?: number;
 };
 
 export type AfterMarketQuote = {
@@ -30,6 +35,13 @@ export type AfterMarketQuote = {
   askSize: number;
   askPrice: number;
   volume: number;
+  timestamp: number;
+};
+
+export type AfterMarketTrade = {
+  symbol: string;
+  price: number;
+  tradeSize: number;
   timestamp: number;
 };
 
@@ -251,23 +263,50 @@ export async function getSnapshotsForSymbols(
 
     if (extendedHoursActive && regularSymbols.length > 0) {
       try {
-        const afterMarketQuotes = await getAfterMarketQuotes(regularSymbols);
+        // Fetch both trade price and bid/ask quotes in parallel
+        const [afterMarketTrades, afterMarketQuotes] = await Promise.all([
+          getAfterMarketTrades(regularSymbols),
+          getAfterMarketQuotes(regularSymbols),
+        ]);
 
         // Merge extended hours data into results
         for (const snapshot of results) {
+          const ahTrade = afterMarketTrades[snapshot.symbol];
           const ahQuote = afterMarketQuotes[snapshot.symbol];
-          if (ahQuote && ahQuote.askPrice > 0) {
-            // Use mid-price (average of bid and ask) as the extended hours price
-            const ahPrice = (ahQuote.bidPrice + ahQuote.askPrice) / 2;
+
+          if (ahTrade && ahTrade.price > 0) {
             const closePrice = snapshot.price; // End of day / previous close price
             const ahChangePct =
-              closePrice > 0 ? ((ahPrice - closePrice) / closePrice) * 100 : 0;
+              closePrice > 0
+                ? ((ahTrade.price - closePrice) / closePrice) * 100
+                : 0;
 
-            snapshot.extendedHoursPrice = ahPrice;
+            snapshot.extendedHoursPrice = ahTrade.price;
             snapshot.extendedHoursChangePct = ahChangePct;
             snapshot.extendedHoursSession = inPremarket
               ? "premarket"
               : "postmarket";
+          }
+
+          // Add bid/ask data if available
+          if (ahQuote) {
+            if (ahQuote.bidPrice > 0) {
+              snapshot.extendedHoursBid = ahQuote.bidPrice;
+              snapshot.extendedHoursBidSize = ahQuote.bidSize;
+            }
+            if (ahQuote.askPrice > 0) {
+              snapshot.extendedHoursAsk = ahQuote.askPrice;
+              snapshot.extendedHoursAskSize = ahQuote.askSize;
+            }
+            // Set session even if we only have quote data
+            if (
+              !snapshot.extendedHoursSession &&
+              (ahQuote.bidPrice > 0 || ahQuote.askPrice > 0)
+            ) {
+              snapshot.extendedHoursSession = inPremarket
+                ? "premarket"
+                : "postmarket";
+            }
           }
         }
       } catch (error) {
@@ -301,7 +340,80 @@ async function getEarningsCalendar(): Promise<Record<string, string>> {
 }
 
 /**
- * Fetch after-market quotes for symbols
+ * Fetch after-market trades for symbols (actual trade prices)
+ * Returns a map of symbol -> after-market trade data
+ */
+export async function getAfterMarketTrades(
+  symbols: string[]
+): Promise<Record<string, AfterMarketTrade>> {
+  if (!symbols.length) return {};
+
+  const apiKey = process.env.FMP_API_KEY;
+  if (!apiKey) {
+    console.error("[FMP] API key not configured for after-market trades");
+    return {};
+  }
+
+  const regularSymbols = symbols.filter((s) => !s.startsWith("^"));
+  if (!regularSymbols.length) return {};
+
+  try {
+    const symbolsParam = regularSymbols.join(",");
+    const url = new URL(
+      "https://financialmodelingprep.com/stable/batch-aftermarket-trade"
+    );
+    url.searchParams.set("symbols", symbolsParam);
+    url.searchParams.set("apikey", apiKey);
+
+    console.log(`[FMP] Fetching after-market trades for: ${symbolsParam}`);
+
+    const res = await fetch(url.toString(), {
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      const errorBody = await res
+        .text()
+        .catch(() => "Unable to read error body");
+      console.error(
+        `[FMP] After-market trade error: ${res.status}\nResponse: ${errorBody}`
+      );
+      return {};
+    }
+
+    const data = await res.json();
+
+    if (!Array.isArray(data)) {
+      console.error("[FMP] Invalid after-market trade response:", data);
+      return {};
+    }
+
+    const result: Record<string, AfterMarketTrade> = {};
+    for (const trade of data) {
+      if (trade.symbol) {
+        result[trade.symbol.toUpperCase()] = {
+          symbol: trade.symbol.toUpperCase(),
+          price: Number(trade.price) || 0,
+          tradeSize: Number(trade.tradeSize) || 0,
+          timestamp: Number(trade.timestamp) || 0,
+        };
+      }
+    }
+
+    console.log(
+      `[FMP] Fetched after-market trades for ${
+        Object.keys(result).length
+      } symbols`
+    );
+    return result;
+  } catch (error) {
+    console.error("[FMP] Error fetching after-market trades:", error);
+    return {};
+  }
+}
+
+/**
+ * Fetch after-market quotes for symbols (bid/ask data)
  * Returns a map of symbol -> after-market quote data
  */
 export async function getAfterMarketQuotes(

@@ -679,6 +679,42 @@ export function TickerListClient({
                       />
                     </div>
 
+                    {/* Extended Hours Bid/Ask */}
+                    {s.extendedHoursSession &&
+                      (s.extendedHoursBid !== undefined ||
+                        s.extendedHoursAsk !== undefined) && (
+                        <div className="pb-3 border-b border-slate-700/50">
+                          <div className="text-xs text-violet-400 font-medium mb-2">
+                            {s.extendedHoursSession === "premarket"
+                              ? "Pre-market"
+                              : "After-hours"}{" "}
+                            Quote
+                          </div>
+                          <div className="grid grid-cols-2 gap-3 text-xs">
+                            {s.extendedHoursBid !== undefined &&
+                              s.extendedHoursBidSize !== undefined && (
+                                <div>
+                                  <div className="text-slate-500">Bid</div>
+                                  <div className="text-emerald-400 font-medium">
+                                    ${s.extendedHoursBid.toFixed(2)} x{" "}
+                                    {s.extendedHoursBidSize.toLocaleString()}
+                                  </div>
+                                </div>
+                              )}
+                            {s.extendedHoursAsk !== undefined &&
+                              s.extendedHoursAskSize !== undefined && (
+                                <div>
+                                  <div className="text-slate-500">Ask</div>
+                                  <div className="text-rose-400 font-medium">
+                                    ${s.extendedHoursAsk.toFixed(2)} x{" "}
+                                    {s.extendedHoursAskSize.toLocaleString()}
+                                  </div>
+                                </div>
+                              )}
+                          </div>
+                        </div>
+                      )}
+
                     {/* Details grid */}
                     <div className="grid grid-cols-2 gap-3 text-xs">
                       {s.marketCap !== undefined && (
