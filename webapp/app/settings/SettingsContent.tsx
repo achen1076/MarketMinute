@@ -271,19 +271,20 @@ export default function SettingsContent({
   return (
     <div className="space-y-6">
       {/* Tab Navigation */}
-      <div className="flex gap-1 p-1 bg-muted/50 rounded-lg w-fit">
+      <div className="flex gap-1 p-1 bg-muted/50 rounded-lg w-full sm:w-fit overflow-x-auto">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
               activeTab === tab.id
                 ? "bg-secondary text-foreground"
                 : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
             }`}
           >
-            <tab.icon size={16} />
-            {tab.label}
+            <tab.icon size={14} className="sm:w-4 sm:h-4" />
+            <span className="hidden xs:inline sm:inline">{tab.label}</span>
+            {/* <span className="xs:hidden">{tab.label.slice(0, 4)}</span> */}
           </button>
         ))}
       </div>
@@ -582,24 +583,26 @@ function ThemeAwarePreferences({
   return (
     <div className="space-y-8">
       {/* Theme Preference */}
-      <div className="bg-card border border-border rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">Appearance</h2>
-        <p className="text-muted-foreground mb-4">
+      <div className="bg-card border border-border rounded-lg p-4 sm:p-6">
+        <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">
+          Appearance
+        </h2>
+        <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
           Choose your preferred color theme for the application.
         </p>
 
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           {themeOptions.map((option) => (
             <button
               key={option.value}
               onClick={() => setTheme(option.value)}
-              className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all ${
+              className={`flex items-center justify-center sm:justify-start gap-2 px-4 py-2.5 sm:py-3 rounded-lg border transition-all w-full sm:w-auto ${
                 theme === option.value
                   ? "border-primary bg-primary/10 text-primary"
                   : "border-border bg-card hover:border-muted-foreground text-foreground"
               }`}
             >
-              <option.icon size={18} />
+              <option.icon size={18} className="shrink-0" />
               <span className="font-medium">{option.label}</span>
             </button>
           ))}

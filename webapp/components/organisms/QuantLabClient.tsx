@@ -175,26 +175,28 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+          <div className="flex-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">
               Quant Lab Signals{" "}
               {watchlistName && (
-                <span className="text-muted-foreground">- {watchlistName}</span>
+                <span className="text-muted-foreground text-base sm:text-xl">
+                  - {watchlistName}
+                </span>
               )}
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               Model-generated trading signals with Quant Scores, regime
               classification, and expected metrics
             </p>
           </div>
 
           {/* View Toggle */}
-          <div className="flex gap-3 items-center">
-            <div className="flex gap-2">
+          <div className="flex gap-3 items-center w-full sm:w-auto">
+            <div className="flex gap-2 w-full sm:w-auto">
               <button
                 onClick={() => setViewMode("top")}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
                   viewMode === "top"
                     ? "bg-primary/20 text-primary border border-primary/30"
                     : "bg-muted/50 text-muted-foreground border border-border hover:bg-muted"
@@ -204,7 +206,7 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
               </button>
               <button
                 onClick={() => setViewMode("signals")}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
                   viewMode === "signals"
                     ? "bg-primary/20 text-primary border border-primary/30"
                     : "bg-muted/50 text-muted-foreground border border-border hover:bg-muted"
@@ -247,7 +249,7 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
 
       {/* Filter and Sort Controls - only show for All Signals view */}
       {viewMode === "signals" && (
-        <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
           {/* Search */}
           {userTier !== "free" && (
             <div className="relative">

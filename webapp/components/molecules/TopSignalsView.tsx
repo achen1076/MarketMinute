@@ -52,7 +52,7 @@ export function TopSignalsView({
           {tradeableSignals.map((signal, idx) => (
             <div
               key={signal.ticker}
-              className="p-5 hover:bg-muted/40 transition-all border-l-4 rounded-lg border border-border bg-card"
+              className="p-3 sm:p-5 hover:bg-muted/40 transition-all border-l-4 rounded-lg border border-border bg-card"
               style={{
                 borderLeftColor:
                   signal.quantScore >= 70
@@ -64,17 +64,17 @@ export function TopSignalsView({
                     : "#64748b",
               }}
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
+              <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-0">
+                <div className="flex-1 w-full">
+                  <div className="flex items-center flex-wrap gap-2 sm:gap-3 mb-2">
                     <span className="text-xs font-mono text-muted-foreground">
                       #{idx + 1}
                     </span>
-                    <h3 className="text-xl font-bold text-foreground">
+                    <h3 className="text-lg sm:text-xl font-bold text-foreground">
                       {signal.ticker}
                     </h3>
                     <div
-                      className={`px-3 py-1 rounded-full text-xs font-bold ${
+                      className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold ${
                         signal.quantScore >= 70
                           ? "bg-emerald-500/20 text-emerald-400"
                           : signal.quantScore >= 50
@@ -89,7 +89,7 @@ export function TopSignalsView({
                     {/* Model Quality Badge */}
                     {modelQuality[signal.ticker] && (
                       <span
-                        className={`px-2 py-0.5 rounded text-xs font-medium border ${
+                        className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium border ${
                           modelQuality[signal.ticker].quality_tier ===
                           "excellent"
                             ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-400"
@@ -114,20 +114,20 @@ export function TopSignalsView({
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-foreground/80 mb-2">
+                  <p className="text-xs sm:text-sm text-foreground/80 mb-1.5 sm:mb-2">
                     {signal.signalDescription}
                   </p>
-                  <p className="text-xs text-muted-foreground italic mb-3">
+                  <p className="text-[11px] sm:text-xs text-muted-foreground italic mb-2 sm:mb-3">
                     {signal.tradingInterpretation}
                   </p>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3">
                     <div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-[10px] sm:text-xs text-muted-foreground">
                         Directional Edge
                       </p>
                       <p
-                        className={`text-sm font-semibold ${
+                        className={`text-xs sm:text-sm font-semibold ${
                           signal.edgeDirectional > 0
                             ? "text-teal-400"
                             : "text-rose-400"
@@ -137,11 +137,11 @@ export function TopSignalsView({
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-[10px] sm:text-xs text-muted-foreground">
                         Expected Directional Impact
                       </p>
                       <p
-                        className={`text-sm font-semibold ${
+                        className={`text-xs sm:text-sm font-semibold ${
                           signal.expectedReturn > 0
                             ? "text-emerald-400"
                             : "text-rose-400"
@@ -153,9 +153,9 @@ export function TopSignalsView({
                     </div>
                   </div>
                 </div>
-                <div className="text-right ml-4">
+                <div className="text-left sm:text-right w-full sm:w-auto sm:ml-4">
                   <p className="text-xs text-muted-foreground">Current Price</p>
-                  <p className="text-lg font-bold text-foreground">
+                  <p className="text-base sm:text-lg font-bold text-foreground">
                     ${signal.current_price.toFixed(2)}
                   </p>
                 </div>

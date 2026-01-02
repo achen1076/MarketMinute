@@ -50,7 +50,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={toggleMenu}
-              className="text-white focus:outline-none"
+              className="text-sidebar-foreground focus:outline-none"
               aria-label="Toggle sidebar"
             >
               <svg

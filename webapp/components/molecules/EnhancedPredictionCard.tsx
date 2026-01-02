@@ -108,7 +108,9 @@ export function EnhancedPredictionCard({ signal, quality }: Props) {
     : "hover:border-border";
 
   return (
-    <Card className={`p-5 hover:bg-muted/20 transition-all ${cardBorderClass}`}>
+    <Card
+      className={`p-3 sm:p-5 hover:bg-muted/20 transition-all ${cardBorderClass}`}
+    >
       {/* Model Quality Badge */}
       {quality && (
         <div className="flex items-center justify-between mb-3">
@@ -123,19 +125,23 @@ export function EnhancedPredictionCard({ signal, quality }: Props) {
       )}
 
       {/* Header with Quant Score */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-start justify-between mb-3 sm:mb-4 gap-2 sm:gap-0">
         <div>
-          <h3 className="text-xl font-bold text-foreground">{ticker}</h3>
-          <p className="text-sm text-muted-foreground">
+          <h3 className="text-lg sm:text-xl font-bold text-foreground">
+            {ticker}
+          </h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             ${current_price.toFixed(2)}
           </p>
         </div>
-        <div className="text-right">
+        <div className="text-left sm:text-right">
           <p className="text-xs text-muted-foreground uppercase tracking-wide">
             {rawQuantScore !== null ? "Quant Score" : "Quant Score"}
           </p>
-          <div className="flex items-baseline justify-end gap-1">
-            <p className={`text-3xl font-bold ${scoreColor}`}>{quantScore}</p>
+          <div className="flex items-baseline justify-start sm:justify-end gap-1">
+            <p className={`text-2xl sm:text-3xl font-bold ${scoreColor}`}>
+              {quantScore}
+            </p>
             {rawQuantScore !== null && quantScoreDiff !== 0 && (
               <span
                 className={`text-sm font-semibold ${
@@ -166,9 +172,11 @@ export function EnhancedPredictionCard({ signal, quality }: Props) {
       </div>
 
       {/* Signal Description */}
-      <div className="mb-4 p-3 rounded-lg bg-muted/40 border border-border min-h-[88px] flex flex-col justify-center">
-        <p className="text-sm text-foreground/80 mb-2">{signalDescription}</p>
-        <p className="text-xs text-muted-foreground italic">
+      <div className="mb-3 sm:mb-4 p-2.5 sm:p-3 rounded-lg bg-muted/40 border border-border flex flex-col justify-center">
+        <p className="text-xs sm:text-sm text-foreground/80 mb-1.5 sm:mb-2">
+          {signalDescription}
+        </p>
+        <p className="text-[11px] sm:text-xs text-muted-foreground italic">
           {tradingInterpretation}
         </p>
       </div>
@@ -182,23 +190,25 @@ export function EnhancedPredictionCard({ signal, quality }: Props) {
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="p-3 rounded-lg bg-muted/30">
-          <p className="text-xs text-muted-foreground mb-1">Directional Edge</p>
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3 sm:mb-4">
+        <div className="p-2 sm:p-3 rounded-lg bg-muted/30">
+          <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">
+            Directional Edge
+          </p>
           <p
-            className={`text-lg font-bold ${
+            className={`text-sm sm:text-lg font-bold ${
               edgeDirectional > 0 ? "text-teal-400" : "text-rose-400"
             }`}
           >
             {(edgeDirectional * 100).toFixed(1)}%
           </p>
         </div>
-        <div className="p-3 rounded-lg bg-muted/30">
-          <p className="text-xs text-muted-foreground mb-1">
+        <div className="p-2 sm:p-3 rounded-lg bg-muted/30">
+          <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5 sm:mb-1">
             Expected Directional Impact
           </p>
           <p
-            className={`text-lg font-bold ${
+            className={`text-sm sm:text-lg font-bold ${
               expectedReturn > 0 ? "text-emerald-400" : "text-rose-400"
             }`}
           >
