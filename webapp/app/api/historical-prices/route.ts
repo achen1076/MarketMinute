@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { redis } from "@/lib/redis";
+import { getChartCacheTTL } from "@/lib/marketHours";
 
 type TimeRange = "1D" | "5D" | "1M" | "3M" | "6M" | "YTD" | "1Y" | "5Y";
 
@@ -78,7 +79,10 @@ export async function GET(request: NextRequest) {
         url = `https://financialmodelingprep.com/stable/historical-price-eod/light?symbol=${symbol}&from=${sixMonthFrom}&to=${today}&apikey=${apiKey}`;
         break;
       case "YTD":
-        const ytdFrom = `${now.getFullYear()}-01-01`;
+        const ytdFrom =
+          now.getDate() === 1
+            ? `${now.getFullYear() - 1}-01-01`
+            : `${now.getFullYear()}-01-01`;
         url = `https://financialmodelingprep.com/stable/historical-price-eod/light?symbol=${symbol}&from=${ytdFrom}&to=${today}&apikey=${apiKey}`;
         break;
       case "1Y":
@@ -141,11 +145,12 @@ export async function GET(request: NextRequest) {
       prices,
     };
 
-    // Cache the result in Redis
+    // Cache the result in Redis with dynamic TTL
     if (redis && prices.length > 0) {
       try {
-        await redis.set(cacheKey, response, { ex: CACHE_TTL[range] });
-        console.log(`[Cache] SET: ${cacheKey} (TTL: ${CACHE_TTL[range]}s)`);
+        const dynamicTTL = getChartCacheTTL(CACHE_TTL[range]);
+        await redis.set(cacheKey, response, { ex: dynamicTTL });
+        console.log(`[Cache] SET: ${cacheKey} (TTL: ${dynamicTTL}s)`);
       } catch (err) {
         console.error("[Cache] Redis set error:", err);
       }

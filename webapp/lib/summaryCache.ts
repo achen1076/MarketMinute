@@ -1,6 +1,10 @@
 import "server-only";
 import { redis } from "@/lib/redis";
-import { getLastMarketOpenTime } from "@/lib/marketHours";
+import {
+  getLastMarketOpenTime,
+  getTickerCacheTTL,
+  isTradingActive,
+} from "@/lib/marketHours";
 
 type MarketMinuteSummary = {
   headline: string;
@@ -24,8 +28,13 @@ type SummaryCacheEntry = {
 
 // In-memory fallback for when Redis is unavailable
 const summaryCache = new Map<string, SummaryCacheEntry>();
-const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour
-const CACHE_DURATION_SECONDS = 60 * 60; // 1 hour
+const DEFAULT_CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour during trading
+const DEFAULT_CACHE_DURATION_SECONDS = 60 * 60; // 1 hour during trading
+
+function getDynamicCacheDuration(): { ms: number; seconds: number } {
+  const ttlSeconds = getTickerCacheTTL(DEFAULT_CACHE_DURATION_SECONDS);
+  return { ms: ttlSeconds * 1000, seconds: ttlSeconds };
+}
 
 function isCacheFromCurrentSession(timestamp: number): boolean {
   const lastMarketOpen = getLastMarketOpenTime();
@@ -46,13 +55,15 @@ export async function getSummaryFromCache(
   const cacheKey = `summary:${listName}:${symbolsKey}`;
   const now = Date.now();
 
+  const { ms: cacheDurationMs } = getDynamicCacheDuration();
+
   // Try Redis first
   if (redis) {
     try {
       const cached = await redis.get<SummaryCacheEntry>(cacheKey);
-      if (cached && now - cached.timestamp < CACHE_DURATION_MS) {
-        // Check if cache is from current trading session
-        if (!isCacheFromCurrentSession(cached.timestamp)) {
+      if (cached && now - cached.timestamp < cacheDurationMs) {
+        // During trading hours, check if cache is from current session
+        if (isTradingActive() && !isCacheFromCurrentSession(cached.timestamp)) {
           console.log(
             `[Summary/Redis] Cache stale (from previous session) for ${listName}`
           );
@@ -68,9 +79,9 @@ export async function getSummaryFromCache(
 
   // Fallback to in-memory
   const cached = summaryCache.get(cacheKey);
-  if (cached && now - cached.timestamp < CACHE_DURATION_MS) {
-    // Check if cache is from current trading session
-    if (!isCacheFromCurrentSession(cached.timestamp)) {
+  if (cached && now - cached.timestamp < cacheDurationMs) {
+    // During trading hours, check if cache is from current session
+    if (isTradingActive() && !isCacheFromCurrentSession(cached.timestamp)) {
       console.log(
         `[Summary/Memory] Cache stale (from previous session) for ${listName}`
       );
@@ -94,11 +105,15 @@ export async function setSummaryInCache(
     timestamp: Date.now(),
   };
 
+  const { seconds: cacheDurationSeconds } = getDynamicCacheDuration();
+
   // Try Redis first
   if (redis) {
     try {
-      await redis.setex(cacheKey, CACHE_DURATION_SECONDS, entry);
-      console.log(`[Summary/Redis] Cached summary for ${listName}`);
+      await redis.setex(cacheKey, cacheDurationSeconds, entry);
+      console.log(
+        `[Summary/Redis] Cached summary for ${listName} (TTL: ${cacheDurationSeconds}s)`
+      );
       return;
     } catch (error) {
       console.error(`[Summary/Redis] Error setting cache:`, error);
@@ -131,7 +146,6 @@ export async function clearSummaryCache(): Promise<number> {
     }
   }
 
-  // Clear in-memory cache
   const memorySize = summaryCache.size;
   summaryCache.clear();
   cleared += memorySize;
@@ -167,7 +181,8 @@ export async function getSummaryCacheStats() {
 
 export function cleanExpiredSummaries() {
   const now = Date.now();
-  const MAX_AGE_MS = CACHE_DURATION_MS * 2; // 2 hours for in-memory
+  const { ms: cacheDurationMs } = getDynamicCacheDuration();
+  const MAX_AGE_MS = cacheDurationMs * 2;
 
   for (const [key, entry] of summaryCache.entries()) {
     if (now - entry.timestamp > MAX_AGE_MS) {

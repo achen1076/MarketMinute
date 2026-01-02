@@ -19,6 +19,7 @@ import {
   createRateLimitResponse,
   getRateLimitHeaders,
 } from "@/lib/rateLimit";
+import { isTradingActive } from "@/lib/marketHours";
 
 type ExplainPayload = {
   symbol: string;
@@ -88,7 +89,9 @@ export async function POST(req: Request) {
   const cachedEntry = await getExplanationFromCache(symbol);
 
   if (cachedEntry) {
-    const isStale = isCacheStale(cachedEntry);
+    // During trading hours, use normal staleness check (30 min)
+    // Outside trading hours, cache is always fresh (since prices don't change)
+    const isStale = isTradingActive() ? isCacheStale(cachedEntry) : false;
 
     if (isStale) {
       // Cache is stale (>= 30 min old)

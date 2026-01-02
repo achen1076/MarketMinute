@@ -84,6 +84,31 @@ export function isAfterHours(): boolean {
 }
 
 /**
+ * Check if we're in the overnight period (8:00 PM - 4:00 AM next day)
+ * During this time, we show the last after-hours price from the previous session
+ */
+export function isOvernightPeriod(): boolean {
+  const now = new Date();
+  const etTime = new Date(
+    now.toLocaleString("en-US", { timeZone: "America/New_York" })
+  );
+
+  const day = etTime.getDay();
+  // On weekends, consider it overnight period
+  if (day === 0 || day === 6) return true;
+
+  const hours = etTime.getHours();
+  const minutes = etTime.getMinutes();
+  const timeInMinutes = hours * 60 + minutes;
+
+  const afterHoursEnd = 20 * 60; // 8:00 PM
+  const preMarketStart = 4 * 60; // 4:00 AM
+
+  // After 8 PM or before 4 AM (overnight)
+  return timeInMinutes >= afterHoursEnd || timeInMinutes < preMarketStart;
+}
+
+/**
  * Check if trading is active (market hours, pre-market, or after-hours)
  */
 export function isTradingActive(): boolean {
@@ -143,7 +168,6 @@ export function getNextMarketOpen(): Date {
   let nextOpen = new Date(etTime);
   nextOpen.setHours(9, 30, 0, 0);
 
-  // If it's already past market open today, move to next day
   if (
     etTime.getHours() > 9 ||
     (etTime.getHours() === 9 && etTime.getMinutes() >= 30)
@@ -151,7 +175,6 @@ export function getNextMarketOpen(): Date {
     nextOpen.setDate(nextOpen.getDate() + 1);
   }
 
-  // Skip weekends
   while (nextOpen.getDay() === 0 || nextOpen.getDay() === 6) {
     nextOpen.setDate(nextOpen.getDate() + 1);
   }
@@ -170,4 +193,82 @@ export function getTimeUntilMarketOpen(): number {
   const nextOpen = getNextMarketOpen();
 
   return nextOpen.getTime() - now.getTime();
+}
+
+/**
+ * Get the next pre-market time (4:00 AM ET next trading day)
+ * Returns a Date object for when pre-market will next start
+ */
+export function getNextPreMarket(): Date {
+  const now = new Date();
+  const etTime = new Date(
+    now.toLocaleString("en-US", { timeZone: "America/New_York" })
+  );
+
+  let nextPreMarket = new Date(etTime);
+  nextPreMarket.setHours(4, 0, 0, 0);
+
+  // If it's already past 4:00 AM today, move to next day
+  if (etTime.getHours() >= 4) {
+    nextPreMarket.setDate(nextPreMarket.getDate() + 1);
+  }
+
+  // Skip weekends
+  while (nextPreMarket.getDay() === 0 || nextPreMarket.getDay() === 6) {
+    nextPreMarket.setDate(nextPreMarket.getDate() + 1);
+  }
+
+  return nextPreMarket;
+}
+
+/**
+ * Check if we should fetch/display after-hours prices
+ * This includes actual after-hours (4:05 PM - 8:00 PM) AND overnight period (8:00 PM - 4:00 AM)
+ */
+export function shouldShowAfterHours(): boolean {
+  return isAfterHours() || isOvernightPeriod();
+}
+
+const CACHE_CUSHION_SECONDS = 5 * 60; // 5 minutes before premarket/open
+
+/**
+ * Get cache TTL in seconds for ticker/summary/explain data
+ * During trading hours (pre-market, market, after-hours): return default TTL (5 seconds)
+ * Outside trading hours: return seconds until 5 min before next pre-market
+ */
+export function getTickerCacheTTL(defaultTTL: number = 5): number {
+  if (isTradingActive()) {
+    return defaultTTL;
+  }
+
+  const now = new Date();
+  const nextPreMarket = getNextPreMarket();
+  const secondsUntilPreMarket = Math.floor(
+    (nextPreMarket.getTime() - now.getTime()) / 1000
+  );
+
+  // Expire 5 min early to refresh before premarket starts
+  const ttlWithCushion = secondsUntilPreMarket - CACHE_CUSHION_SECONDS;
+  return Math.max(defaultTTL, Math.min(ttlWithCushion, 86400));
+}
+
+/**
+ * Get cache TTL in seconds for historical chart data
+ * During market hours: return default TTL (60 seconds for 1D, 300 for others)
+ * Outside market hours: return seconds until 5 min before next market open
+ */
+export function getChartCacheTTL(defaultTTL: number): number {
+  if (isMarketOpen()) {
+    return defaultTTL;
+  }
+
+  const now = new Date();
+  const nextOpen = getNextMarketOpen();
+  const secondsUntilOpen = Math.floor(
+    (nextOpen.getTime() - now.getTime()) / 1000
+  );
+
+  // Expire 5 min early to refresh before market opens
+  const ttlWithCushion = secondsUntilOpen - CACHE_CUSHION_SECONDS;
+  return Math.max(defaultTTL, Math.min(ttlWithCushion, 86400));
 }

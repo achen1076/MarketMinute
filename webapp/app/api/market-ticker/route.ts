@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCachedSnapshots } from "@/lib/tickerCache";
+import { getTickerCacheTTL } from "@/lib/marketHours";
 
 const TICKER_SYMBOLS = [
   { symbol: "^GSPC", name: "S&P 500" },
@@ -38,13 +39,15 @@ export async function GET() {
       };
     });
 
+    const cacheTTL = getTickerCacheTTL(2);
+
     return NextResponse.json(
       { tickers },
       {
         headers: {
           "X-Cache-Hits": String(cacheStats.hits),
           "X-Cache-Misses": String(cacheStats.misses),
-          "Cache-Control": "public, max-age=2",
+          "Cache-Control": `public, max-age=${cacheTTL}`,
         },
       }
     );

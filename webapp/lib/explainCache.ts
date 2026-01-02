@@ -1,13 +1,19 @@
 import "server-only";
 import { redis } from "@/lib/redis";
+import { getTickerCacheTTL, isTradingActive } from "@/lib/marketHours";
 
 export type ExplanationCacheEntry = {
   explanation: string;
   timestamp: number;
 };
 
-const CACHE_DURATION_MS = 30 * 60 * 1000; // 30 minutes
-const CACHE_DURATION_SECONDS = 30 * 60; // 30 minutes
+const DEFAULT_CACHE_DURATION_MS = 30 * 60 * 1000; // 30 minutes during trading
+const DEFAULT_CACHE_DURATION_SECONDS = 30 * 60; // 30 minutes during trading
+
+function getDynamicCacheDuration(): { ms: number; seconds: number } {
+  const ttlSeconds = getTickerCacheTTL(DEFAULT_CACHE_DURATION_SECONDS);
+  return { ms: ttlSeconds * 1000, seconds: ttlSeconds };
+}
 
 // In-memory fallback for when Redis is unavailable
 const explanationCache = new Map<string, ExplanationCacheEntry>();
@@ -61,9 +67,13 @@ export async function setExplanationInCache(
 
   if (redis) {
     try {
-      // setex automatically replaces old cache if it exists
-      // Use extended TTL (2 hours) to support stale-while-revalidate
-      const redisTTL = CACHE_DURATION_SECONDS * 4; // 2 hours
+      // Use dynamic TTL based on market hours
+      // During trading: 2 hours for stale-while-revalidate
+      // Outside trading: cache until next premarket (with 5 min cushion)
+      const { seconds: baseTTL } = getDynamicCacheDuration();
+      const redisTTL = isTradingActive()
+        ? DEFAULT_CACHE_DURATION_SECONDS * 4
+        : baseTTL;
       await redis.setex(cacheKey, redisTTL, entry);
       console.log(
         `[Explain/Redis] Stored new explanation for ${normalizedSymbol} (TTL: ${redisTTL}s)`
@@ -82,11 +92,13 @@ export async function setExplanationInCache(
 }
 
 /**
- * Check if cached explanation is stale (>= 30 minutes old)
+ * Check if cached explanation is stale
+ * During trading: stale after 30 minutes
+ * Outside trading: never stale (handled in route via isTradingActive check)
  */
 export function isCacheStale(entry: ExplanationCacheEntry): boolean {
   const now = Date.now();
-  return now - entry.timestamp >= CACHE_DURATION_MS;
+  return now - entry.timestamp >= DEFAULT_CACHE_DURATION_MS;
 }
 
 /**
@@ -190,7 +202,10 @@ export async function getExplanationCacheStats() {
 export function cleanExpiredExplanations() {
   const now = Date.now();
   let cleaned = 0;
-  const MAX_AGE_MS = CACHE_DURATION_MS * 4; // 2 hours
+  const { ms: cacheDurationMs } = getDynamicCacheDuration();
+  const MAX_AGE_MS = isTradingActive()
+    ? DEFAULT_CACHE_DURATION_MS * 4
+    : cacheDurationMs * 2;
 
   for (const [symbol, entry] of explanationCache.entries()) {
     if (now - entry.timestamp > MAX_AGE_MS) {
@@ -200,6 +215,6 @@ export function cleanExpiredExplanations() {
   }
 
   if (cleaned > 0) {
-    console.log(`[Explain/Memory] Cleaned ${cleaned} very old entries (>2h)`);
+    console.log(`[Explain/Memory] Cleaned ${cleaned} expired entries`);
   }
 }

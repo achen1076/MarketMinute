@@ -1,5 +1,5 @@
 import "server-only";
-import { isAfterHours, isPreMarket } from "./marketHours";
+import { isAfterHours, isPreMarket, shouldShowAfterHours } from "./marketHours";
 
 export type TickerSnapshot = {
   symbol: string;
@@ -256,12 +256,13 @@ export async function getSnapshotsForSymbols(
       }
     }
 
-    // Check if we're in extended hours (premarket or postmarket) and fetch data
+    // Check if we should fetch/display after-hours data
+    // This includes actual after-hours trading (4:05 PM - 8:00 PM) AND overnight period (8:00 PM - 4:00 AM)
+    // During overnight, we still fetch to get the last after-hours price
     const inPremarket = isPreMarket();
-    const inPostmarket = isAfterHours();
-    const extendedHoursActive = inPremarket || inPostmarket;
+    const showAfterHours = shouldShowAfterHours();
 
-    if (extendedHoursActive && regularSymbols.length > 0) {
+    if ((inPremarket || showAfterHours) && regularSymbols.length > 0) {
       try {
         // Fetch both trade price and bid/ask quotes in parallel
         const [afterMarketTrades, afterMarketQuotes] = await Promise.all([

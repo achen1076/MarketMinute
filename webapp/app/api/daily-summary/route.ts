@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getTickerCacheTTL } from "@/lib/marketHours";
 
 /**
  * Get the last 7 daily summaries for a watchlist
@@ -30,7 +31,16 @@ export async function GET(req: Request) {
       take: days,
     });
 
-    return NextResponse.json({ summaries });
+    const cacheTTL = getTickerCacheTTL(5);
+
+    return NextResponse.json(
+      { summaries },
+      {
+        headers: {
+          "Cache-Control": `public, max-age=${cacheTTL}`,
+        },
+      }
+    );
   } catch (error) {
     console.error("[DailySummary] Error fetching summaries:", error);
     return NextResponse.json(
@@ -89,9 +99,7 @@ export async function POST(req: Request) {
         worstPerformer: data.worstPerformer,
         worstChangePct: data.worstChangePct,
         summaryText: data.summaryText,
-        fullSummary: data.fullSummary
-          ? JSON.stringify(data.fullSummary)
-          : null,
+        fullSummary: data.fullSummary ? JSON.stringify(data.fullSummary) : null,
       },
       update: {
         avgChangePct: data.avgChangePct,
@@ -100,9 +108,7 @@ export async function POST(req: Request) {
         worstPerformer: data.worstPerformer,
         worstChangePct: data.worstChangePct,
         summaryText: data.summaryText,
-        fullSummary: data.fullSummary
-          ? JSON.stringify(data.fullSummary)
-          : null,
+        fullSummary: data.fullSummary ? JSON.stringify(data.fullSummary) : null,
       },
     });
 
