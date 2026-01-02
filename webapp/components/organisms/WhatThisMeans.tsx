@@ -36,17 +36,17 @@ export default function WhatThisMeans({ report }: WhatThisMeansProps) {
   return (
     <Card className="bg-linear-to-br from-indigo-500/5 to-purple-500/5 border-indigo-500/20">
       <div
-        className="p-4 cursor-pointer flex items-center justify-between hover:bg-slate-800/30 transition-colors"
+        className="p-4 cursor-pointer flex items-center justify-between hover:bg-muted/30 transition-colors"
         onClick={() => setShowExplainer(!showExplainer)}
       >
         <div className="flex items-center gap-3">
           <HelpCircle className="w-5 h-5 text-indigo-400" />
-          <h3 className="text-lg font-semibold text-slate-100">
+          <h3 className="text-lg font-semibold text-foreground">
             What This Means
           </h3>
         </div>
         <ChevronDown
-          className={`w-5 h-5 text-slate-400 transition-transform ${
+          className={`w-5 h-5 text-muted-foreground transition-transform ${
             showExplainer ? "rotate-180" : ""
           }`}
         />
@@ -54,13 +54,13 @@ export default function WhatThisMeans({ report }: WhatThisMeansProps) {
 
       {showExplainer && (
         <div className="px-4 pb-4 space-y-4">
-          <div className="pt-4 border-t border-slate-700/50 space-y-4">
+          <div className="pt-4 border-t border-border space-y-4">
             {/* What Happened Today */}
             <div>
               <h4 className="text-sm font-semibold text-indigo-400 mb-2">
                 What happened today
               </h4>
-              <p className="text-sm text-slate-300 leading-relaxed">
+              <p className="text-sm text-foreground/80 leading-relaxed">
                 {whatThisMeans?.whatHappened ||
                   report.summary ||
                   "Markets traded within recent ranges with mixed sector performance."}
@@ -72,7 +72,7 @@ export default function WhatThisMeans({ report }: WhatThisMeansProps) {
               <h4 className="text-sm font-semibold text-indigo-400 mb-2">
                 Why it matters
               </h4>
-              <p className="text-sm text-slate-300 leading-relaxed">
+              <p className="text-sm text-foreground/80 leading-relaxed">
                 {whatThisMeans?.whyItMatters ||
                   (report.volSpike &&
                   report.vixChangePct &&
@@ -95,7 +95,7 @@ export default function WhatThisMeans({ report }: WhatThisMeansProps) {
               <h4 className="text-sm font-semibold text-indigo-400 mb-2">
                 What could happen next
               </h4>
-              <p className="text-sm text-slate-300 leading-relaxed">
+              <p className="text-sm text-foreground/80 leading-relaxed">
                 {whatThisMeans?.whatCouldHappenNext ||
                   (report.volSpike
                     ? "After volatility spikes, markets typically take a few sessions to stabilize. We could see continued choppiness, or if sentiment improves, a snapback rally."
@@ -112,7 +112,7 @@ export default function WhatThisMeans({ report }: WhatThisMeansProps) {
               <h4 className="text-sm font-semibold text-indigo-400 mb-2">
                 What to watch tomorrow
               </h4>
-              <ul className="text-sm text-slate-300 leading-relaxed space-y-1.5">
+              <ul className="text-sm text-foreground/80 leading-relaxed space-y-1.5">
                 {whatThisMeans?.whatToWatch &&
                 whatThisMeans.whatToWatch.length > 0 ? (
                   whatThisMeans.whatToWatch.map((item: string, idx: number) => (
@@ -170,11 +170,11 @@ export default function WhatThisMeans({ report }: WhatThisMeansProps) {
 
             {/* Macro Context (if available) */}
             {report.macroContext && (
-              <div className="pt-3 border-t border-slate-700/50">
-                <h4 className="text-sm font-semibold text-slate-400 mb-2">
+              <div className="pt-3 border-t border-border">
+                <h4 className="text-sm font-semibold text-muted-foreground mb-2">
                   Broader context
                 </h4>
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   {report.macroContext}
                 </p>
               </div>

@@ -52,7 +52,7 @@ export function TopSignalsView({
           {tradeableSignals.map((signal, idx) => (
             <div
               key={signal.ticker}
-              className="p-5 hover:bg-slate-900/40 transition-all border-l-4 rounded-lg border border-slate-800 bg-slate-900/50"
+              className="p-5 hover:bg-muted/40 transition-all border-l-4 rounded-lg border border-border bg-card"
               style={{
                 borderLeftColor:
                   signal.quantScore >= 70
@@ -67,10 +67,10 @@ export function TopSignalsView({
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="text-xs font-mono text-slate-500">
+                    <span className="text-xs font-mono text-muted-foreground">
                       #{idx + 1}
                     </span>
-                    <h3 className="text-xl font-bold text-slate-100">
+                    <h3 className="text-xl font-bold text-foreground">
                       {signal.ticker}
                     </h3>
                     <div
@@ -81,7 +81,7 @@ export function TopSignalsView({
                           ? "bg-blue-500/20 text-blue-400"
                           : signal.quantScore >= 30
                           ? "bg-amber-500/20 text-amber-400"
-                          : "bg-slate-500/20 text-slate-400"
+                          : "bg-muted text-muted-foreground"
                       }`}
                     >
                       Score: {signal.quantScore}
@@ -114,16 +114,18 @@ export function TopSignalsView({
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-slate-300 mb-2">
+                  <p className="text-sm text-foreground/80 mb-2">
                     {signal.signalDescription}
                   </p>
-                  <p className="text-xs text-slate-400 italic mb-3">
+                  <p className="text-xs text-muted-foreground italic mb-3">
                     {signal.tradingInterpretation}
                   </p>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <p className="text-xs text-slate-500">Directional Edge</p>
+                      <p className="text-xs text-muted-foreground">
+                        Directional Edge
+                      </p>
                       <p
                         className={`text-sm font-semibold ${
                           signal.edgeDirectional > 0
@@ -135,7 +137,7 @@ export function TopSignalsView({
                       </p>
                     </div>
                     <div>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-muted-foreground">
                         Expected Directional Impact
                       </p>
                       <p
@@ -152,8 +154,8 @@ export function TopSignalsView({
                   </div>
                 </div>
                 <div className="text-right ml-4">
-                  <p className="text-xs text-slate-500">Current Price</p>
-                  <p className="text-lg font-bold text-slate-100">
+                  <p className="text-xs text-muted-foreground">Current Price</p>
+                  <p className="text-lg font-bold text-foreground">
                     ${signal.current_price.toFixed(2)}
                   </p>
                 </div>
@@ -163,10 +165,10 @@ export function TopSignalsView({
         </div>
       ) : (
         <Card className="p-8 text-center">
-          <p className="text-slate-400">
+          <p className="text-muted-foreground">
             No tradeable signals identified today.
           </p>
-          <p className="text-sm text-slate-500 mt-2">
+          <p className="text-sm text-muted-foreground/70 mt-2">
             Check back later or lower the score threshold.
           </p>
         </Card>

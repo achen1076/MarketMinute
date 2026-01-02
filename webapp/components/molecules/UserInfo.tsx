@@ -29,17 +29,17 @@ export default function UserInfo({ name, email, image }: UserInfoProps) {
             className="rounded-full"
           />
         ) : (
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-xs font-semibold text-white">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-xs font-semibold text-foreground/50">
             {initials}
           </div>
         )}
       </div>
       <div className="flex-1 overflow-hidden">
-        <p className="truncate text-sm font-medium text-slate-100">
+        <p className="truncate text-sm font-medium text-foreground">
           {displayName}
         </p>
         {email && (
-          <p className="truncate text-xs text-slate-400">{email}</p>
+          <p className="truncate text-xs text-foreground/50">{email}</p>
         )}
       </div>
     </div>

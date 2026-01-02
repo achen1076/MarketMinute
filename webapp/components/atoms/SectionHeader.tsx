@@ -10,7 +10,7 @@ type SectionHeaderProps = {
 
 export function SectionHeader({
   icon: Icon,
-  iconColor = "text-slate-400",
+  iconColor = "text-muted-foreground",
   title,
   count,
   size = "md",
@@ -22,7 +22,7 @@ export function SectionHeader({
   return (
     <div className="flex items-center gap-2">
       <Icon size={iconSize} className={iconColor} />
-      <h3 className={`font-semibold text-slate-200 ${textSize}`}>
+      <h3 className={`font-semibold text-foreground ${textSize}`}>
         {title}
         {count !== undefined && ` (${count})`}
       </h3>

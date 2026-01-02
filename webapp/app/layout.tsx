@@ -5,10 +5,10 @@ import "./globals.css";
 import Sidebar from "@/components/organisms/sidebar";
 import { MarketTicker } from "@/components/organisms/MarketTicker";
 import { auth } from "@/auth";
-import { COLORS } from "@/lib/colors";
 import { Analytics } from "@vercel/analytics/next";
 import EmailVerificationBanner from "@/components/organisms/EmailVerificationBanner";
 import { prisma } from "@/lib/prisma";
+import { ThemeProvider } from "@/lib/theme-context";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -146,8 +146,28 @@ export default async function RootLayout({
   };
 
   return (
-    <html lang="en">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
+        {/* Prevent flash of wrong theme */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('marketminute-theme');
+                  if (theme === 'light') {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.classList.add('light');
+                  } else if (theme === 'system') {
+                    var isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    document.documentElement.classList.remove('light', 'dark');
+                    document.documentElement.classList.add(isDark ? 'dark' : 'light');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
         {/* Website schema (helps sitelinks and brand understanding) */}
         <script
           type="application/ld+json"
@@ -160,29 +180,28 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(appSchema) }}
         />
       </head>
-      <body
-        className="min-h-screen"
-        style={{ backgroundColor: COLORS.bg.body, color: COLORS.text.main }}
-      >
-        {/* Sidebar handles its own responsive behavior */}
-        <Sidebar user={session?.user} />
+      <body className="min-h-screen bg-background text-foreground">
+        <ThemeProvider>
+          {/* Sidebar handles its own responsive behavior */}
+          <Sidebar user={session?.user} />
 
-        {/* Market ticker - fixed at very top */}
-        <MarketTicker />
+          {/* Market ticker - fixed at very top */}
+          <MarketTicker />
 
-        {/* Main content area */}
-        <div className="min-h-screen">
-          <main className="mx-auto max-w-[1800px] px-4 py-6 pt-[105px] md:ml-64 md:pt-14 md:px-8">
-            {/* Email Verification Banner */}
-            {needsVerification && (
-              <div className="mb-6">
-                <EmailVerificationBanner userEmail={userEmail} />
-              </div>
-            )}
-            {children}
-          </main>
-        </div>
-        <Analytics />
+          {/* Main content area */}
+          <div className="min-h-screen">
+            <main className="mx-auto max-w-[1800px] px-4 py-6 pt-[105px] md:ml-64 md:pt-14 md:px-8">
+              {/* Email Verification Banner */}
+              {needsVerification && (
+                <div className="mb-6">
+                  <EmailVerificationBanner userEmail={userEmail} />
+                </div>
+              )}
+              {children}
+            </main>
+          </div>
+          <Analytics />
+        </ThemeProvider>
       </body>
     </html>
   );

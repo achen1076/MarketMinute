@@ -14,7 +14,7 @@ type BadgeProps = {
  */
 export function Badge({
   icon: Icon,
-  iconColor = "text-slate-400",
+  iconColor = "text-muted-foreground",
   count,
   label,
   size = "sm",
@@ -23,7 +23,7 @@ export function Badge({
   const textSize = size === "sm" ? "text-sm" : "text-base";
 
   return (
-    <div className={`flex items-center gap-1.5 text-slate-300 ${textSize}`}>
+    <div className={`flex items-center gap-1.5 text-foreground/80 ${textSize}`}>
       <Icon size={iconSize} className={iconColor} />
       <span>
         <span className="font-semibold">{count}</span> {label}

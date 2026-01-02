@@ -51,7 +51,7 @@ export default async function SignInPage() {
             </h1>
           </div>
 
-          <h2 className="text-4xl lg:text-5xl font-bold text-white leading-tight">
+          <h2 className="text-4xl lg:text-5xl font-bold text-foreground leading-tight">
             Your automated{" "}
             <span className="bg-linear-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
               minute view
@@ -59,7 +59,7 @@ export default async function SignInPage() {
             of the markets
           </h2>
 
-          <p className="text-lg text-slate-400 max-w-xl">
+          <p className="text-lg text-muted-foreground max-w-xl">
             Get quick insights, real-time alerts, and personalized market
             summaries tailored to your watchlist—all in minutes.
           </p>
@@ -71,8 +71,10 @@ export default async function SignInPage() {
                 <BarChart3 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-semibold text-white text-sm">Quant Labs</h3>
-                <p className="text-xs text-slate-400">
+                <h3 className="font-semibold text-foreground text-sm">
+                  Quant Labs
+                </h3>
+                <p className="text-xs text-muted-foreground">
                   Model trained analytics
                 </p>
               </div>
@@ -83,10 +85,10 @@ export default async function SignInPage() {
                 <LineChart className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-semibold text-white text-sm">
+                <h3 className="font-semibold text-foreground text-sm">
                   Custom Watchlists
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-muted-foreground">
                   Track what matters to you
                 </p>
               </div>
@@ -97,10 +99,12 @@ export default async function SignInPage() {
                 <PieChart className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-semibold text-white text-sm">
+                <h3 className="font-semibold text-foreground text-sm">
                   AI Summaries
                 </h3>
-                <p className="text-xs text-slate-400">News based insights</p>
+                <p className="text-xs text-muted-foreground">
+                  News based insights
+                </p>
               </div>
             </div>
           </div>
@@ -108,16 +112,20 @@ export default async function SignInPage() {
 
         {/* Right side - Sign in form */}
         <div className="w-full lg:w-auto lg:shrink-0">
-          <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl p-8 lg:p-10 w-full lg:w-[480px]">
+          <div className="bg-card backdrop-blur-xl border border-border rounded-2xl shadow-2xl p-8 lg:p-10 w-full lg:w-[480px]">
             <div className="text-center mb-8">
-              <h3 className="text-2xl font-bold text-white mb-2">Welcome</h3>
-              <p className="text-slate-400">Sign in to access your dashboard</p>
+              <h3 className="text-2xl font-bold text-foreground mb-2">
+                Welcome
+              </h3>
+              <p className="text-muted-foreground">
+                Sign in to access your dashboard
+              </p>
             </div>
 
             <SignInForm />
 
-            <div className="mt-6 pt-6 border-t border-slate-800">
-              <p className="text-xs text-center text-slate-500">
+            <div className="mt-6 pt-6 border-t border-border">
+              <p className="text-xs text-center text-muted-foreground">
                 By signing in, you agree to our{" "}
                 <Link
                   href="/terms"

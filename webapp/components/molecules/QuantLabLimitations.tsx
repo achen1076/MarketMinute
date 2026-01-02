@@ -37,7 +37,7 @@ export function QuantLabLimitations() {
         )}
       </button>
       {showLimitations && (
-        <ul className="space-y-2 text-sm text-slate-300">
+        <ul className="space-y-2 text-sm text-foreground/80">
           <li>
             • <strong>Model Quality Varies:</strong> Not every model can be
             great. Each ticker has its own model trained on historical data.

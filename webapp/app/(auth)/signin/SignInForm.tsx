@@ -124,7 +124,7 @@ export default function SignInForm() {
   return (
     <div className="w-full space-y-6">
       {/* Tab selector */}
-      <div className="flex gap-2 p-1 bg-slate-800/50 rounded-lg">
+      <div className="flex gap-2 p-1 bg-muted/50 rounded-lg">
         <button
           type="button"
           onClick={() => {
@@ -173,7 +173,7 @@ export default function SignInForm() {
       <form onSubmit={handleEmailPasswordSubmit} className="space-y-4">
         {mode === "signup" && (
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
               Name (optional)
             </label>
             <input
@@ -181,31 +181,31 @@ export default function SignInForm() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
-              className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none transition"
+              className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
             />
           </div>
         )}
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">
+          <label className="block text-sm font-medium text-muted-foreground mb-2">
             Email
           </label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full pl-11 pr-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none transition"
+              className="w-full pl-11 pr-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
             />
           </div>
         </div>
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="block text-sm font-medium text-slate-300">
+            <label className="block text-sm font-medium text-muted-foreground">
               Password
             </label>
             {mode === "signin" && (
@@ -218,7 +218,7 @@ export default function SignInForm() {
             )}
           </div>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <input
               type="password"
               required
@@ -226,11 +226,11 @@ export default function SignInForm() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               minLength={8}
-              className="w-full pl-11 pr-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none transition"
+              className="w-full pl-11 pr-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
             />
           </div>
           {mode === "signup" && (
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-muted-foreground">
               Must be at least 8 characters
             </p>
           )}
@@ -252,10 +252,10 @@ export default function SignInForm() {
       {/* Divider */}
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-slate-800"></div>
+          <div className="w-full border-t border-border"></div>
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-4 bg-slate-900/50 text-slate-400">
+          <span className="px-4 bg-card text-muted-foreground">
             Or continue with
           </span>
         </div>

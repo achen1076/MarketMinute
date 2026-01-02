@@ -59,13 +59,13 @@ export default function TickerAlertCreator() {
   };
 
   return (
-    <div className="p-6 space-y-4 bg-slate-800/50 rounded-lg border border-slate-700">
+    <div className="p-6 space-y-4 bg-card rounded-lg border border-border">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-100">
+          <h2 className="text-2xl font-bold text-foreground">
             Create Ticker Alert
           </h2>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Manually create an alert for a specific ticker symbol
           </p>
         </div>
@@ -75,7 +75,7 @@ export default function TickerAlertCreator() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">
+            <label className="block text-sm font-medium text-muted-foreground mb-1">
               Symbol
             </label>
             <input
@@ -83,18 +83,18 @@ export default function TickerAlertCreator() {
               value={symbol}
               onChange={(e) => setSymbol(e.target.value)}
               placeholder="AAPL"
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-amber-500"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">
+            <label className="block text-sm font-medium text-muted-foreground mb-1">
               Alert Type
             </label>
             <select
               value={type}
               onChange={(e) => setType(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-amber-500"
             >
               <option value="custom">Custom</option>
               <option value="sentiment_shift">Sentiment Shift</option>
@@ -105,7 +105,7 @@ export default function TickerAlertCreator() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">
+          <label className="block text-sm font-medium text-muted-foreground mb-1">
             Title
           </label>
           <input
@@ -113,13 +113,13 @@ export default function TickerAlertCreator() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Alert title..."
-            className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-amber-500"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">
+          <label className="block text-sm font-medium text-muted-foreground mb-1">
             Message
           </label>
           <textarea
@@ -127,13 +127,13 @@ export default function TickerAlertCreator() {
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Alert message..."
             rows={3}
-            className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-md text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
+            className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">
+          <label className="block text-sm font-medium text-muted-foreground mb-1">
             Severity
           </label>
           <div className="flex gap-3">
@@ -156,7 +156,7 @@ export default function TickerAlertCreator() {
                       ? "text-rose-400"
                       : sev === "medium"
                       ? "text-amber-400"
-                      : "text-slate-400"
+                      : "text-muted-foreground"
                   }`}
                 >
                   {sev}

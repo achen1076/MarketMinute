@@ -10,14 +10,14 @@ export default function RegimeComponentsCard({
   sectorRotation,
 }: RegimeComponentsCardProps) {
   return (
-    <Card className="bg-slate-800/50 border-slate-700">
+    <Card className="bg-card border-border">
       <div className="p-4">
-        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
           Regime Components
         </h3>
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-400">Vol Regime</span>
+            <span className="text-muted-foreground">Vol Regime</span>
             <span
               className={`font-medium ${
                 vix && vix > 25
@@ -35,20 +35,20 @@ export default function RegimeComponentsCard({
             </span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-400">Factor Regime</span>
-            <span className="font-medium text-slate-200">
+            <span className="text-muted-foreground">Factor Regime</span>
+            <span className="font-medium text-foreground">
               {sectorRotation ? "Small-cap leadership" : "Large-cap led"}
             </span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-400">Sector Regime</span>
-            <span className="font-medium text-slate-200">
+            <span className="text-muted-foreground">Sector Regime</span>
+            <span className="font-medium text-foreground">
               {sectorRotation ? "Cyclical tilt" : "Defensive tilt"}
             </span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-400">Liquidity Regime</span>
-            <span className="font-medium text-slate-200">Neutral</span>
+            <span className="text-muted-foreground">Liquidity Regime</span>
+            <span className="font-medium text-foreground">Neutral</span>
           </div>
         </div>
       </div>

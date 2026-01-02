@@ -34,14 +34,14 @@ function LandingPage() {
             AI-Powered Market Intelligence
           </div>
 
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
+          <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
             Your Markets,{" "}
             <span className="bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
               Simplified
             </span>
           </h1>
 
-          <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
             Stay ahead with real-time insights, smart alerts, and AI-powered
             analysis. Track your watchlists and never miss a market-moving
             event.
@@ -60,47 +60,47 @@ function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section className="px-4 py-16 border-t border-slate-800">
+      <section className="px-4 py-16 border-t border-border">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-2xl md:text-3xl font-bold text-white text-center mb-12">
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground text-center mb-12">
             Everything you need to stay informed
           </h2>
 
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+            <div className="p-6 rounded-2xl bg-muted/50 border border-border">
               <div className="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center mb-4">
                 <BarChart3 className="w-6 h-6 text-teal-400" />
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
                 Real-Time Tracking
               </h3>
-              <p className="text-slate-400">
+              <p className="text-muted-foreground">
                 Monitor your watchlists with live price updates and market data
                 throughout the trading day.
               </p>
             </div>
 
-            <div className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+            <div className="p-6 rounded-2xl bg-muted/50 border border-border">
               <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center mb-4">
                 <Bell className="w-6 h-6 text-cyan-400" />
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
                 Smart Alerts
               </h3>
-              <p className="text-slate-400">
+              <p className="text-muted-foreground">
                 Get intelligent notifications about earnings, dividends, and
                 significant price movements.
               </p>
             </div>
 
-            <div className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700/50">
+            <div className="p-6 rounded-2xl bg-muted/50 border border-border">
               <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center mb-4">
                 <TrendingUp className="w-6 h-6 text-purple-400" />
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
                 AI Insights
               </h3>
-              <p className="text-slate-400">
+              <p className="text-muted-foreground">
                 Leverage AI-powered market summaries and analysis to understand
                 what&apos;s driving your portfolio.
               </p>
@@ -188,7 +188,7 @@ export default async function HomePage() {
 
             {user?.watchlists.length === 0 && (
               <Card className="p-8 text-center">
-                <p className="text-slate-400 mb-3">
+                <p className="text-muted-foreground mb-3">
                   You don&apos;t have any watchlists yet.{" "}
                   <Link
                     href="/watchlist"
@@ -214,7 +214,7 @@ export default async function HomePage() {
       </Stack>
 
       {/* Admin Settings */}
-      {session?.user?.email === "achen1076@gmail.com" && <AdminSettings />}
+      {/* {session?.user?.email === "achen1076@gmail.com" && <AdminSettings />} */}
     </>
   );
 }

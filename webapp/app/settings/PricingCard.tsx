@@ -27,11 +27,11 @@ export default function PricingCard({
 
   return (
     <div
-      className={`relative bg-slate-900 border rounded-lg p-6 ${
+      className={`relative bg-card border rounded-lg p-6 ${
         isCurrentTier
-          ? "border-teal-500 ring-2 ring-teal-500/20"
-          : "border-slate-800"
-      } ${!isFree && "hover:border-teal-500/50 transition-colors"}`}
+          ? "border-primary ring-2 ring-primary/20"
+          : "border-border"
+      } ${!isFree && "hover:border-primary/50 transition-colors"}`}
     >
       {isCurrentTier && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-teal-500 text-white text-xs font-medium px-3 py-1 rounded-full">
@@ -43,7 +43,7 @@ export default function PricingCard({
         <h3 className="text-2xl font-bold mb-2 capitalize">{tier}</h3>
         <div className="flex items-baseline justify-center gap-1">
           <span className="text-4xl font-bold">${price}</span>
-          {!isFree && <span className="text-slate-400">/month</span>}
+          {!isFree && <span className="text-muted-foreground">/month</span>}
         </div>
       </div>
 
@@ -80,7 +80,9 @@ export default function PricingCard({
               </svg>
             )}
             <span
-              className={feature.included ? "text-slate-200" : "text-slate-500"}
+              className={
+                feature.included ? "text-foreground" : "text-muted-foreground"
+              }
             >
               {feature.text}
             </span>
@@ -99,7 +101,7 @@ export default function PricingCard({
       )}
 
       {isCurrentTier && !isFree && (
-        <div className="text-center text-sm text-slate-400">
+        <div className="text-center text-sm text-muted-foreground">
           You're on this plan
         </div>
       )}

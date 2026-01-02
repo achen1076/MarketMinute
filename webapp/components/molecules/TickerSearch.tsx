@@ -140,7 +140,7 @@ export default function TickerSearch({
     <div className="space-y-3">
       {/* Selected Symbols Display */}
       {selectedSymbols.length > 0 && (
-        <div className="flex flex-wrap gap-2 rounded-lg border border-slate-700 bg-slate-900/50 p-3">
+        <div className="flex flex-wrap gap-2 rounded-lg border border-border bg-muted/50 p-3">
           {selectedSymbols.map((symbol) => (
             <div
               key={symbol}
@@ -174,23 +174,23 @@ export default function TickerSearch({
           onKeyDown={handleKeyDown}
           placeholder="Search for stocks (e.g. AAPL, Tesla, Microsoft)..."
           disabled={disabled}
-          className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-slate-100 outline-none transition-colors focus:border-emerald-500 disabled:opacity-50"
+          className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-primary disabled:opacity-50"
         />
 
         {/* Dropdown */}
         {showDropdown && searchQuery && (
           <div
             ref={dropdownRef}
-            className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-slate-700 bg-slate-900 shadow-xl"
+            className="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-border bg-card shadow-xl"
           >
             {loading ? (
-              <div className="px-4 py-3 text-sm text-slate-400">
+              <div className="px-4 py-3 text-sm text-muted-foreground">
                 Searching...
               </div>
             ) : filteredTickers.length > 0 ? (
               <div className="max-h-60 overflow-y-auto">
                 {isAtLimit && (
-                  <div className="px-4 py-2 text-xs text-amber-400 bg-amber-500/10 border-b border-slate-700">
+                  <div className="px-4 py-2 text-xs text-amber-400 bg-amber-500/10 border-b border-border">
                     Limit of {maxSymbols} symbols reached
                   </div>
                 )}
@@ -202,13 +202,13 @@ export default function TickerSearch({
                     disabled={
                       selectedSymbols.includes(ticker.symbol) || isAtLimit
                     }
-                    className="flex w-full items-center justify-between px-4 py-2.5 text-left transition-colors hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex w-full items-center justify-between px-4 py-2.5 text-left transition-colors hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <div className="flex-1 overflow-hidden">
-                      <div className="font-semibold text-slate-100">
+                      <div className="font-semibold text-foreground">
                         {ticker.symbol}
                       </div>
-                      <div className="truncate text-xs text-slate-400">
+                      <div className="truncate text-xs text-muted-foreground">
                         {ticker.name}
                       </div>
                     </div>
@@ -222,7 +222,7 @@ export default function TickerSearch({
               </div>
             ) : (
               <div className="px-4 py-3">
-                <div className="text-sm text-slate-400">
+                <div className="text-sm text-muted-foreground">
                   No stocks found. Press Enter to add "
                   {searchQuery.toUpperCase()}" manually.
                 </div>
@@ -234,7 +234,9 @@ export default function TickerSearch({
 
       {/* Helper Text */}
       <p
-        className={`text-xs ${isAtLimit ? "text-amber-400" : "text-slate-500"}`}
+        className={`text-xs ${
+          isAtLimit ? "text-amber-400" : "text-muted-foreground"
+        }`}
       >
         {selectedSymbols.length === 0
           ? "Start typing to search for stocks, or press Enter to add symbols manually"

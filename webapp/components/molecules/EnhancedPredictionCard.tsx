@@ -39,7 +39,7 @@ export function EnhancedPredictionCard({ signal, quality }: Props) {
       ? "text-blue-400"
       : quantScore >= 30
       ? "text-amber-400"
-      : "text-slate-400";
+      : "text-muted-foreground";
 
   const scoreBarColor =
     quantScore >= 70
@@ -105,12 +105,10 @@ export function EnhancedPredictionCard({ signal, quality }: Props) {
       : quality.quality_tier === "marginal"
       ? "border-amber-500/30 hover:border-amber-500/50"
       : "border-rose-500/30 hover:border-rose-500/50"
-    : "hover:border-slate-700";
+    : "hover:border-border";
 
   return (
-    <Card
-      className={`p-5 hover:bg-slate-900/20 transition-all ${cardBorderClass}`}
-    >
+    <Card className={`p-5 hover:bg-muted/20 transition-all ${cardBorderClass}`}>
       {/* Model Quality Badge */}
       {quality && (
         <div className="flex items-center justify-between mb-3">
@@ -127,11 +125,13 @@ export function EnhancedPredictionCard({ signal, quality }: Props) {
       {/* Header with Quant Score */}
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h3 className="text-xl font-bold text-slate-100">{ticker}</h3>
-          <p className="text-sm text-slate-300">${current_price.toFixed(2)}</p>
+          <h3 className="text-xl font-bold text-foreground">{ticker}</h3>
+          <p className="text-sm text-muted-foreground">
+            ${current_price.toFixed(2)}
+          </p>
         </div>
         <div className="text-right">
-          <p className="text-xs text-slate-500 uppercase tracking-wide">
+          <p className="text-xs text-muted-foreground uppercase tracking-wide">
             {rawQuantScore !== null ? "Quant Score" : "Quant Score"}
           </p>
           <div className="flex items-baseline justify-end gap-1">
@@ -148,7 +148,7 @@ export function EnhancedPredictionCard({ signal, quality }: Props) {
             )}
           </div>
           {rawQuantScore !== null && (
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Raw: {rawQuantScore}
             </p>
           )}
@@ -157,7 +157,7 @@ export function EnhancedPredictionCard({ signal, quality }: Props) {
 
       {/* Score Bar */}
       <div className="mb-4">
-        <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+        <div className="h-2 rounded-full bg-muted overflow-hidden">
           <div
             className={`h-full ${scoreBarColor} transition-all duration-300`}
             style={{ width: `${quantScore}%` }}
@@ -166,9 +166,11 @@ export function EnhancedPredictionCard({ signal, quality }: Props) {
       </div>
 
       {/* Signal Description */}
-      <div className="mb-4 p-3 rounded-lg bg-slate-800/40 border border-slate-700 min-h-[88px] flex flex-col justify-center">
-        <p className="text-sm text-slate-300 mb-2">{signalDescription}</p>
-        <p className="text-xs text-slate-400 italic">{tradingInterpretation}</p>
+      <div className="mb-4 p-3 rounded-lg bg-muted/40 border border-border min-h-[88px] flex flex-col justify-center">
+        <p className="text-sm text-foreground/80 mb-2">{signalDescription}</p>
+        <p className="text-xs text-muted-foreground italic">
+          {tradingInterpretation}
+        </p>
       </div>
 
       {/* Regime Badge */}
@@ -181,8 +183,8 @@ export function EnhancedPredictionCard({ signal, quality }: Props) {
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="p-3 rounded-lg bg-slate-800/30">
-          <p className="text-xs text-slate-500 mb-1">Directional Edge</p>
+        <div className="p-3 rounded-lg bg-muted/30">
+          <p className="text-xs text-muted-foreground mb-1">Directional Edge</p>
           <p
             className={`text-lg font-bold ${
               edgeDirectional > 0 ? "text-teal-400" : "text-rose-400"
@@ -191,8 +193,8 @@ export function EnhancedPredictionCard({ signal, quality }: Props) {
             {(edgeDirectional * 100).toFixed(1)}%
           </p>
         </div>
-        <div className="p-3 rounded-lg bg-slate-800/30">
-          <p className="text-xs text-slate-500 mb-1">
+        <div className="p-3 rounded-lg bg-muted/30">
+          <p className="text-xs text-muted-foreground mb-1">
             Expected Directional Impact
           </p>
           <p
@@ -213,13 +215,13 @@ export function EnhancedPredictionCard({ signal, quality }: Props) {
             <p className="text-xs text-blue-400 font-semibold">
               📰 News Impact
             </p>
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-muted-foreground">
               {raw_signal} → {signal.signal}
             </span>
           </div>
           <div className="grid grid-cols-3 gap-2 text-xs">
             <div>
-              <div className="text-slate-500">UP</div>
+              <div className="text-muted-foreground">UP</div>
               <div className="flex items-center gap-1">
                 <span className="text-slate-400">
                   {(raw_prob_up! * 100).toFixed(0)}%
@@ -231,7 +233,7 @@ export function EnhancedPredictionCard({ signal, quality }: Props) {
               </div>
             </div>
             <div>
-              <div className="text-slate-500">NEUTRAL</div>
+              <div className="text-muted-foreground">NEUTRAL</div>
               <div className="flex items-center gap-1">
                 <span className="text-slate-400">
                   {(raw_prob_neutral! * 100).toFixed(0)}%
@@ -243,7 +245,7 @@ export function EnhancedPredictionCard({ signal, quality }: Props) {
               </div>
             </div>
             <div>
-              <div className="text-slate-500">DOWN</div>
+              <div className="text-muted-foreground">DOWN</div>
               <div className="flex items-center gap-1">
                 <span className="text-slate-400">
                   {(raw_prob_down! * 100).toFixed(0)}%
@@ -260,15 +262,15 @@ export function EnhancedPredictionCard({ signal, quality }: Props) {
 
       {/* Probability Distribution */}
       <div className="mb-3">
-        <p className="text-xs text-slate-500 mb-2">
+        <p className="text-xs text-muted-foreground mb-2">
           {hasNewsAdjustment
             ? "Final Probability Distribution:"
             : "Probability Distribution:"}
         </p>
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 w-16">Higher:</span>
-            <div className="flex-1 h-2 rounded-full bg-slate-800 overflow-hidden">
+            <span className="text-xs text-muted-foreground w-16">Higher:</span>
+            <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
               <div
                 className="h-full bg-emerald-400"
                 style={{ width: `${prob_up * 100}%` }}
@@ -279,20 +281,20 @@ export function EnhancedPredictionCard({ signal, quality }: Props) {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 w-16">Neutral:</span>
-            <div className="flex-1 h-2 rounded-full bg-slate-800 overflow-hidden">
+            <span className="text-xs text-muted-foreground w-16">Neutral:</span>
+            <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
               <div
                 className="h-full bg-slate-500"
                 style={{ width: `${prob_neutral * 100}%` }}
               />
             </div>
-            <span className="text-xs text-slate-400 font-semibold w-12 text-right">
+            <span className="text-xs text-muted-foreground font-semibold w-12 text-right">
               {(prob_neutral * 100).toFixed(0)}%
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 w-16">Lower:</span>
-            <div className="flex-1 h-2 rounded-full bg-slate-800 overflow-hidden">
+            <span className="text-xs text-muted-foreground w-16">Lower:</span>
+            <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
               <div
                 className="h-full bg-rose-400"
                 style={{ width: `${prob_down * 100}%` }}
@@ -306,9 +308,9 @@ export function EnhancedPredictionCard({ signal, quality }: Props) {
       </div>
 
       {/* Confidence Footer */}
-      <div className="pt-3 border-t border-slate-800">
+      <div className="pt-3 border-t border-border">
         <div className="flex items-center justify-between text-xs">
-          <span className="text-slate-500">
+          <span className="text-muted-foreground">
             {signal.signal === "NEUTRAL"
               ? "Neutral Certainty:"
               : "Directional Confidence:"}
@@ -316,7 +318,7 @@ export function EnhancedPredictionCard({ signal, quality }: Props) {
           <span
             className={`font-semibold ${
               signal.signal === "NEUTRAL"
-                ? "text-slate-400"
+                ? "text-muted-foreground"
                 : directionalConfidence >= 0.7
                 ? "text-emerald-400"
                 : "text-amber-400"

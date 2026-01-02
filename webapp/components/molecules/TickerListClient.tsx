@@ -7,7 +7,6 @@ import { Search, Star, Bell, ChevronDown, ChevronUp } from "lucide-react";
 import { CACHE_TTL_MS } from "@/lib/constants";
 import ReactMarkdown from "react-markdown";
 import { isMarketOpen, isAfterHours, isPreMarket } from "@/lib/marketHours";
-import { COLORS } from "@/lib/colors";
 import { TickerChart } from "@/components/molecules/TickerChart";
 
 interface TickerAlert {
@@ -326,7 +325,9 @@ export function TickerListClient({
   return (
     <Card className="p-4 text-sm h-full overflow-hidden flex flex-col">
       <div className="mb-3 flex items-center justify-between shrink-0">
-        <h3 className="text-sm font-semibold text-slate-200">Your Symbols</h3>
+        <h3 className="text-sm font-semibold text-foreground/80">
+          Your Symbols
+        </h3>
 
         {/* Alerts Bell Icon + Dropdown */}
         <div className="relative" ref={alertsDropdownRef}>
@@ -344,31 +345,21 @@ export function TickerListClient({
           </button>
 
           {alertsOpen && (
-            <div
-              className="absolute right-0 mt-2 w-80 rounded-xl border shadow-xl z-50"
-              style={{
-                backgroundColor: COLORS.bg.elevated,
-                borderColor: COLORS.border.subtle,
-              }}
-            >
-              <div
-                className="flex items-center justify-between px-4 py-3 border-b"
-                style={{ borderColor: COLORS.border.subtle }}
-              >
-                <h3 className="font-semibold text-slate-100">Alerts</h3>
+            <div className="absolute right-0 mt-2 w-80 rounded-xl border shadow-xl z-50 bg-card border-border">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                <h3 className="font-semibold text-foreground">Alerts</h3>
               </div>
 
               <div className="max-h-80 overflow-y-auto">
                 {activeAlerts.length === 0 ? (
-                  <div className="px-4 py-8 text-center text-slate-500 text-sm">
+                  <div className="px-4 py-8 text-center text-muted-foreground text-sm">
                     No alerts for this watchlist
                   </div>
                 ) : (
                   activeAlerts.map((alert) => (
                     <div
                       key={alert.id}
-                      className="px-4 py-3 border-b cursor-pointer transition-colors hover:bg-slate-800/50 bg-slate-800/30"
-                      style={{ borderColor: COLORS.border.subtle }}
+                      className="px-4 py-3 border-b border-border cursor-pointer transition-colors hover:bg-muted/50 bg-muted/30"
                     >
                       <div className="flex items-start gap-3">
                         <span
@@ -389,11 +380,11 @@ export function TickerListClient({
                             >
                               {alert.title}
                             </span>
-                            <span className="text-xs px-1.5 py-0.5 rounded bg-slate-700 text-slate-300">
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
                               {alert.symbol}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-400 mt-1 line-clamp-2">
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                             {alert.message}
                           </p>
                         </div>
@@ -404,13 +395,10 @@ export function TickerListClient({
               </div>
 
               {activeAlerts.length > 0 && (
-                <div
-                  className="px-4 py-2 border-t text-center"
-                  style={{ borderColor: COLORS.border.subtle }}
-                >
+                <div className="px-4 py-2 border-t border-border text-center">
                   <button
                     onClick={() => setAlertsOpen(false)}
-                    className="text-xs text-slate-400 hover:text-slate-300 transition-colors"
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                   >
                     Close
                   </button>
@@ -434,16 +422,16 @@ export function TickerListClient({
 
       {/* Search and Sort Controls */}
       <div className="mb-3 shrink-0">
-        <div className="bg-slate-900/40 border border-slate-700/50 rounded-lg p-3 space-y-2">
+        <div className="bg-muted/40 border border-border rounded-lg p-3 space-y-2">
           {/* Search Input */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search symbols..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-600"
+              className="w-full pl-9 pr-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-ring"
             />
           </div>
 
@@ -451,7 +439,7 @@ export function TickerListClient({
           <select
             value={sortMode}
             onChange={(e) => setSortMode(e.target.value as any)}
-            className="w-full px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-slate-600"
+            className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-ring"
           >
             <option value="a-z">A-Z</option>
             <option value="highest-gain">Highest Gain</option>
@@ -462,7 +450,7 @@ export function TickerListClient({
 
       <div className="flex flex-col gap-3 overflow-y-auto pr-1">
         {filteredAndSortedSnapshots.length === 0 ? (
-          <div className="text-center py-8 text-slate-400">
+          <div className="text-center py-8 text-muted-foreground">
             {searchQuery
               ? "No symbols match your search"
               : "No symbols to display"}
@@ -481,7 +469,7 @@ export function TickerListClient({
                 className={`flex flex-col rounded-lg px-3 py-3 transition-all relative overflow-hidden ${
                   s.isFavorite
                     ? "bg-amber-500/10 border border-amber-500/20"
-                    : "bg-slate-900/60"
+                    : "bg-muted/60"
                 }`}
               >
                 {isFlashing && (
@@ -495,7 +483,7 @@ export function TickerListClient({
                     <button
                       onClick={() => handleFavoriteToggle(s)}
                       disabled={favoriteTogglingId === s.itemId}
-                      className="shrink-0 p-1 rounded hover:bg-slate-800/50 transition-colors disabled:opacity-50"
+                      className="shrink-0 p-1 rounded hover:bg-muted transition-colors disabled:opacity-50"
                       title={s.isFavorite ? "Unfavorite" : "Favorite"}
                     >
                       <Star
@@ -503,13 +491,13 @@ export function TickerListClient({
                         className={`transition-colors cursor-pointer ${
                           s.isFavorite
                             ? "fill-amber-400 text-amber-400"
-                            : "text-slate-500 hover:text-amber-400"
+                            : "text-muted-foreground hover:text-amber-400"
                         }`}
                       />
                     </button>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <div className="font-medium text-slate-100">
+                        <div className="font-medium text-foreground">
                           {s.symbol}
                           {s.isFavorite && (
                             <span className="ml-2 text-xs text-amber-400">
@@ -526,11 +514,11 @@ export function TickerListClient({
                         )}
                       </div>
                       <div
-                        className={`text-md text-slate-200 transition-all ${
+                        className={`text-md text-foreground/90 transition-all ${
                           isFlashing
                             ? s.changePct > 0
-                              ? "text-emerald-400"
-                              : "text-rose-400"
+                              ? "text-emerald-500 dark:text-emerald-400"
+                              : "text-red-500 dark:text-rose-400"
                             : ""
                         }`}
                       >
@@ -570,17 +558,17 @@ export function TickerListClient({
                     <div
                       className={`text-sm font-semibold ${
                         s.changePct > 0
-                          ? "text-emerald-400"
+                          ? "text-emerald-500 dark:text-emerald-400"
                           : s.changePct < 0
-                          ? "text-rose-400"
-                          : "text-slate-400"
+                          ? "text-red-500 dark:text-rose-400"
+                          : "text-muted-foreground"
                       }`}
                     >
                       {s.changePct > 0 ? "+" : ""}
                       {s.changePct.toFixed(2)}%
                     </div>
                     {s.extendedHoursSession && (
-                      <div className="text-[10px] text-slate-500 mt-0.5">
+                      <div className="text-[10px] text-muted-foreground mt-0.5">
                         {s.extendedHoursSession === "premarket"
                           ? "prev close"
                           : "at close"}
@@ -593,7 +581,7 @@ export function TickerListClient({
                   <button
                     onClick={() => handleExplainToggle(s)}
                     disabled={loadingSymbol === s.symbol}
-                    className="text-xs text-slate-500/70 hover:text-slate-400 hover:underline transition-colors disabled:opacity-50 cursor-pointer"
+                    className="text-xs text-muted-foreground/70 hover:text-foreground hover:underline transition-colors disabled:opacity-50 cursor-pointer"
                   >
                     {loadingSymbol === s.symbol
                       ? "Explaining..."
@@ -627,7 +615,7 @@ export function TickerListClient({
                         return next;
                       });
                     }}
-                    className="text-slate-500 hover:text-slate-300 transition-colors p-1 rounded hover:bg-slate-800/50"
+                    className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded hover:bg-muted/50"
                   >
                     {expandedSymbols.has(s.symbol) ? (
                       <ChevronUp size={18} />
@@ -638,14 +626,14 @@ export function TickerListClient({
                 </div>
 
                 {hasExplanation && (
-                  <div className="mt-3 rounded bg-slate-800/50 p-3 text-sm leading-relaxed text-slate-300 prose prose-sm prose-invert max-w-none">
+                  <div className="mt-3 rounded bg-muted/50 p-3 text-sm leading-relaxed text-foreground/80 prose prose-sm dark:prose-invert max-w-none">
                     <ReactMarkdown
                       components={{
                         p: ({ children }) => (
                           <p className="mb-3 last:mb-0">{children}</p>
                         ),
                         strong: ({ children }) => (
-                          <strong className="font-semibold text-slate-100">
+                          <strong className="font-semibold text-foreground">
                             {children}
                           </strong>
                         ),
@@ -660,7 +648,7 @@ export function TickerListClient({
                       {explanations[s.symbol]}
                     </ReactMarkdown>
                     {explanationMeta[s.symbol]?.age && (
-                      <div className="mt-3 pt-2 border-t border-slate-700/50 text-xs text-slate-500">
+                      <div className="mt-3 pt-2 border-t border-border text-xs text-muted-foreground">
                         <span>{explanationMeta[s.symbol].age}</span>
                       </div>
                     )}
@@ -668,7 +656,7 @@ export function TickerListClient({
                 )}
 
                 {expandedSymbols.has(s.symbol) && (
-                  <div className="mt-3 rounded bg-slate-800/50 p-3 space-y-4">
+                  <div className="mt-3 rounded bg-muted/50 p-3 space-y-4">
                     {/* Chart */}
                     <div className="pb-3 border-b border-slate-700/50">
                       <TickerChart

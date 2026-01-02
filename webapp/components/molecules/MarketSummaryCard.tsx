@@ -14,37 +14,37 @@ export default function MarketSummaryCard({
   sectorRotation,
 }: MarketSummaryCardProps) {
   return (
-    <Card className="bg-slate-800/50 border-slate-700">
+    <Card className="bg-card border-border">
       <div className="p-4">
-        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
           Market Summary
         </h3>
         <div className="space-y-1.5 text-sm">
           <div className="flex items-start gap-2">
-            <span className="text-slate-500 min-w-[70px] text-xs">
+            <span className="text-muted-foreground min-w-[70px] text-xs">
               Equities:
             </span>
-            <span className="text-slate-200">
+            <span className="text-foreground">
               {keyDrivers && keyDrivers.length > 0
                 ? keyDrivers[0]
                 : "Broad market activity"}
             </span>
           </div>
           <div className="flex items-start gap-2">
-            <span className="text-slate-500 min-w-[70px] text-xs">
+            <span className="text-muted-foreground min-w-[70px] text-xs">
               Sectors:
             </span>
-            <span className="text-slate-200">
+            <span className="text-foreground">
               {keyDrivers && keyDrivers.length > 1
                 ? keyDrivers[1]
                 : "Mixed performance"}
             </span>
           </div>
           <div className="flex items-start gap-2">
-            <span className="text-slate-500 min-w-[70px] text-xs">
+            <span className="text-muted-foreground min-w-[70px] text-xs">
               Volatility:
             </span>
-            <span className="text-slate-200">
+            <span className="text-foreground">
               VIX {vixChangePct && vixChangePct < 0 ? "↓" : "↑"}{" "}
               {vixChangePct ? Math.abs(vixChangePct).toFixed(0) : "0"}% →{" "}
               {vixChangePct && vixChangePct < 0 ? "easing" : "rising"} risk
@@ -52,8 +52,10 @@ export default function MarketSummaryCard({
             </span>
           </div>
           <div className="flex items-start gap-2">
-            <span className="text-slate-500 min-w-[70px] text-xs">Regime:</span>
-            <span className="text-slate-200">
+            <span className="text-muted-foreground min-w-[70px] text-xs">
+              Regime:
+            </span>
+            <span className="text-foreground">
               {vix && vix > 25
                 ? "Risk-off"
                 : sectorRotation

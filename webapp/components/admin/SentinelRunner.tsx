@@ -25,8 +25,8 @@ export default function SentinelRunner() {
   }
 
   return (
-    <div className="p-6 space-y-4 bg-slate-800/50 rounded-lg border border-slate-700">
-      <h1 className="text-2xl font-bold text-slate-100">Sentinel Settings</h1>
+    <div className="p-6 space-y-4 bg-card rounded-lg border border-border">
+      <h1 className="text-2xl font-bold text-foreground">Sentinel Settings</h1>
 
       <button
         onClick={runSentinel}
@@ -38,23 +38,23 @@ export default function SentinelRunner() {
 
       {report && (
         <div className="mt-6 space-y-4">
-          <div className="p-4 border border-slate-600 rounded-md bg-slate-900/50">
-            <h2 className="text-xl font-semibold mb-3 text-slate-100">
+          <div className="p-4 border border-border rounded-md bg-muted/50">
+            <h2 className="text-xl font-semibold mb-3 text-foreground">
               Summary
             </h2>
-            <p className="text-slate-300">{report.summary}</p>
+            <p className="text-foreground/80">{report.summary}</p>
           </div>
 
           {report.keyDrivers?.length > 0 && (
-            <div className="p-4 border border-slate-600 rounded-md bg-slate-900/50">
-              <h2 className="text-xl font-semibold mb-3 text-slate-100">
+            <div className="p-4 border border-border rounded-md bg-muted/50">
+              <h2 className="text-xl font-semibold mb-3 text-foreground">
                 Key Drivers
               </h2>
               <ul className="space-y-2">
                 {report.keyDrivers.map((driver: string, idx: number) => (
                   <li
                     key={idx}
-                    className="flex items-start gap-2 text-slate-300"
+                    className="flex items-start gap-2 text-foreground/80"
                   >
                     <span className="text-blue-400">•</span>
                     <span>{driver}</span>
@@ -65,11 +65,11 @@ export default function SentinelRunner() {
           )}
 
           {report.macroContext && (
-            <div className="p-4 border border-slate-600 rounded-md bg-slate-900/50">
-              <h2 className="text-xl font-semibold mb-3 text-slate-100">
+            <div className="p-4 border border-border rounded-md bg-muted/50">
+              <h2 className="text-xl font-semibold mb-3 text-foreground">
                 Macro Context
               </h2>
-              <p className="text-slate-300">{report.macroContext}</p>
+              <p className="text-foreground/80">{report.macroContext}</p>
             </div>
           )}
         </div>

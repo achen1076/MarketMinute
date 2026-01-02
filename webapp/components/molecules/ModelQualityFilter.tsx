@@ -17,11 +17,13 @@ type Props = {
 export function ModelQualityFilter({ value, onChange, filteredCount }: Props) {
   return (
     <div className="flex items-center gap-4">
-      <span className="text-xs text-slate-500">Filter by Model Quality:</span>
+      <span className="text-xs text-muted-foreground">
+        Filter by Model Quality:
+      </span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as QualityFilterValue)}
-        className="px-3 py-2 rounded-lg text-sm bg-slate-800/50 text-slate-300 border border-slate-700 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/50"
+        className="px-3 py-2 rounded-lg text-sm bg-background text-foreground border border-border hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
       >
         <option value="all">All Models</option>
         <option value="deployable">Recommended (Best + Excellent)</option>
@@ -31,7 +33,7 @@ export function ModelQualityFilter({ value, onChange, filteredCount }: Props) {
         <option value="poor">Low Quality</option>
       </select>
       {value !== "all" && filteredCount !== undefined && (
-        <span className="text-xs text-slate-400">
+        <span className="text-xs text-muted-foreground">
           ({filteredCount} signals)
         </span>
       )}

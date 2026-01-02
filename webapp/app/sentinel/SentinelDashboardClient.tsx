@@ -75,10 +75,10 @@ export default function SentinelDashboardClient({
             <Brain className="w-8 h-8 text-indigo-400" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-slate-100">
+            <h1 className="text-3xl font-bold text-foreground">
               Sentinel Intelligence
             </h1>
-            <p className="text-slate-400">
+            <p className="text-muted-foreground">
               AI-powered market analysis & anomaly detection
             </p>
           </div>
@@ -137,7 +137,7 @@ export default function SentinelDashboardClient({
                   <h3 className="text-xs font-semibold text-indigo-400 uppercase tracking-wide mb-3">
                     Top Insight
                   </h3>
-                  <p className="text-slate-100 text-sm font-medium leading-relaxed">
+                  <p className="text-foreground text-sm font-medium leading-relaxed">
                     {latestReport.keyDrivers &&
                     latestReport.keyDrivers.length > 0
                       ? latestReport.keyDrivers[0]
@@ -147,9 +147,9 @@ export default function SentinelDashboardClient({
               </Card>
 
               {/* Key Drivers */}
-              <Card className="bg-slate-800/50 border-slate-700">
+              <Card className="bg-card border-border">
                 <div className="p-4">
-                  <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                     Key Drivers
                   </h3>
                   <ul className="space-y-2">
@@ -162,7 +162,7 @@ export default function SentinelDashboardClient({
                             className="flex items-start gap-2 text-sm"
                           >
                             <span className="text-indigo-400 mt-0.5">•</span>
-                            <span className="text-slate-200 leading-tight">
+                            <span className="text-foreground leading-tight">
                               {driver}
                             </span>
                           </li>
@@ -173,12 +173,12 @@ export default function SentinelDashboardClient({
 
               {/* Macro Context */}
               {latestReport.macroContext && (
-                <Card className="bg-slate-800/50 border-slate-700">
+                <Card className="bg-card border-border">
                   <div className="p-4">
-                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                       Macro Context
                     </h3>
-                    <p className="text-sm text-slate-300 leading-relaxed">
+                    <p className="text-sm text-foreground/80 leading-relaxed">
                       {latestReport.macroContext}
                     </p>
                   </div>
@@ -191,7 +191,7 @@ export default function SentinelDashboardClient({
           {latestReport && <WhatThisMeans report={latestReport} />}
 
           {/* Structured Professional Insights */}
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="bg-card border-border">
             <div className="p-4">
               <ProfessionalInsights reportContext={latestReport} />
             </div>
@@ -201,13 +201,13 @@ export default function SentinelDashboardClient({
 
       {/* Empty State */}
       {!latestReport && (
-        <Card className="bg-slate-800/50 border-slate-700">
+        <Card className="bg-card border-border">
           <div className="p-12 text-center">
-            <Brain className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-slate-300 mb-2">
+            <Brain className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-foreground mb-2">
               No Analysis Yet
             </h3>
-            <p className="text-slate-400 mb-6">
+            <p className="text-muted-foreground mb-6">
               Run your first Sentinel analysis to see market insights here.
             </p>
             <button
@@ -223,9 +223,9 @@ export default function SentinelDashboardClient({
       )}
 
       {/* Historical Analysis */}
-      <Card className="bg-slate-800/50 border-slate-700">
+      <Card className="bg-card border-border">
         <div className="p-4">
-          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
             Analysis History
           </h3>
           <div className="space-y-2">
@@ -242,16 +242,16 @@ export default function SentinelDashboardClient({
               return (
                 <div
                   key={report.id}
-                  className="border border-slate-700/50 rounded overflow-hidden"
+                  className="border border-border rounded overflow-hidden"
                 >
                   <div
-                    className="flex items-center justify-between p-2 bg-slate-900/30 hover:bg-slate-900/50 transition-colors cursor-pointer"
+                    className="flex items-center justify-between p-2 bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer"
                     onClick={() =>
                       setExpandedReport(isExpanded ? null : report.id)
                     }
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-xs text-slate-500">
+                      <span className="text-xs text-muted-foreground">
                         {date.toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
@@ -263,12 +263,12 @@ export default function SentinelDashboardClient({
                     </div>
                     <div className="flex items-center gap-2">
                       {report.vix && (
-                        <span className="text-xs text-slate-400">
+                        <span className="text-xs text-muted-foreground">
                           VIX {report.vix.toFixed(1)}
                         </span>
                       )}
                       <ChevronDown
-                        className={`w-4 h-4 text-slate-500 transition-transform ${
+                        className={`w-4 h-4 text-muted-foreground transition-transform ${
                           isExpanded ? "rotate-180" : ""
                         }`}
                       />
@@ -276,8 +276,8 @@ export default function SentinelDashboardClient({
                   </div>
 
                   {isExpanded && (
-                    <div className="p-3 bg-slate-900/50 border-t border-slate-700/50 space-y-3">
-                      <p className="text-xs text-slate-300 leading-relaxed">
+                    <div className="p-3 bg-muted/30 border-t border-border space-y-3">
+                      <p className="text-xs text-foreground/80 leading-relaxed">
                         {report.summary}
                       </p>
 
@@ -288,7 +288,7 @@ export default function SentinelDashboardClient({
                             .map((driver: string, idx: number) => (
                               <div
                                 key={idx}
-                                className="flex items-start gap-1.5 text-xs text-slate-400"
+                                className="flex items-start gap-1.5 text-xs text-muted-foreground"
                               >
                                 <span className="text-indigo-400 mt-0.5">
                                   •
@@ -301,7 +301,7 @@ export default function SentinelDashboardClient({
 
                       {/* What This Means Section */}
                       {report.whatThisMeans && (
-                        <div className="pt-2 border-t border-slate-700/50 space-y-2">
+                        <div className="pt-2 border-t border-border space-y-2">
                           <div className="flex items-center gap-2 mb-2">
                             <span className="text-xs font-semibold text-indigo-400">
                               What This Means
@@ -310,29 +310,29 @@ export default function SentinelDashboardClient({
 
                           <div className="space-y-2">
                             <div>
-                              <span className="text-xs font-medium text-slate-400">
+                              <span className="text-xs font-medium text-muted-foreground">
                                 What happened:
                               </span>
-                              <p className="text-xs text-slate-300 mt-0.5">
+                              <p className="text-xs text-foreground/80 mt-0.5">
                                 {(report.whatThisMeans as any).whatHappened}
                               </p>
                             </div>
 
                             <div>
-                              <span className="text-xs font-medium text-slate-400">
+                              <span className="text-xs font-medium text-muted-foreground">
                                 Why it matters:
                               </span>
-                              <p className="text-xs text-slate-300 mt-0.5">
+                              <p className="text-xs text-foreground/80 mt-0.5">
                                 {(report.whatThisMeans as any).whyItMatters}
                               </p>
                             </div>
 
                             {(report.whatThisMeans as any).whatToWatch && (
                               <div>
-                                <span className="text-xs font-medium text-slate-400">
+                                <span className="text-xs font-medium text-muted-foreground">
                                   Watch tomorrow:
                                 </span>
-                                <ul className="text-xs text-slate-300 mt-0.5 space-y-0.5">
+                                <ul className="text-xs text-foreground/80 mt-0.5 space-y-0.5">
                                   {(report.whatThisMeans as any).whatToWatch
                                     .slice(0, 3)
                                     .map((item: string, idx: number) => (
@@ -358,7 +358,7 @@ export default function SentinelDashboardClient({
               );
             })}
             {reports.length === 0 && (
-              <div className="text-center py-6 text-slate-500 text-xs">
+              <div className="text-center py-6 text-muted-foreground text-xs">
                 No analysis history yet
               </div>
             )}

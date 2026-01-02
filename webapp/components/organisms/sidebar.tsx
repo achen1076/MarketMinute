@@ -7,9 +7,6 @@ import NavLink from "../molecules/NavLink";
 import SignOutButton from "../atoms/SignOutButton";
 import UserInfo from "../molecules/UserInfo";
 import useWindowSize from "@/hooks/useWindowSize";
-import { COLORS } from "@/lib/colors";
-
-const SIDEBAR_BG_COLOR = COLORS.bg.elevated;
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: "default" | "secondary";
@@ -45,10 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       {isMobile && (
-        <header
-          className="fixed top-[30px] left-0 z-40 flex h-14 w-full items-center justify-between px-4"
-          style={{ backgroundColor: SIDEBAR_BG_COLOR, color: COLORS.text.main }}
-        >
+        <header className="fixed top-[30px] left-0 z-40 flex h-14 w-full items-center justify-between px-4 bg-sidebar text-sidebar-foreground">
           <Link href="/" className="text-lg font-bold" onClick={closeMenu}>
             MarketMinute
           </Link>
@@ -89,7 +83,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       <aside
         className={cn(
-          "fixed left-0 z-30 flex h-screen flex-col border-r transition-transform duration-300",
+          "fixed left-0 z-30 flex h-screen flex-col border-r border-sidebar-border transition-transform duration-300 bg-sidebar text-sidebar-foreground",
           isMobile
             ? isMenuOpen
               ? "translate-x-0 w-64 pt-[97px]"
@@ -97,11 +91,6 @@ const Sidebar: React.FC<SidebarProps> = ({
             : "w-64 translate-x-0 pt-[49px]",
           className
         )}
-        style={{
-          backgroundColor: SIDEBAR_BG_COLOR,
-          borderColor: COLORS.border.subtle,
-          color: COLORS.text.main,
-        }}
         {...props}
       >
         {!isMobile && (
@@ -113,10 +102,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         {user && (
-          <div
-            className="mb-4 border-b pb-4"
-            style={{ borderColor: COLORS.border.subtle }}
-          >
+          <div className="mb-4 border-b border-sidebar-border pb-4">
             <UserInfo name={user.name} email={user.email} image={user.image} />
           </div>
         )}
@@ -157,10 +143,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               </NavLink>
             )}
         </nav>
-        <div
-          className="border-t px-3 py-3"
-          style={{ borderColor: COLORS.border.subtle }}
-        >
+        <div className="border-t border-sidebar-border px-3 py-3">
           {user ? (
             <SignOutButton />
           ) : (
@@ -170,10 +153,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
 
-        <div
-          className="border-t px-4 py-3 text-xs"
-          style={{ borderColor: COLORS.border.subtle, color: COLORS.text.soft }}
-        >
+        <div className="border-t border-sidebar-border px-4 py-3 text-xs text-muted-foreground">
           Built for people who want to watch the market, but dont have the time.
         </div>
       </aside>

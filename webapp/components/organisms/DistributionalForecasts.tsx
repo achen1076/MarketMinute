@@ -78,7 +78,7 @@ export function DistributionalForecasts({ symbols, watchlistName }: Props) {
   if (isLoading) {
     return (
       <Card className="p-8 text-center">
-        <div className="text-slate-400">Loading forecasts...</div>
+        <div className="text-muted-foreground">Loading forecasts...</div>
       </Card>
     );
   }
@@ -86,7 +86,7 @@ export function DistributionalForecasts({ symbols, watchlistName }: Props) {
   if (error || forecasts.length === 0) {
     return (
       <Card className="p-8 text-center">
-        <div className="text-slate-400">
+        <div className="text-muted-foreground">
           {error ||
             "No forecasts available. Run the forecast generation script."}
         </div>
@@ -97,17 +97,17 @@ export function DistributionalForecasts({ symbols, watchlistName }: Props) {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <Card className="p-4 bg-slate-900/60">
+      <Card className="p-4 bg-card">
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-lg font-bold text-slate-100 mb-1">
+            <h2 className="text-lg font-bold text-foreground mb-1">
               Market Forecasts
             </h2>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-muted-foreground">
               Distributional forecasts showing expected ranges and probabilities
             </p>
           </div>
-          <div className="flex items-center gap-2 text-xs text-slate-500">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Info size={14} />
             <span>Educational only</span>
           </div>

@@ -114,7 +114,6 @@ const AVAILABLE_TICKERS = [
   "BBY",
   "BDX",
   "BEN",
-  "BF.B",
   "BIIB",
   "BIO",
   "BITF",
@@ -616,10 +615,10 @@ export function QuantLabAvailableTickers() {
         <div className="flex items-center gap-3">
           <Info className="w-5 h-5 text-blue-400" />
           <div>
-            <h3 className="text-sm font-semibold text-slate-200">
+            <h3 className="text-sm font-semibold text-foreground/80">
               Available Tickers in QuantLab
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-foreground/50 mt-0.5">
               {AVAILABLE_TICKERS.length} stocks currently supported by the model
             </p>
           </div>
@@ -629,9 +628,9 @@ export function QuantLabAvailableTickers() {
           aria-label={isExpanded ? "Collapse" : "Expand"}
         >
           {isExpanded ? (
-            <ChevronUp className="w-5 h-5 text-slate-400" />
+            <ChevronUp className="w-5 h-5 text-foreground/50" />
           ) : (
-            <ChevronDown className="w-5 h-5 text-slate-400" />
+            <ChevronDown className="w-5 h-5 text-foreground/50" />
           )}
         </button>
       </div>
@@ -641,9 +640,11 @@ export function QuantLabAvailableTickers() {
           <div className="mt-4">
             {/* Quality Legend */}
             {Object.keys(modelQuality).length > 0 && (
-              <div className="mb-4 p-3 rounded-lg bg-slate-800/30 border border-slate-700/50">
+              <div className="mb-4 p-3 rounded-lg bg-foreground/5 border border-slate-700/50">
                 <div className="flex flex-wrap items-center gap-3 text-xs">
-                  <span className="text-slate-400 font-medium">Quality:</span>
+                  <span className="text-foreground/50 font-medium">
+                    Quality:
+                  </span>
                   <span className="inline-flex items-center gap-1 text-emerald-400">
                     Best
                   </span>
@@ -663,13 +664,13 @@ export function QuantLabAvailableTickers() {
             {/* Search and Filter */}
             <div className="mb-4 flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-foreground/50" />
                 <input
                   type="text"
                   placeholder="Search tickers (e.g., AAPL, MSFT)..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 text-sm bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500/50"
+                  className="w-full pl-10 pr-4 py-2 text-sm bg-foreground/5 border border-slate-700 rounded-lg text-foreground/50 placeholder-foreground/50 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500/50"
                 />
               </div>
               {Object.keys(modelQuality).length > 0 && (
@@ -678,7 +679,7 @@ export function QuantLabAvailableTickers() {
                   onChange={(e) =>
                     setQualityFilter(e.target.value as typeof qualityFilter)
                   }
-                  className="px-3 py-2 text-sm bg-slate-800/50 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500/50"
+                  className="px-3 py-2 text-sm bg-foreground/5 border border-slate-700 rounded-lg text-foreground/50 focus:outline-none focus:ring-2 focus:ring-teal-500/50"
                 >
                   <option value="all">All Quality</option>
                   <option value="deployable">
@@ -692,7 +693,7 @@ export function QuantLabAvailableTickers() {
               )}
             </div>
             {(searchQuery || qualityFilter !== "all") && (
-              <p className="text-xs text-slate-400 mb-3">
+              <p className="text-xs text-foreground/50 mb-3">
                 Found {filteredTickers.length} ticker
                 {filteredTickers.length !== 1 ? "s" : ""}
               </p>
@@ -700,7 +701,7 @@ export function QuantLabAvailableTickers() {
 
             {filteredTickers.length > 0 ? (
               <>
-                <p className="text-xs text-slate-400 mb-3">
+                <p className="text-xs text-foreground/50 mb-3">
                   Add any of these tickers to your watchlist to receive QuantLab
                   signals:
                 </p>

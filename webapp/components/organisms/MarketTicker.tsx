@@ -94,14 +94,39 @@ export function MarketTicker() {
     };
   }, [tickers.length > 0]); // Only run when tickers become available
 
-  return (
+  const renderTickerItem = (
+    ticker: TickerItem,
+    idx: number,
+    suffix: string = ""
+  ) => (
     <div
-      className="fixed top-0 left-0 right-0 z-50 border-b"
-      style={{
-        backgroundColor: "#050B1B",
-        borderColor: "#111827",
-      }}
+      key={`${ticker.symbol}${suffix}-${idx}`}
+      className="flex items-center gap-2 text-sm shrink-0"
     >
+      <span className="font-semibold text-foreground">{ticker.name}</span>
+      <span className="text-foreground/80">
+        {ticker.price.toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}
+      </span>
+      <span
+        className={`font-semibold ${
+          ticker.changePct > 0
+            ? "text-emerald-500 dark:text-emerald-400"
+            : ticker.changePct < 0
+            ? "text-red-500 dark:text-rose-400"
+            : "text-muted-foreground"
+        }`}
+      >
+        {ticker.changePct > 0 ? "+" : ""}
+        {ticker.changePct.toFixed(2)}%
+      </span>
+    </div>
+  );
+
+  return (
+    <div className="fixed top-0 left-0 right-0 z-50 border-b bg-card border-border">
       <div className="flex items-center justify-between px-4 py-2">
         <div className="flex-1 overflow-hidden">
           <div
@@ -109,69 +134,15 @@ export function MarketTicker() {
             className="flex items-center gap-6 overflow-x-auto scrollbar-hide whitespace-nowrap"
           >
             {tickers.length === 0 ? (
-              <div className="text-slate-400 text-sm">
+              <div className="text-muted-foreground text-sm">
                 Loading market data...
               </div>
             ) : (
               <>
-                {/* Original ticker items */}
-                {tickers.map((ticker, idx) => (
-                  <div
-                    key={`${ticker.symbol}-${idx}`}
-                    className="flex items-center gap-2 text-sm shrink-0"
-                  >
-                    <span className="font-semibold text-slate-200">
-                      {ticker.name}
-                    </span>
-                    <span className="text-slate-300">
-                      {ticker.price.toLocaleString("en-US", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </span>
-                    <span
-                      className={`font-semibold ${
-                        ticker.changePct > 0
-                          ? "text-emerald-400"
-                          : ticker.changePct < 0
-                          ? "text-rose-400"
-                          : "text-slate-400"
-                      }`}
-                    >
-                      {ticker.changePct > 0 ? "+" : ""}
-                      {ticker.changePct.toFixed(2)}%
-                    </span>
-                  </div>
-                ))}
-                {/* Duplicate for seamless loop */}
-                {tickers.map((ticker, idx) => (
-                  <div
-                    key={`${ticker.symbol}-dup-${idx}`}
-                    className="flex items-center gap-2 text-sm shrink-0"
-                  >
-                    <span className="font-semibold text-slate-200">
-                      {ticker.name}
-                    </span>
-                    <span className="text-slate-300">
-                      {ticker.price.toLocaleString("en-US", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </span>
-                    <span
-                      className={`font-semibold ${
-                        ticker.changePct > 0
-                          ? "text-emerald-400"
-                          : ticker.changePct < 0
-                          ? "text-rose-400"
-                          : "text-slate-400"
-                      }`}
-                    >
-                      {ticker.changePct > 0 ? "+" : ""}
-                      {ticker.changePct.toFixed(2)}%
-                    </span>
-                  </div>
-                ))}
+                {tickers.map((ticker, idx) => renderTickerItem(ticker, idx))}
+                {tickers.map((ticker, idx) =>
+                  renderTickerItem(ticker, idx, "-dup")
+                )}
               </>
             )}
           </div>

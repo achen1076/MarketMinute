@@ -70,12 +70,14 @@ export default function SentinelExplainToday() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-slate-100">Sentinel</h2>
-              <span className="px-2 py-0.5 text-xs font-medium bg-slate-700/50 text-slate-400 rounded">
+              <h2 className="text-xl font-bold text-foreground">Sentinel</h2>
+              <span className="px-2 py-0.5 text-xs font-medium bg-muted/50 text-muted-foreground rounded">
                 Preview
               </span>
             </div>
-            <p className="text-sm text-slate-400">AI Market Intelligence</p>
+            <p className="text-sm text-muted-foreground">
+              AI Market Intelligence
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -88,7 +90,7 @@ export default function SentinelExplainToday() {
             <ExternalLink size={14} />
           </Link>
           <ChevronDown
-            className={`w-5 h-5 text-slate-400 transition-transform ${
+            className={`w-5 h-5 text-muted-foreground transition-transform ${
               isExpanded ? "rotate-180" : ""
             }`}
           />
@@ -101,7 +103,7 @@ export default function SentinelExplainToday() {
           {/* Call to Action */}
           {!report && !loading && (
             <div className="space-y-4">
-              <p className="text-slate-300 mt-4">
+              <p className="text-foreground/80 mt-4">
                 Get a quick AI-powered snapshot of today&apos;s market moves.
                 This preview won&apos;t be saved to your dashboard history.
               </p>
@@ -120,7 +122,7 @@ export default function SentinelExplainToday() {
           {loading && (
             <div className="flex flex-col items-center justify-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent mb-4"></div>
-              <p className="text-slate-400 animate-pulse">
+              <p className="text-muted-foreground animate-pulse">
                 Analyzing market data...
               </p>
             </div>
@@ -142,11 +144,11 @@ export default function SentinelExplainToday() {
             <div className="space-y-6 animate-in fade-in duration-500">
               {/* Summary */}
               <div>
-                <h3 className="text-lg font-semibold text-slate-100 mb-3 mt-4 flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-foreground mb-3 mt-4 flex items-center gap-2">
                   <TrendingUp size={18} className="text-indigo-400" />
                   Market Summary
                 </h3>
-                <p className="text-slate-300 leading-relaxed">
+                <p className="text-foreground/80 leading-relaxed">
                   {report.summary}
                 </p>
               </div>
@@ -154,14 +156,14 @@ export default function SentinelExplainToday() {
               {/* Key Drivers */}
               {report.keyDrivers.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-100 mb-3">
+                  <h3 className="text-lg font-semibold text-foreground mb-3">
                     Key Drivers
                   </h3>
                   <ul className="space-y-2">
                     {report.keyDrivers.map((driver, idx) => (
                       <li
                         key={idx}
-                        className="flex items-start gap-3 text-slate-300"
+                        className="flex items-start gap-3 text-foreground/80"
                       >
                         <span className="text-indigo-400 font-bold mt-0.5">
                           •
@@ -176,10 +178,10 @@ export default function SentinelExplainToday() {
               {/* Macro Context */}
               {report.macroContext && (
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-100 mb-3">
+                  <h3 className="text-lg font-semibold text-foreground mb-3">
                     Macro Context
                   </h3>
-                  <p className="text-slate-300 leading-relaxed">
+                  <p className="text-foreground/80 leading-relaxed">
                     {report.macroContext}
                   </p>
                 </div>
@@ -189,7 +191,7 @@ export default function SentinelExplainToday() {
               <button
                 onClick={explainToday}
                 disabled={loading}
-                className="w-full px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors flex items-center justify-center gap-2"
+                className="w-full px-4 py-2 bg-muted hover:bg-muted/80 text-foreground rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 <Sparkles size={16} />
                 Refresh Preview

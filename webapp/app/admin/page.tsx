@@ -48,10 +48,10 @@ export default async function AdminPage() {
     <div className="min-h-screen p-6">
       <div className="max-w-6xl mx-auto space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-100 mb-2">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
             Admin Panel
           </h1>
-          <p className="text-slate-400">You shouldnt be here</p>
+          <p className="text-muted-foreground">You shouldnt be here</p>
         </div>
 
         <WatchlistSelector

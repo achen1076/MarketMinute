@@ -66,7 +66,7 @@ export default function Dialog({
     >
       <div
         ref={dialogRef}
-        className="relative w-full max-w-md rounded-lg border border-slate-700 bg-slate-900 p-6 shadow-2xl"
+        className="relative w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-2xl"
         role="dialog"
         aria-modal="true"
         aria-labelledby="dialog-title"
@@ -74,7 +74,7 @@ export default function Dialog({
         <button
           onClick={onClose}
           disabled={loading}
-          className="absolute right-4 top-4 rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="absolute right-4 top-4 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Close dialog"
         >
           <X className="h-4 w-4" />
@@ -83,24 +83,24 @@ export default function Dialog({
         <div className="mb-4">
           <h2
             id="dialog-title"
-            className="text-lg font-semibold text-slate-100"
+            className="text-lg font-semibold text-foreground"
           >
             {title}
           </h2>
           {description && (
-            <p className="mt-2 text-sm text-slate-400">{description}</p>
+            <p className="mt-2 text-sm text-muted-foreground">{description}</p>
           )}
         </div>
 
         {children && (
-          <div className="mb-6 text-sm text-slate-300">{children}</div>
+          <div className="mb-6 text-sm text-foreground/80">{children}</div>
         )}
 
         <div className="flex justify-end gap-3">
           <button
             onClick={onClose}
             disabled={loading}
-            className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {cancelLabel}
           </button>

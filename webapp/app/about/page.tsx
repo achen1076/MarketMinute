@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { COLORS } from "@/lib/colors";
 import { auth } from "@/auth";
 
 export const metadata: Metadata = {
@@ -25,13 +24,10 @@ export default async function AboutPage() {
     <div className="mx-auto max-w-4xl">
       {/* Header */}
       <div className="mb-8">
-        <h1
-          className="text-4xl font-bold mb-3"
-          style={{ color: COLORS.text.main }}
-        >
+        <h1 className="text-4xl font-bold mb-3 text-foreground">
           About MarketMinute
         </h1>
-        <p className="text-lg" style={{ color: COLORS.text.soft }}>
+        <p className="text-lg text-muted-foreground">
           Stay informed about your portfolio in minutes, not hours.
         </p>
       </div>
@@ -39,20 +35,11 @@ export default async function AboutPage() {
       {/* Main Content */}
       <div className="space-y-8">
         {/* The Problem */}
-        <section
-          className="rounded-lg p-6 border"
-          style={{
-            backgroundColor: COLORS.bg.elevated,
-            borderColor: COLORS.border.subtle,
-          }}
-        >
-          <h2
-            className="text-2xl font-semibold mb-4"
-            style={{ color: COLORS.text.main }}
-          >
+        <section className="rounded-lg p-6 border bg-card border-border">
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">
             The Problem
           </h2>
-          <div className="space-y-3" style={{ color: "#94a3b8" }}>
+          <div className="space-y-3 text-muted-foreground">
             <p>
               Staying informed about your portfolio shouldn't feel like a
               full-time job. Yet every day, investors face the same challenges:
@@ -75,20 +62,11 @@ export default async function AboutPage() {
         </section>
 
         {/* The Solution */}
-        <section
-          className="rounded-lg p-6 border"
-          style={{
-            backgroundColor: COLORS.bg.elevated,
-            borderColor: COLORS.border.subtle,
-          }}
-        >
-          <h2
-            className="text-2xl font-semibold mb-4"
-            style={{ color: COLORS.text.main }}
-          >
+        <section className="rounded-lg p-6 border bg-card border-border">
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">
             The MarketMinute Solution
           </h2>
-          <div className="space-y-3" style={{ color: "#94a3b8" }}>
+          <div className="space-y-3 text-muted-foreground">
             <p>
               MarketMinute gives you a personalized market brief every
               day—tailored specifically to your watchlist. One dashboard. Few
@@ -108,17 +86,8 @@ export default async function AboutPage() {
         </section>
 
         {/* What You Get */}
-        <section
-          className="rounded-lg p-6 border"
-          style={{
-            backgroundColor: COLORS.bg.elevated,
-            borderColor: COLORS.border.subtle,
-          }}
-        >
-          <h2
-            className="text-2xl font-semibold mb-4"
-            style={{ color: COLORS.text.main }}
-          >
+        <section className="rounded-lg p-6 border bg-card border-border">
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">
             What You Get
           </h2>
           <div className="grid gap-4 md:grid-cols-2">
@@ -150,25 +119,13 @@ export default async function AboutPage() {
         </section>
 
         {/* Who It's For */}
-        <section
-          className="rounded-lg p-6 border"
-          style={{
-            backgroundColor: COLORS.bg.elevated,
-            borderColor: COLORS.border.subtle,
-          }}
-        >
-          <h2
-            className="text-2xl font-semibold mb-4"
-            style={{ color: COLORS.text.main }}
-          >
+        <section className="rounded-lg p-6 border bg-card border-border">
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">
             Who Is This For?
           </h2>
-          <div className="space-y-4" style={{ color: "#94a3b8" }}>
+          <div className="space-y-4 text-muted-foreground">
             <div>
-              <h3
-                className="font-semibold mb-2"
-                style={{ color: COLORS.text.main }}
-              >
+              <h3 className="font-semibold mb-2 text-foreground">
                 💼 Busy Professionals
               </h3>
               <p>
@@ -178,10 +135,7 @@ export default async function AboutPage() {
               </p>
             </div>
             <div>
-              <h3
-                className="font-semibold mb-2"
-                style={{ color: COLORS.text.main }}
-              >
+              <h3 className="font-semibold mb-2 text-foreground">
                 📚 Active Learners
               </h3>
               <p>
@@ -191,10 +145,7 @@ export default async function AboutPage() {
               </p>
             </div>
             <div>
-              <h3
-                className="font-semibold mb-2"
-                style={{ color: COLORS.text.main }}
-              >
+              <h3 className="font-semibold mb-2 text-foreground">
                 🎯 Focused Investors
               </h3>
               <p>
@@ -206,20 +157,11 @@ export default async function AboutPage() {
         </section>
 
         {/* Why We Built This */}
-        <section
-          className="rounded-lg p-6 border"
-          style={{
-            backgroundColor: COLORS.bg.elevated,
-            borderColor: COLORS.border.subtle,
-          }}
-        >
-          <h2
-            className="text-2xl font-semibold mb-4"
-            style={{ color: COLORS.text.main }}
-          >
+        <section className="rounded-lg p-6 border bg-card border-border">
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">
             Why We Built This
           </h2>
-          <div className="space-y-3" style={{ color: "#94a3b8" }}>
+          <div className="space-y-3 text-muted-foreground">
             <p>
               MarketMinute was born from personal frustration. Like many retail
               investors, we were tired of:
@@ -249,30 +191,16 @@ export default async function AboutPage() {
         </section>
 
         {/* About the Founder */}
-        <section
-          className="rounded-lg p-6 border"
-          style={{
-            backgroundColor: COLORS.bg.elevated,
-            borderColor: COLORS.border.subtle,
-          }}
-        >
-          <h2
-            className="text-2xl font-semibold mb-4"
-            style={{ color: COLORS.text.main }}
-          >
+        <section className="rounded-lg p-6 border bg-card border-border">
+          <h2 className="text-2xl font-semibold mb-4 text-foreground">
             About the Founder
           </h2>
-          <div className="space-y-4" style={{ color: "#94a3b8" }}>
+          <div className="space-y-4 text-muted-foreground">
             <div>
-              <h1
-                className="text-lg font-semibold mb-2"
-                style={{ color: COLORS.text.main }}
-              >
+              <h1 className="text-lg font-semibold mb-2 text-foreground">
                 Andrew Chen
               </h1>
-              <p style={{ color: COLORS.text.main }}>
-                Software Engineer & Investor
-              </p>
+              <p className="text-foreground">Software Engineer & Investor</p>
             </div>
 
             <p>
@@ -297,7 +225,7 @@ export default async function AboutPage() {
               the same clarity and simplicity.
             </p>
 
-            <p className="font-medium" style={{ color: COLORS.text.main }}>
+            <p className="font-medium text-foreground">
               I built MarketMinute for people who want to watch the market, but
               dont have enough time.
             </p>
@@ -306,29 +234,16 @@ export default async function AboutPage() {
 
         {/* Call to Action - Only show if not signed in */}
         {!session?.user && (
-          <section
-            className="rounded-lg p-6 text-center border"
-            style={{
-              backgroundColor: COLORS.bg.elevated,
-              borderColor: COLORS.border.subtle,
-            }}
-          >
-            <h2
-              className="text-2xl font-semibold mb-4"
-              style={{ color: COLORS.text.main }}
-            >
+          <section className="rounded-lg p-6 text-center border bg-card border-border">
+            <h2 className="text-2xl font-semibold mb-4 text-foreground">
               Ready to Get Started?
             </h2>
-            <p className="mb-6" style={{ color: "#94a3b8" }}>
+            <p className="mb-6 text-muted-foreground">
               Sign in to start building your personalized market dashboard.
             </p>
             <Link
               href="/signin"
-              className="inline-block px-6 py-3 rounded-lg font-semibold transition-colors hover:opacity-90"
-              style={{
-                backgroundColor: COLORS.accent.primary,
-                color: "#ffffff",
-              }}
+              className="inline-block px-6 py-3 rounded-lg font-semibold transition-colors hover:opacity-90 bg-primary text-primary-foreground"
             >
               Sign In
             </Link>
@@ -347,13 +262,9 @@ function FeatureCard({
   description: string;
 }) {
   return (
-    <div className="p-4 rounded-lg" style={{ backgroundColor: COLORS.bg.body }}>
-      <h3 className="font-semibold mb-2" style={{ color: COLORS.text.main }}>
-        {title}
-      </h3>
-      <p className="text-sm" style={{ color: "#94a3b8" }}>
-        {description}
-      </p>
+    <div className="p-4 rounded-lg bg-muted/50">
+      <h3 className="font-semibold mb-2 text-foreground">{title}</h3>
+      <p className="text-sm text-muted-foreground">{description}</p>
     </div>
   );
 }

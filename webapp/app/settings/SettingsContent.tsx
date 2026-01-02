@@ -6,8 +6,12 @@ import {
   User as UserIcon,
   Settings as SettingsIcon,
   HelpCircle,
+  Sun,
+  Moon,
+  Monitor,
 } from "lucide-react";
 import PricingCard from "./PricingCard";
+import { useTheme } from "@/lib/theme-context";
 
 type Tab = "account" | "preferences" | "support";
 
@@ -267,15 +271,15 @@ export default function SettingsContent({
   return (
     <div className="space-y-6">
       {/* Tab Navigation */}
-      <div className="flex gap-1 p-1 bg-slate-800/50 rounded-lg w-fit">
+      <div className="flex gap-1 p-1 bg-muted/50 rounded-lg w-fit">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               activeTab === tab.id
-                ? "bg-slate-700 text-white"
-                : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/50"
+                ? "bg-secondary text-foreground"
+                : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
             }`}
           >
             <tab.icon size={16} />
@@ -325,9 +329,9 @@ export default function SettingsContent({
           )}
 
           {/* Account Info */}
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+          <div className="bg-card border border-border rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4">Account Information</h2>
-            <div className="space-y-2 text-slate-300">
+            <div className="space-y-2 text-muted-foreground">
               <p>
                 <span className="font-medium">Email:</span> {user.email}
               </p>
@@ -357,8 +361,10 @@ export default function SettingsContent({
 
               {/* Usage Stats */}
               <div className="grid grid-cols-1 gap-4 mb-8">
-                <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
-                  <div className="text-sm text-slate-400 mb-1">Watchlists</div>
+                <div className="bg-card border border-border rounded-lg p-4">
+                  <div className="text-sm text-muted-foreground mb-1">
+                    Watchlists
+                  </div>
                   <div className="text-2xl font-bold">
                     {subscriptionData.usage.watchlists.used} /{" "}
                     {subscriptionData.usage.watchlists.limit}
@@ -413,18 +419,18 @@ export default function SettingsContent({
               {/* Manage Subscription */}
               {subscriptionData.subscription.tier !== "free" &&
                 subscriptionData.subscription.hasStripeCustomer && (
-                  <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+                  <div className="bg-card border border-border rounded-lg p-6">
                     <h3 className="text-lg font-semibold mb-2">
                       Manage Your Subscription
                     </h3>
-                    <p className="text-slate-400 text-sm mb-4">
+                    <p className="text-muted-foreground text-sm mb-4">
                       Update payment method, view invoices, or cancel your
                       subscription
                     </p>
                     <button
                       onClick={handleManageSubscription}
                       disabled={loading}
-                      className="bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 px-6 rounded-lg transition-colors disabled:opacity-50"
+                      className="bg-secondary hover:bg-secondary/80 text-foreground font-medium py-2 px-6 rounded-lg transition-colors disabled:opacity-50"
                     >
                       Open Billing Portal
                     </button>
@@ -435,17 +441,17 @@ export default function SettingsContent({
 
           {/* Change Password */}
           {canChangePassword && (
-            <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+            <div className="bg-card border border-border rounded-lg p-6">
               <h2 className="text-xl font-semibold mb-4">Change Password</h2>
 
               {error && (
-                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/50 rounded text-red-400 text-sm">
+                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/50 rounded text-red-500 text-sm">
                   {error}
                 </div>
               )}
 
               {success && (
-                <div className="mb-4 p-3 bg-green-500/10 border border-green-500/50 rounded text-green-400 text-sm">
+                <div className="mb-4 p-3 bg-green-500/10 border border-green-500/50 rounded text-green-500 text-sm">
                   {success}
                 </div>
               )}
@@ -459,7 +465,7 @@ export default function SettingsContent({
                     type="password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:border-teal-500"
+                    className="w-full bg-background border border-border rounded-lg px-4 py-2 focus:outline-none focus:border-primary"
                     required
                   />
                 </div>
@@ -472,7 +478,7 @@ export default function SettingsContent({
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:border-teal-500"
+                    className="w-full bg-background border border-border rounded-lg px-4 py-2 focus:outline-none focus:border-primary"
                     required
                     minLength={8}
                   />
@@ -486,7 +492,7 @@ export default function SettingsContent({
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:border-teal-500"
+                    className="w-full bg-background border border-border rounded-lg px-4 py-2 focus:outline-none focus:border-primary"
                     required
                     minLength={8}
                   />
@@ -495,7 +501,7 @@ export default function SettingsContent({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-teal-500 hover:bg-teal-600 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50"
                 >
                   {loading ? "Changing..." : "Change Password"}
                 </button>
@@ -507,67 +513,25 @@ export default function SettingsContent({
 
       {/* Preferences Tab */}
       {activeTab === "preferences" && (
-        <div className="space-y-8">
-          {/* Alert Preferences */}
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-4">Alert Preferences</h2>
-            <p className="text-slate-400 mb-4">
-              Get notified about significant market movements and events for
-              your watchlist. Alerts appear in your inbox.
-            </p>
-
-            <label className="flex items-center justify-between cursor-pointer">
-              <div>
-                <span className="text-slate-200 font-medium">
-                  Enable Alerts
-                </span>
-                <p className="text-slate-500 text-sm">
-                  Receive alerts in your inbox
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleAlertToggle}
-                disabled={alertLoading}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  alertsEnabled ? "bg-teal-500" : "bg-slate-600"
-                } ${alertLoading ? "opacity-50" : ""}`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    alertsEnabled ? "translate-x-6" : "translate-x-1"
-                  }`}
-                />
-              </button>
-            </label>
-
-            {alertMessage && (
-              <p
-                className={`mt-4 text-sm ${
-                  alertMessage.includes("enabled") ||
-                  alertMessage.includes("disabled")
-                    ? "text-emerald-400"
-                    : "text-red-400"
-                }`}
-              >
-                {alertMessage}
-              </p>
-            )}
-          </div>
-        </div>
+        <ThemeAwarePreferences
+          alertsEnabled={alertsEnabled}
+          alertLoading={alertLoading}
+          alertMessage={alertMessage}
+          handleAlertToggle={handleAlertToggle}
+        />
       )}
 
       {/* Support Tab */}
       {activeTab === "support" && (
         <div className="space-y-8">
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+          <div className="bg-card border border-border rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4">Contact Support</h2>
-            <p className="text-slate-400 mb-4">
+            <p className="text-muted-foreground mb-4">
               Need help or have feedback? We're here to assist you.
             </p>
             <a
               href="/support"
-              className="inline-block bg-teal-500 hover:bg-teal-600 text-white font-medium py-2 px-6 rounded-lg transition-colors"
+              className="inline-block bg-primary hover:bg-primary/90 text-primary-foreground font-medium py-2 px-6 rounded-lg transition-colors"
             >
               Contact Support
             </a>
@@ -586,12 +550,106 @@ export default function SettingsContent({
             </a>
           </div> */}
 
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+          <div className="bg-card border border-border rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4">App Version</h2>
-            <p className="text-slate-400">MarketMinute v3.0</p>
+            <p className="text-muted-foreground">MarketMinute v3.0</p>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function ThemeAwarePreferences({
+  alertsEnabled,
+  alertLoading,
+  alertMessage,
+  handleAlertToggle,
+}: {
+  alertsEnabled: boolean;
+  alertLoading: boolean;
+  alertMessage: string;
+  handleAlertToggle: () => void;
+}) {
+  const { theme, setTheme } = useTheme();
+
+  const themeOptions = [
+    { value: "light" as const, label: "Light", icon: Sun },
+    { value: "dark" as const, label: "Dark", icon: Moon },
+    { value: "system" as const, label: "System", icon: Monitor },
+  ];
+
+  return (
+    <div className="space-y-8">
+      {/* Theme Preference */}
+      <div className="bg-card border border-border rounded-lg p-6">
+        <h2 className="text-xl font-semibold mb-4">Appearance</h2>
+        <p className="text-muted-foreground mb-4">
+          Choose your preferred color theme for the application.
+        </p>
+
+        <div className="flex gap-3">
+          {themeOptions.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => setTheme(option.value)}
+              className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all ${
+                theme === option.value
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-card hover:border-muted-foreground text-foreground"
+              }`}
+            >
+              <option.icon size={18} />
+              <span className="font-medium">{option.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Alert Preferences */}
+      <div className="bg-card border border-border rounded-lg p-6">
+        <h2 className="text-xl font-semibold mb-4">Alert Preferences</h2>
+        <p className="text-muted-foreground mb-4">
+          Get notified about significant market movements and events for your
+          watchlist. Alerts appear in your inbox.
+        </p>
+
+        <label className="flex items-center justify-between cursor-pointer">
+          <div>
+            <span className="text-foreground font-medium">Enable Alerts</span>
+            <p className="text-muted-foreground text-sm">
+              Receive alerts in your inbox
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleAlertToggle}
+            disabled={alertLoading}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              alertsEnabled ? "bg-primary" : "bg-muted"
+            } ${alertLoading ? "opacity-50" : ""}`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                alertsEnabled ? "translate-x-6" : "translate-x-1"
+              }`}
+            />
+          </button>
+        </label>
+
+        {alertMessage && (
+          <p
+            className={`mt-4 text-sm ${
+              alertMessage.includes("enabled") ||
+              alertMessage.includes("disabled")
+                ? "text-emerald-500"
+                : "text-destructive"
+            }`}
+          >
+            {alertMessage}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

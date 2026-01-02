@@ -1,38 +1,39 @@
-// Deep Navy + Emerald color scheme
+// Fintech color scheme with light/dark mode support
 
-export const COLORS = {
+export const COLORS_DARK = {
   // Core backgrounds
   bg: {
     body: "#020617",
     elevated: "#050B1B",
     subtle: "#0B1220",
+    card: "#0F172A",
   },
 
   // Borders
   border: {
-    subtle: "#111827",
-    strong: "#1F2937",
+    subtle: "#1E293B",
+    strong: "#334155",
   },
 
   // Text
   text: {
-    main: "#F9FAFB",
-    muted: "#9CA3AF",
-    soft: "#6B7280",
+    main: "#F8FAFC",
+    muted: "#94A3B8",
+    soft: "#64748B",
   },
 
   // Accents
   accent: {
-    primary: "#16A34A",
-    primarySoft: "#22C55E",
-    secondary: "#A855F7",
+    primary: "#10B981",
+    primarySoft: "#34D399",
+    secondary: "#8B5CF6",
   },
 
-  // Semantic (market indicators)
+  // Semantic (market indicators) - fintech standard
   semantic: {
-    up: "#22C55E",
-    down: "#FB7185",
-    neutral: "#9CA3AF",
+    up: "#10B981", // Emerald green
+    down: "#EF4444", // Red
+    neutral: "#94A3B8",
   },
 
   // Badge
@@ -40,6 +41,51 @@ export const COLORS = {
     neutralBg: "rgba(148, 163, 184, 0.08)",
   },
 } as const;
+
+export const COLORS_LIGHT = {
+  // Core backgrounds - clean white/gray fintech style
+  bg: {
+    body: "#F8FAFC",
+    elevated: "#FFFFFF",
+    subtle: "#F1F5F9",
+    card: "#FFFFFF",
+  },
+
+  // Borders
+  border: {
+    subtle: "#E2E8F0",
+    strong: "#CBD5E1",
+  },
+
+  // Text
+  text: {
+    main: "#0F172A",
+    muted: "#475569",
+    soft: "#64748B",
+  },
+
+  // Accents
+  accent: {
+    primary: "#059669",
+    primarySoft: "#10B981",
+    secondary: "#7C3AED",
+  },
+
+  // Semantic (market indicators) - fintech standard
+  semantic: {
+    up: "#059669", // Darker emerald for light mode
+    down: "#DC2626", // Darker red for light mode
+    neutral: "#64748B",
+  },
+
+  // Badge
+  badge: {
+    neutralBg: "rgba(100, 116, 139, 0.1)",
+  },
+} as const;
+
+// Default export for backward compatibility (dark mode)
+export const COLORS = COLORS_DARK;
 
 // Utility function to get color based on market change
 export const getMarketColor = (changePct: number, isFlat = false) => {

@@ -79,7 +79,7 @@ const categoryConfig = {
 const confidenceConfig = {
   high: { label: "High", color: "text-green-400" },
   medium: { label: "Med", color: "text-yellow-400" },
-  low: { label: "Low", color: "text-slate-400" },
+  low: { label: "Low", color: "text-muted-foreground" },
 };
 
 interface InsightCardsProps {
@@ -134,10 +134,10 @@ export default function InsightCards({
             <Sparkles className="w-5 h-5 text-indigo-400" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-slate-100">
+            <h3 className="text-lg font-semibold text-foreground">
               Market Insights
             </h3>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-muted-foreground">
               AI-generated actionable takeaways
             </p>
           </div>
@@ -157,7 +157,7 @@ export default function InsightCards({
       {loading && (
         <div className="flex flex-col items-center justify-center py-12">
           <Loader2 className="w-8 h-8 text-indigo-400 animate-spin mb-3" />
-          <p className="text-slate-400 text-sm animate-pulse">
+          <p className="text-muted-foreground text-sm animate-pulse">
             Analyzing market data...
           </p>
         </div>
@@ -193,7 +193,7 @@ export default function InsightCards({
                         <Icon className={`w-4 h-4 ${config.color}`} />
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-slate-100 font-semibold text-sm leading-tight group-hover:text-white transition-colors">
+                        <h4 className="text-foreground font-semibold text-sm leading-tight group-hover:text-foreground transition-colors">
                           {card.title}
                         </h4>
                         <span className={`text-xs ${config.color} capitalize`}>
@@ -202,24 +202,24 @@ export default function InsightCards({
                       </div>
                     </div>
                     <div
-                      className={`text-xs px-2 py-1 rounded ${confidenceInfo.color} bg-slate-800/50 border border-slate-700`}
+                      className={`text-xs px-2 py-1 rounded ${confidenceInfo.color} bg-muted/50 border border-border`}
                     >
                       {confidenceInfo.label}
                     </div>
                   </div>
 
                   {/* Insight */}
-                  <p className="text-slate-300 text-sm leading-relaxed">
+                  <p className="text-foreground/80 text-sm leading-relaxed">
                     {card.insight}
                   </p>
 
                   {/* Data Points */}
                   {card.dataPoints.length > 0 && (
-                    <div className="space-y-1.5 pt-2 border-t border-slate-700/50">
+                    <div className="space-y-1.5 pt-2 border-t border-border">
                       {card.dataPoints.map((point, pointIdx) => (
                         <div
                           key={pointIdx}
-                          className="flex items-center gap-2 text-xs text-slate-400"
+                          className="flex items-center gap-2 text-xs text-muted-foreground"
                         >
                           <ChevronRight size={12} className={config.color} />
                           <span>{point}</span>
@@ -236,14 +236,14 @@ export default function InsightCards({
 
       {/* Empty State */}
       {!insights && !loading && !error && reportContext && (
-        <div className="text-center py-8 text-slate-400 text-sm">
+        <div className="text-center py-8 text-muted-foreground text-sm">
           Click "Generate Insights" to get AI-powered market analysis
         </div>
       )}
 
       {/* No Context State */}
       {!reportContext && (
-        <div className="text-center py-8 text-slate-400 text-sm">
+        <div className="text-center py-8 text-muted-foreground text-sm">
           Generate a Sentinel report first to unlock insights
         </div>
       )}

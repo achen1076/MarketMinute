@@ -1,6 +1,5 @@
 import React from "react";
 import { cn } from "@/lib/utils";
-import { COLORS } from "@/lib/colors";
 
 interface CardProps {
   title?: string;
@@ -17,13 +16,7 @@ const Card: React.FC<CardProps> = ({
 }) => {
   if (children) {
     return (
-      <div
-        className={cn("rounded-lg border", className)}
-        style={{
-          backgroundColor: COLORS.bg.elevated,
-          borderColor: COLORS.border.subtle,
-        }}
-      >
+      <div className={cn("rounded-lg border bg-card border-border", className)}>
         {children}
       </div>
     );
@@ -31,10 +24,13 @@ const Card: React.FC<CardProps> = ({
 
   return (
     <div
-      className={cn("bg-black/30 p-5 w-full rounded-lg text-center", className)}
+      className={cn(
+        "bg-card/80 p-5 w-full rounded-lg text-center border border-border",
+        className
+      )}
     >
-      <h3 className="text-slate-200 text-xl font-bold mb-2">{title}</h3>
-      <p className="text-xl font-bold text-white">{value}</p>
+      <h3 className="text-foreground/80 text-xl font-bold mb-2">{title}</h3>
+      <p className="text-xl font-bold text-foreground">{value}</p>
     </div>
   );
 };

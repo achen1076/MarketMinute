@@ -32,14 +32,14 @@ export default async function SupportPage() {
             </h1>
           </div>
 
-          <h2 className="text-4xl lg:text-5xl font-bold text-white leading-tight">
+          <h2 className="text-4xl lg:text-5xl font-bold text-foreground leading-tight">
             We're{" "}
             <span className="bg-linear-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
               here to help
             </span>
           </h2>
 
-          <p className="text-lg text-slate-400 max-w-xl">
+          <p className="text-lg text-muted-foreground max-w-xl">
             Need assistance or have feedback to share? We'd love to hear from
             you. Send us a message and we'll get back to you as soon as
             possible.
@@ -52,8 +52,8 @@ export default async function SupportPage() {
                 <Mail className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-semibold text-white text-sm">Email</h3>
-                <p className="text-xs text-slate-400">
+                <h3 className="font-semibold text-foreground text-sm">Email</h3>
+                <p className="text-xs text-muted-foreground">
                   marketminuteapp@gmail.com
                 </p>
               </div>
@@ -64,10 +64,10 @@ export default async function SupportPage() {
                 <MessageSquare className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-semibold text-white text-sm">
+                <h3 className="font-semibold text-foreground text-sm">
                   Response Time
                 </h3>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-muted-foreground">
                   Usually within 24 hours
                 </p>
               </div>
@@ -77,12 +77,12 @@ export default async function SupportPage() {
 
         {/* Right side - Support form */}
         <div className="w-full lg:w-auto lg:shrink-0">
-          <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl p-8 lg:p-10 w-full lg:w-[480px]">
+          <div className="bg-card backdrop-blur-xl border border-border rounded-2xl shadow-2xl p-8 lg:p-10 w-full lg:w-[480px]">
             <div className="text-center mb-8">
-              <h3 className="text-2xl font-bold text-white mb-2">
+              <h3 className="text-2xl font-bold text-foreground mb-2">
                 Get in Touch
               </h3>
-              <p className="text-slate-400">
+              <p className="text-muted-foreground">
                 Choose support or feedback and share your thoughts
               </p>
             </div>

@@ -109,52 +109,52 @@ export default function ProfessionalInsights({
     <div className="space-y-3">
       <div className="flex items-center gap-2 mb-4">
         <TrendingUp className="w-4 h-4 text-indigo-400" />
-        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
           Structured Insights
         </h3>
       </div>
 
       {structuredInsights.length === 0 ? (
-        <div className="text-center py-6 text-slate-500 text-xs">
+        <div className="text-center py-6 text-muted-foreground text-xs">
           No significant market signals detected
         </div>
       ) : (
         <div className="space-y-3">
           {structuredInsights.map((insight, idx) => (
-            <Card key={idx} className="bg-slate-800/50 border-slate-700">
+            <Card key={idx} className="bg-muted/30 border-border">
               <div className="p-3">
                 {/* Theme */}
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-sm font-semibold text-indigo-400">
                     {insight.theme}
                   </h4>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs text-muted-foreground">
                     {insight.probability}
                   </span>
                 </div>
 
                 {/* Observation */}
                 <div className="mb-2">
-                  <span className="text-xs text-slate-500 uppercase tracking-wide">
+                  <span className="text-xs text-muted-foreground uppercase tracking-wide">
                     Observation
                   </span>
-                  <p className="text-sm text-slate-200 mt-0.5">
+                  <p className="text-sm text-foreground mt-0.5">
                     {insight.observation}
                   </p>
                 </div>
 
                 {/* Evidence */}
                 <div className="mb-2">
-                  <span className="text-xs text-slate-500 uppercase tracking-wide">
+                  <span className="text-xs text-muted-foreground uppercase tracking-wide">
                     Evidence
                   </span>
                   <ul className="mt-0.5 space-y-0.5">
                     {insight.evidence.map((item, i) => (
                       <li
                         key={i}
-                        className="text-xs text-slate-300 flex items-start gap-1"
+                        className="text-xs text-foreground/80 flex items-start gap-1"
                       >
-                        <span className="text-slate-600">▪</span>
+                        <span className="text-muted-foreground">▪</span>
                         <span>{item}</span>
                       </li>
                     ))}
@@ -163,10 +163,10 @@ export default function ProfessionalInsights({
 
                 {/* Interpretation */}
                 <div className="mb-2">
-                  <span className="text-xs text-slate-500 uppercase tracking-wide">
+                  <span className="text-xs text-muted-foreground uppercase tracking-wide">
                     Interpretation
                   </span>
-                  <p className="text-xs text-slate-300 mt-0.5">
+                  <p className="text-xs text-foreground/80 mt-0.5">
                     {insight.interpretation}
                   </p>
                 </div>
@@ -179,7 +179,7 @@ export default function ProfessionalInsights({
                       Risk
                     </span>
                   </div>
-                  <p className="text-xs text-slate-300">{insight.risk}</p>
+                  <p className="text-xs text-foreground/80">{insight.risk}</p>
                 </div>
               </div>
             </Card>

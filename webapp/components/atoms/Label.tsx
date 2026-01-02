@@ -26,8 +26,8 @@ const Label: React.FC<LabelProps> = ({
   };
 
   const variantMap = {
-    default: "text-white",
-    secondary: "text-gray-500",
+    default: "text-foreground",
+    secondary: "text-muted-foreground",
   };
 
   return (

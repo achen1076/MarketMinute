@@ -139,7 +139,9 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
   if (isLoading) {
     return (
       <Card className="p-8 text-center">
-        <div className="text-slate-400">Loading model predictions...</div>
+        <div className="text-muted-foreground">
+          Loading model predictions...
+        </div>
       </Card>
     );
   }
@@ -148,7 +150,7 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
     return (
       <div className="space-y-6">
         <Card className="p-8">
-          <div className="flex items-center gap-3 text-slate-400">
+          <div className="flex items-center gap-3 text-muted-foreground">
             <div>
               <div className="font-semibold">No predictions available</div>
               <div className="text-md mt-3 space-y-2">
@@ -175,13 +177,13 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
       <div>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-100">
+            <h1 className="text-2xl font-bold text-foreground">
               Quant Lab Signals{" "}
               {watchlistName && (
-                <span className="text-slate-400">- {watchlistName}</span>
+                <span className="text-muted-foreground">- {watchlistName}</span>
               )}
             </h1>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Model-generated trading signals with Quant Scores, regime
               classification, and expected metrics
             </p>
@@ -194,8 +196,8 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
                 onClick={() => setViewMode("top")}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   viewMode === "top"
-                    ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                    : "bg-slate-800/50 text-slate-400 border border-slate-700 hover:bg-slate-800"
+                    ? "bg-primary/20 text-primary border border-primary/30"
+                    : "bg-muted/50 text-muted-foreground border border-border hover:bg-muted"
                 }`}
               >
                 Top Signals
@@ -204,8 +206,8 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
                 onClick={() => setViewMode("signals")}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   viewMode === "signals"
-                    ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                    : "bg-slate-800/50 text-slate-400 border border-slate-700 hover:bg-slate-800"
+                    ? "bg-primary/20 text-primary border border-primary/30"
+                    : "bg-muted/50 text-muted-foreground border border-border hover:bg-muted"
                 }`}
               >
                 All Signals
@@ -224,7 +226,7 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
               <h3 className="text-sm font-semibold text-blue-400 mb-1">
                 Free Tier: Limited Signals
               </h3>
-              <p className="text-xs text-slate-300">
+              <p className="text-xs text-foreground/80">
                 You&apos;re viewing up to <strong>3 top signals</strong> and{" "}
                 <strong>3 other signals </strong>from your watchlist. Upgrade to{" "}
                 <strong>Basic</strong> for unlimited signals.{" "}
@@ -249,13 +251,13 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
           {/* Search */}
           {userTier !== "free" && (
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Search ticker..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-3 py-2 w-40 bg-slate-800/50 border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-600"
+                className="pl-9 pr-3 py-2 w-40 bg-background border border-border rounded-lg text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-ring"
               />
             </div>
           )}
@@ -266,13 +268,13 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
           />
           {/* Sort */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500">Sort:</span>
+            <span className="text-xs text-muted-foreground">Sort:</span>
             <select
               value={sortBy}
               onChange={(e) =>
                 setSortBy(e.target.value as "default" | "score" | "name")
               }
-              className="px-3 py-2 rounded-lg text-sm bg-slate-800/50 text-slate-300 border border-slate-700 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/50"
+              className="px-3 py-2 rounded-lg text-sm bg-background text-foreground border border-border hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
             >
               <option value="default">Default</option>
               <option value="score">Quant Score</option>

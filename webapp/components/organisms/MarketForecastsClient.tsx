@@ -52,7 +52,7 @@ export function MarketForecastsClient({ symbols, watchlistName }: Props) {
   if (isLoading) {
     return (
       <Card className="p-8 text-center">
-        <div className="text-slate-400">Loading forecasts...</div>
+        <div className="text-muted-foreground">Loading forecasts...</div>
       </Card>
     );
   }
@@ -60,7 +60,7 @@ export function MarketForecastsClient({ symbols, watchlistName }: Props) {
   if (error || forecasts.length === 0) {
     return (
       <Card className="p-8">
-        <div className="flex items-center gap-3 text-slate-400">
+        <div className="flex items-center gap-3 text-muted-foreground">
           <div>
             <div className="font-semibold">No forecasts available</div>
             <div className="text-md mt-3 space-y-2">
@@ -79,13 +79,13 @@ export function MarketForecastsClient({ symbols, watchlistName }: Props) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-100">
+        <h1 className="text-2xl font-bold text-foreground">
           Market Forecasts{" "}
           {watchlistName && (
-            <span className="text-slate-400">- {watchlistName}</span>
+            <span className="text-muted-foreground">- {watchlistName}</span>
           )}
         </h1>
-        <p className="text-sm text-slate-400 mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           Distributional forecasts showing expected ranges, conviction levels,
           and probability distributions
         </p>
@@ -93,13 +93,13 @@ export function MarketForecastsClient({ symbols, watchlistName }: Props) {
 
       {/* Search */}
       <div className="relative w-fit">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <input
           type="text"
           placeholder="Search ticker..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9 pr-3 py-2 w-40 bg-slate-800/50 border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-slate-600"
+          className="pl-9 pr-3 py-2 w-40 bg-background border border-border rounded-lg text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-ring"
         />
       </div>
 

@@ -210,11 +210,11 @@ export function EventsTimeline({ symbols }: Props) {
   if (loading) {
     return (
       <Card className="p-4">
-        <h3 className="mb-3 text-sm font-semibold text-slate-200">
+        <h3 className="mb-3 text-sm font-semibold text-foreground">
           Upcoming Events
         </h3>
         <div className="flex items-center justify-center py-8">
-          <div className="text-sm text-slate-400">Loading events...</div>
+          <div className="text-sm text-muted-foreground">Loading events...</div>
         </div>
       </Card>
     );
@@ -223,11 +223,13 @@ export function EventsTimeline({ symbols }: Props) {
   if (error || !events) {
     return (
       <Card className="p-4">
-        <h3 className="mb-3 text-sm font-semibold text-slate-200">
+        <h3 className="mb-3 text-sm font-semibold text-foreground">
           Upcoming Events
         </h3>
         <div className="text-center py-8">
-          <p className="text-sm text-slate-400">{error || "No events found"}</p>
+          <p className="text-sm text-muted-foreground">
+            {error || "No events found"}
+          </p>
         </div>
       </Card>
     );
@@ -241,11 +243,11 @@ export function EventsTimeline({ symbols }: Props) {
   if (allEvents.length === 0) {
     return (
       <Card className="p-4">
-        <h3 className="mb-3 text-sm font-semibold text-slate-200">
+        <h3 className="mb-3 text-sm font-semibold text-foreground">
           Upcoming Events
         </h3>
         <div className="text-center py-8">
-          <p className="text-sm text-slate-400">No upcoming events</p>
+          <p className="text-sm text-muted-foreground">No upcoming events</p>
         </div>
       </Card>
     );
@@ -253,7 +255,7 @@ export function EventsTimeline({ symbols }: Props) {
 
   return (
     <Card className="p-4">
-      <h3 className="mb-3 text-sm font-semibold text-slate-200">
+      <h3 className="mb-3 text-sm font-semibold text-foreground">
         Upcoming Events
       </h3>
 
@@ -265,7 +267,7 @@ export function EventsTimeline({ symbols }: Props) {
           return (
             <div
               key={`${event.date}-${idx}`}
-              className="flex gap-3 rounded-lg p-3 transition-colors hover:bg-slate-900/80 bg-slate-900/60"
+              className="flex gap-3 rounded-lg p-3 transition-colors hover:bg-muted/80 bg-muted/60"
             >
               <div className={`shrink-0 ${color}`}>
                 <Icon size={18} />
@@ -274,17 +276,17 @@ export function EventsTimeline({ symbols }: Props) {
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <div className="font-medium text-slate-100 text-sm">
+                      <div className="font-medium text-foreground text-sm">
                         {event.title}
                       </div>
                     </div>
                     {event.description && (
-                      <div className="mt-1 text-xs text-slate-400">
+                      <div className="mt-1 text-xs text-muted-foreground">
                         {event.description}
                       </div>
                     )}
                   </div>
-                  <div className="shrink-0 text-xs text-slate-400">
+                  <div className="shrink-0 text-xs text-muted-foreground">
                     {formatDate(event.date)}
                   </div>
                 </div>

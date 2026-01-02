@@ -193,7 +193,7 @@ export function TickerChart({
       {/* Price and percent change header */}
       {(chartData.length > 0 || useTickerData) && (
         <div className="flex items-baseline gap-2">
-          <span className="text-lg font-semibold text-slate-100">
+          <span className="text-lg font-semibold text-foreground">
             ${displayPrice.toFixed(2)}
           </span>
           <span
@@ -216,8 +216,8 @@ export function TickerChart({
             onClick={() => setSelectedRange(range)}
             className={`px-3 py-1 text-xs rounded-md transition-colors ${
               selectedRange === range
-                ? "bg-slate-700 text-slate-100"
-                : "bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 hover:text-slate-200"
+                ? "bg-muted text-foreground"
+                : "bg-muted/50 text-muted-foreground hover:bg-muted/80 hover:text-foreground"
             }`}
           >
             {range}
@@ -228,7 +228,7 @@ export function TickerChart({
       {/* Chart area */}
       <div className="h-64 w-full">
         {loading ? (
-          <div className="flex items-center justify-center h-full text-slate-400 text-sm">
+          <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
             Loading chart...
           </div>
         ) : error ? (
@@ -236,7 +236,7 @@ export function TickerChart({
             {error}
           </div>
         ) : chartData.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-slate-400 text-sm">
+          <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
             No data available
           </div>
         ) : (
@@ -299,11 +299,11 @@ export function TickerChart({
                         : undefined,
                   });
                   return (
-                    <div className="bg-slate-800 border border-slate-600 rounded-lg px-3 py-2">
-                      <div className="text-slate-400 text-xs mb-1">
+                    <div className="bg-card border border-border rounded-lg px-3 py-2">
+                      <div className="text-muted-foreground text-xs mb-1">
                         {dateStr}
                       </div>
-                      <div className="text-slate-100 text-sm font-medium">
+                      <div className="text-foreground text-sm font-medium">
                         ${price.toFixed(2)}
                       </div>
                       <div

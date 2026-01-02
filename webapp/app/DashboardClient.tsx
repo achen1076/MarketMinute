@@ -64,7 +64,7 @@ export default function DashboardClient({
         <h1 className="text-2xl font-semibold tracking-tight">
           Your Market Minute
         </h1>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className="mt-1 text-sm text-foreground/50">
           Track your favorite stocks and stay updated on market movements.
         </p>
       </header>
@@ -72,7 +72,7 @@ export default function DashboardClient({
       {/* Active Watchlist Selector */}
       <Card className="p-4">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-slate-200">
+          <h2 className="text-sm font-semibold text-foreground/50">
             Your Watchlists
           </h2>
           <Link
@@ -83,14 +83,14 @@ export default function DashboardClient({
           </Link>
         </div>
         {watchlists.length === 0 ? (
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-foreground/50">
             No watchlists yet.{" "}
             <Link
               href="/watchlist"
               className="text-emerald-500 hover:underline hover:cursor-pointer"
             >
               Create one
-            </Link>{" "}
+            </Link>
             to get started.
           </p>
         ) : (
@@ -103,7 +103,7 @@ export default function DashboardClient({
                 className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:cursor-default ${
                   activeWatchlist?.id === w.id
                     ? "bg-emerald-600 text-white ring-2 ring-emerald-500/50"
-                    : "bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-50 hover:cursor-pointer"
+                    : "bg-background text-foreground/50 hover:bg-background/80 disabled:opacity-50 hover:cursor-pointer"
                 }`}
               >
                 <span className="flex items-center gap-2">

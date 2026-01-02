@@ -69,14 +69,14 @@ export default function SupportForm({ userEmail }: SupportFormProps) {
       )}
 
       {/* Category selector */}
-      <div className="flex gap-2 p-1 bg-slate-800/50 rounded-lg">
+      <div className="flex gap-2 p-1 bg-muted/50 rounded-lg">
         <button
           type="button"
           onClick={() => setCategory("support")}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
             category === "support"
               ? "bg-teal-500 text-white"
-              : "text-slate-400 hover:text-white"
+              : "text-muted-foreground hover:text-foreground"
           }`}
         >
           Support
@@ -87,7 +87,7 @@ export default function SupportForm({ userEmail }: SupportFormProps) {
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
             category === "feedback"
               ? "bg-teal-500 text-white"
-              : "text-slate-400 hover:text-white"
+              : "text-muted-foreground hover:text-foreground"
           }`}
         >
           Feedback
@@ -96,20 +96,20 @@ export default function SupportForm({ userEmail }: SupportFormProps) {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">
+          <label className="block text-sm font-medium text-muted-foreground mb-2">
             Email
           </label>
-          <div className="w-full px-4 py-3 bg-slate-800/30 border border-slate-700/50 rounded-lg text-slate-400">
+          <div className="w-full px-4 py-3 bg-muted/30 border border-border rounded-lg text-muted-foreground">
             {userEmail}
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">
+          <label className="block text-sm font-medium text-muted-foreground mb-2">
             Subject
           </label>
           <div className="relative">
-            <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+            <MessageSquare className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <input
               type="text"
               required
@@ -120,13 +120,13 @@ export default function SupportForm({ userEmail }: SupportFormProps) {
                   ? "How can we help?"
                   : "Share your thoughts"
               }
-              className="w-full pl-11 pr-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none transition"
+              className="w-full pl-11 pr-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">
+          <label className="block text-sm font-medium text-muted-foreground mb-2">
             Message
           </label>
           <textarea
@@ -139,7 +139,7 @@ export default function SupportForm({ userEmail }: SupportFormProps) {
                 : "Share your ideas, suggestions, or feedback..."
             }
             rows={6}
-            className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 outline-none transition resize-none"
+            className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition resize-none"
           />
         </div>
 

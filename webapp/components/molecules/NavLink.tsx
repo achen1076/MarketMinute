@@ -40,7 +40,7 @@ const NavLink = ({
 
   const commonClasses = cn(
     "px-2 py-1 font-semibold transition-all duration-300 ease-in-out inline-block",
-    isActive ? "text-teal-500" : "text-gray-300 hover:text-cyan-400",
+    isActive ? "text-teal-500" : "text-foreground/50 hover:text-cyan-400",
     className
   );
 

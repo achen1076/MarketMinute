@@ -46,11 +46,11 @@ export default function SentimentAlertsTester({
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-      <h2 className="text-xl font-semibold text-slate-100 mb-2">
+    <div className="bg-card border border-border rounded-xl p-6">
+      <h2 className="text-xl font-semibold text-foreground mb-2">
         Sentiment Alerts
       </h2>
-      <p className="text-slate-400 text-sm mb-4">
+      <p className="text-muted-foreground text-sm mb-4">
         Test sentiment shift detection for all watchlist symbols. Creates alerts
         when significant sentiment changes are detected.
       </p>
@@ -62,9 +62,9 @@ export default function SentimentAlertsTester({
       {error && <p className="mt-3 text-sm text-rose-400">✗ {error}</p>}
 
       {result && (
-        <div className="mt-4 p-3 bg-slate-800/50 rounded-lg text-sm">
+        <div className="mt-4 p-3 bg-muted/50 rounded-lg text-sm">
           <p className="text-emerald-400 mb-2">✓ Processing complete</p>
-          <div className="space-y-1 text-slate-300">
+          <div className="space-y-1 text-foreground/80">
             <p>Symbols analyzed: {result.symbolsAnalyzed || 0}</p>
             <p>Alerts created: {result.alertsCreated || 0}</p>
           </div>

@@ -69,7 +69,7 @@ function SortableItem({ item, onRemove, disabled }: SortableItemProps) {
     <span
       ref={setNodeRef}
       style={style}
-      className={`group flex items-center gap-1.5 rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-100 pr-2 ${
+      className={`group flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs text-foreground pr-2 ${
         isDragging ? "z-50 shadow-lg" : ""
       }`}
     >
@@ -79,7 +79,7 @@ function SortableItem({ item, onRemove, disabled }: SortableItemProps) {
         className="cursor-grab active:cursor-grabbing touch-none"
         disabled={disabled}
       >
-        <GripVertical className="h-3 w-3 text-slate-500" />
+        <GripVertical className="h-3 w-3 text-muted-foreground" />
       </button>
       {item.symbol}
       <button
@@ -508,16 +508,16 @@ export default function WatchlistsClient({
       <header className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Watchlists</h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-sm text-muted-foreground">
             Saved for{" "}
-            <span className="font-medium text-slate-200">{userName}</span>.
+            <span className="font-medium text-foreground">{userName}</span>.
           </p>
         </div>
       </header>
 
       {/* Create watchlist form */}
       <Card className="p-4">
-        <h2 className="mb-4 text-sm font-semibold text-slate-200">
+        <h2 className="mb-4 text-sm font-semibold text-foreground">
           Create a new watchlist
         </h2>
 
@@ -532,11 +532,11 @@ export default function WatchlistsClient({
 
         <div className="space-y-4">
           <div>
-            <label className="mb-2 block text-xs font-medium text-slate-300">
+            <label className="mb-2 block text-xs font-medium text-muted-foreground">
               Watchlist Name
             </label>
             <input
-              className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none transition-colors focus:border-emerald-500"
+              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-primary"
               placeholder="e.g. Tech Stocks, Growth Portfolio, Dividend Picks"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -545,7 +545,7 @@ export default function WatchlistsClient({
           </div>
 
           <div>
-            <label className="mb-2 block text-xs font-medium text-slate-300">
+            <label className="mb-2 block text-xs font-medium text-muted-foreground">
               Add Stocks
             </label>
             <TickerSearch
@@ -554,7 +554,7 @@ export default function WatchlistsClient({
               disabled={loading}
               maxSymbols={maxSymbols}
             />
-            <p className="mt-2 text-xs text-slate-500">
+            <p className="mt-2 text-xs text-muted-foreground">
               💡 Tip: Smaller watchlists (10-20 stocks) produce more accurate
               and focused summaries.
             </p>
@@ -573,7 +573,7 @@ export default function WatchlistsClient({
 
       {/* Existing watchlists */}
       {watchlists.length === 0 ? (
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-muted-foreground">
           No watchlists yet. Create your first one above.
         </p>
       ) : (
@@ -599,11 +599,11 @@ export default function WatchlistsClient({
                         className={`h-5 w-5 transition-colors ${
                           w.isFavorite
                             ? "fill-amber-400 text-amber-400"
-                            : "text-slate-600 group-hover:text-amber-400"
+                            : "text-muted-foreground group-hover:text-amber-400"
                         }`}
                       />
                     </button>
-                    <h3 className="text-base font-semibold text-slate-100">
+                    <h3 className="text-base font-semibold text-foreground">
                       {w.name}
                     </h3>
                   </div>
@@ -632,11 +632,11 @@ export default function WatchlistsClient({
                 </div>
 
                 {/* Symbols */}
-                <div className="mb-1 text-xs text-slate-500">
+                <div className="mb-1 text-xs text-muted-foreground">
                   {w.items.length} symbol{w.items.length === 1 ? "" : "s"}
                 </div>
                 {w.items.length === 0 ? (
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-muted-foreground">
                     {isEditing ? "Add symbols below" : "No symbols yet."}
                   </p>
                 ) : isEditing ? (
@@ -666,13 +666,13 @@ export default function WatchlistsClient({
                     {w.items.slice(0, 25).map((item) => (
                       <span
                         key={item.id}
-                        className="group flex items-center gap-1.5 rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-100"
+                        className="group flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs text-foreground"
                       >
                         {item.symbol}
                       </span>
                     ))}
                     {w.items.length > 25 && (
-                      <span className="flex items-center gap-1.5 rounded-full bg-slate-700/50 px-3 py-1 text-xs text-slate-400">
+                      <span className="flex items-center gap-1.5 rounded-full bg-muted/50 px-3 py-1 text-xs text-muted-foreground">
                         +{w.items.length - 25} more
                       </span>
                     )}
@@ -681,9 +681,9 @@ export default function WatchlistsClient({
 
                 {/* Edit Mode */}
                 {isEditing && (
-                  <div className="mt-4 space-y-3 border-t border-slate-700 pt-4">
+                  <div className="mt-4 space-y-3 border-t border-border pt-4">
                     <div>
-                      <label className="mb-2 block text-xs font-medium text-slate-300">
+                      <label className="mb-2 block text-xs font-medium text-muted-foreground">
                         Watchlist Name
                       </label>
                       <input
@@ -691,13 +691,13 @@ export default function WatchlistsClient({
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
                         disabled={loading}
-                        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none transition-colors focus:border-emerald-500 disabled:opacity-50"
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-primary disabled:opacity-50"
                         placeholder="Watchlist name"
                       />
                     </div>
 
                     <div>
-                      <label className="mb-2 block text-xs font-medium text-slate-300">
+                      <label className="mb-2 block text-xs font-medium text-muted-foreground">
                         Add Stocks
                       </label>
                       <TickerSearch
@@ -741,7 +741,7 @@ export default function WatchlistsClient({
                           });
                         }}
                         disabled={loading}
-                        className="rounded-lg border border-slate-700 px-3 py-1.5 text-xs text-slate-400 transition-colors hover:bg-slate-800 disabled:opacity-50 hover:cursor-pointer"
+                        className="rounded-lg border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50 hover:cursor-pointer"
                       >
                         Cancel
                       </button>

@@ -33,13 +33,13 @@ export default function LambdaCronRunner() {
   }
 
   return (
-    <div className="p-6 space-y-4 bg-slate-800/50 rounded-lg border border-slate-700">
+    <div className="p-6 space-y-4 bg-card rounded-lg border border-border">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-100">
+          <h2 className="text-2xl font-bold text-foreground">
             Lambda Cron Job (Manual Trigger)
           </h2>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Test the daily analysis workflow (predictions + Sentinel)
           </p>
         </div>
@@ -67,34 +67,40 @@ export default function LambdaCronRunner() {
                 Cron Job Completed Successfully
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                <div className="p-3 bg-slate-900/50 rounded border border-slate-700">
-                  <div className="text-slate-400">Predictions</div>
-                  <div className="text-2xl font-bold text-slate-100">
+                <div className="p-3 bg-muted/50 rounded border border-border">
+                  <div className="text-muted-foreground">Predictions</div>
+                  <div className="text-2xl font-bold text-foreground">
                     {result.predictions_count}
                   </div>
-                  <div className="text-xs text-slate-500">tickers analyzed</div>
+                  <div className="text-xs text-muted-foreground">
+                    tickers analyzed
+                  </div>
                 </div>
-                <div className="p-3 bg-slate-900/50 rounded border border-slate-700">
-                  <div className="text-slate-400">Sentinel</div>
-                  <div className="text-lg font-semibold text-slate-100">
+                <div className="p-3 bg-muted/50 rounded border border-border">
+                  <div className="text-muted-foreground">Sentinel</div>
+                  <div className="text-lg font-semibold text-foreground">
                     {result.sentinel_status === "success" ? (
                       <span className="text-green-400">✓ Generated</span>
                     ) : result.sentinel_status === "skipped" ? (
                       <span className="text-yellow-400">Skipped</span>
                     ) : (
-                      <span className="text-slate-400">Unknown</span>
+                      <span className="text-muted-foreground">Unknown</span>
                     )}
                   </div>
-                  <div className="text-xs text-slate-500">market report</div>
+                  <div className="text-xs text-muted-foreground">
+                    market report
+                  </div>
                 </div>
-                <div className="p-3 bg-slate-900/50 rounded border border-slate-700">
-                  <div className="text-slate-400">Timestamp</div>
-                  <div className="text-sm font-mono text-slate-100">
+                <div className="p-3 bg-muted/50 rounded border border-border">
+                  <div className="text-muted-foreground">Timestamp</div>
+                  <div className="text-sm font-mono text-foreground">
                     {result.timestamp
                       ? new Date(result.timestamp).toLocaleTimeString()
                       : "N/A"}
                   </div>
-                  <div className="text-xs text-slate-500">completion time</div>
+                  <div className="text-xs text-muted-foreground">
+                    completion time
+                  </div>
                 </div>
               </div>
             </div>
@@ -121,9 +127,9 @@ export default function LambdaCronRunner() {
       )}
 
       {/* Info */}
-      <div className="p-3 bg-slate-900/30 rounded border border-slate-700/50">
-        <p className="text-xs text-slate-400">
-          <span className="font-semibold text-slate-300">
+      <div className="p-3 bg-muted/30 rounded border border-border">
+        <p className="text-xs text-muted-foreground">
+          <span className="font-semibold text-foreground">
             Automated Schedule:
           </span>{" "}
           This workflow runs automatically every weekday at 4:05 PM EST via

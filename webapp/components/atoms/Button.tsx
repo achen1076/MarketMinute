@@ -18,13 +18,13 @@ const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const globalStyle =
-    "inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 border-2 border-gray-300 hover:cursor-pointer";
+    "inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 border-2 border-border hover:cursor-pointer";
 
   const variantMap = {
     primary:
-      "bg-white text-black hover:bg-green-400 hover:text-white focus:ring-black min-w-[120px]",
+      "bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-primary min-w-[120px]",
     secondary:
-      "bg-gray-100 text-black hover:bg-slate-800 hover:text-white focus:ring-black min-w-[120px]",
+      "bg-muted text-foreground hover:bg-muted/80 focus:ring-muted min-w-[120px]",
   };
 
   const sizeMap = {

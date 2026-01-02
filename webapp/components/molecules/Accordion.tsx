@@ -26,16 +26,16 @@ export function Accordion({
     <Card className={`overflow-hidden ${className}`}>
       {/* Header - Clickable to expand/collapse */}
       <div
-        className="p-4 cursor-pointer hover:bg-slate-900/30 transition-colors"
+        className="p-4 cursor-pointer hover:bg-muted/30 transition-colors"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1">{header}</div>
           <div className="shrink-0 mt-0.5">
             {isExpanded ? (
-              <ChevronUp size={18} className="text-slate-400" />
+              <ChevronUp size={18} className="text-muted-foreground" />
             ) : (
-              <ChevronDown size={18} className="text-slate-400" />
+              <ChevronDown size={18} className="text-muted-foreground" />
             )}
           </div>
         </div>
@@ -43,9 +43,7 @@ export function Accordion({
 
       {/* Expanded Content */}
       {isExpanded && (
-        <div className="border-t border-slate-800 bg-slate-900/50">
-          {children}
-        </div>
+        <div className="border-t border-border bg-muted/30">{children}</div>
       )}
     </Card>
   );

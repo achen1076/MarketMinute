@@ -59,11 +59,11 @@ export default function NewsProcessor() {
   };
 
   return (
-    <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-      <h2 className="text-2xl font-bold text-slate-100 mb-4">
+    <div className="bg-card rounded-lg p-6 border border-border">
+      <h2 className="text-2xl font-bold text-foreground mb-4">
         News Processor Test
       </h2>
-      <p className="text-slate-400 mb-6">
+      <p className="text-muted-foreground mb-6">
         Test sentiment and relevance models by processing a news headline
       </p>
 
@@ -72,7 +72,7 @@ export default function NewsProcessor() {
         <div>
           <label
             htmlFor="ticker"
-            className="block text-sm font-medium text-slate-300 mb-2"
+            className="block text-sm font-medium text-muted-foreground mb-2"
           >
             Ticker Symbol
           </label>
@@ -82,7 +82,7 @@ export default function NewsProcessor() {
             value={ticker}
             onChange={(e) => setTicker(e.target.value.toUpperCase())}
             placeholder="AAPL"
-            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             disabled={loading}
           />
         </div>
@@ -91,7 +91,7 @@ export default function NewsProcessor() {
         <div>
           <label
             htmlFor="headline"
-            className="block text-sm font-medium text-slate-300 mb-2"
+            className="block text-sm font-medium text-muted-foreground mb-2"
           >
             News Headline
           </label>
@@ -101,7 +101,7 @@ export default function NewsProcessor() {
             onChange={(e) => setHeadline(e.target.value)}
             placeholder="Enter a news headline..."
             rows={3}
-            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            className="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
             disabled={loading}
           />
         </div>
@@ -118,7 +118,7 @@ export default function NewsProcessor() {
           <button
             onClick={handleClear}
             disabled={loading}
-            className="px-6 py-3 bg-slate-700 text-slate-300 rounded-lg font-medium hover:bg-slate-600 disabled:bg-slate-600 disabled:cursor-not-allowed transition-colors"
+            className="px-6 py-3 bg-muted text-muted-foreground rounded-lg font-medium hover:bg-muted/80 disabled:bg-muted/50 disabled:cursor-not-allowed transition-colors"
           >
             Clear
           </button>
@@ -133,23 +133,25 @@ export default function NewsProcessor() {
 
         {/* Result Display */}
         {result && (
-          <div className="mt-6 p-6 bg-slate-700 rounded-lg border border-slate-600 space-y-4">
+          <div className="mt-6 p-6 bg-muted rounded-lg border border-border space-y-4">
             <div>
-              <h3 className="text-lg font-semibold text-slate-100 mb-3">
+              <h3 className="text-lg font-semibold text-foreground mb-3">
                 Processing Results
               </h3>
-              <p className="text-xs text-slate-400 mb-4">ID: {result.id}</p>
+              <p className="text-xs text-muted-foreground mb-4">
+                ID: {result.id}
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Sentiment Results */}
-              <div className="p-4 bg-slate-800 rounded-lg">
-                <h4 className="text-sm font-medium text-slate-400 mb-2">
+              <div className="p-4 bg-card rounded-lg">
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">
                   Sentiment Analysis
                 </h4>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-300">Score:</span>
+                    <span className="text-foreground/80">Score:</span>
                     <span
                       className={`font-bold ${
                         result.sentiment > 0.3
@@ -163,7 +165,7 @@ export default function NewsProcessor() {
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-300">Category:</span>
+                    <span className="text-foreground/80">Category:</span>
                     <span className="text-blue-400 font-medium">
                       {result.sentimentCategory}
                     </span>
@@ -172,27 +174,27 @@ export default function NewsProcessor() {
               </div>
 
               {/* Relevance Results */}
-              <div className="p-4 bg-slate-800 rounded-lg">
-                <h4 className="text-sm font-medium text-slate-400 mb-2">
+              <div className="p-4 bg-card rounded-lg">
+                <h4 className="text-sm font-medium text-muted-foreground mb-2">
                   Relevance Analysis
                 </h4>
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-300">Score:</span>
+                    <span className="text-foreground/80">Score:</span>
                     <span
                       className={`font-bold ${
                         result.relevance > 0.7
                           ? "text-green-400"
                           : result.relevance > 0.4
                           ? "text-yellow-400"
-                          : "text-slate-400"
+                          : "text-muted-foreground"
                       }`}
                     >
                       {result.relevance.toFixed(3)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-300">Category:</span>
+                    <span className="text-foreground/80">Category:</span>
                     <span className="text-purple-400 font-medium">
                       {result.relevanceCategory}
                     </span>
@@ -202,21 +204,27 @@ export default function NewsProcessor() {
             </div>
 
             {/* Headline and Ticker Display */}
-            <div className="pt-4 border-t border-slate-600">
+            <div className="pt-4 border-t border-border">
               <div className="space-y-2">
                 <div>
-                  <span className="text-sm text-slate-400">Ticker: </span>
-                  <span className="text-slate-100 font-medium">
+                  <span className="text-sm text-muted-foreground">
+                    Ticker:{" "}
+                  </span>
+                  <span className="text-foreground font-medium">
                     {result.ticker}
                   </span>
                 </div>
                 <div>
-                  <span className="text-sm text-slate-400">Headline: </span>
-                  <span className="text-slate-100">{result.headline}</span>
+                  <span className="text-sm text-muted-foreground">
+                    Headline:{" "}
+                  </span>
+                  <span className="text-foreground">{result.headline}</span>
                 </div>
                 <div>
-                  <span className="text-sm text-slate-400">Processed: </span>
-                  <span className="text-slate-300 text-sm">
+                  <span className="text-sm text-muted-foreground">
+                    Processed:{" "}
+                  </span>
+                  <span className="text-foreground/80 text-sm">
                     {new Date(result.createdAt).toLocaleString()}
                   </span>
                 </div>
@@ -227,11 +235,11 @@ export default function NewsProcessor() {
       </div>
 
       {/* API Info */}
-      <div className="mt-6 p-4 bg-slate-900/50 rounded-lg border border-slate-700">
-        <h3 className="text-sm font-semibold text-slate-300 mb-2">
+      <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-border">
+        <h3 className="text-sm font-semibold text-foreground mb-2">
           Endpoint Parameters
         </h3>
-        <div className="space-y-2 text-xs text-slate-400 font-mono">
+        <div className="space-y-2 text-xs text-muted-foreground font-mono">
           <div>
             <span className="text-blue-400">Sentiment:</span> POST /score{" "}
             {`{"text": "string"}`}

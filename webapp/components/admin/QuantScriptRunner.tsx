@@ -289,7 +289,7 @@ export default function QuantScriptRunner() {
       case "error":
         return <XCircle size={18} className="text-rose-400" />;
       default:
-        return <AlertCircle size={18} className="text-slate-500" />;
+        return <AlertCircle size={18} className="text-muted-foreground" />;
     }
   };
 
@@ -302,7 +302,7 @@ export default function QuantScriptRunner() {
       case "error":
         return "border-rose-500/30 bg-rose-500/5";
       default:
-        return "border-slate-700";
+        return "border-border";
     }
   };
 
@@ -310,10 +310,10 @@ export default function QuantScriptRunner() {
     <Card className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">
+          <h2 className="text-xl font-bold text-foreground">
             ML Pipeline Runner
           </h2>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Complete pipeline: Setup → Data Prep → Training → Predictions →
             Forecasts
           </p>
@@ -340,10 +340,10 @@ export default function QuantScriptRunner() {
               <div className="flex items-start gap-3 flex-1">
                 {getStatusIcon(statuses[script.id])}
                 <div>
-                  <h3 className="font-semibold text-slate-200">
+                  <h3 className="font-semibold text-foreground">
                     {script.name}
                   </h3>
-                  <p className="text-sm text-slate-400 mt-1">
+                  <p className="text-sm text-muted-foreground mt-1">
                     {script.description}
                   </p>
                 </div>
@@ -351,7 +351,7 @@ export default function QuantScriptRunner() {
               <button
                 onClick={() => runScript(script.id)}
                 disabled={activeScript !== null}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 disabled:bg-slate-800/50 disabled:text-slate-600 transition-colors text-sm"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-muted hover:bg-muted/80 disabled:bg-muted/50 disabled:text-muted-foreground transition-colors text-sm"
               >
                 <Play size={14} />
                 Run
@@ -361,11 +361,11 @@ export default function QuantScriptRunner() {
             {/* Progress Bar */}
             {statuses[script.id] === "running" && (
               <div className="mb-3">
-                <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
                   <span>Running...</span>
                   <span>{progress[script.id]}%</span>
                 </div>
-                <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full bg-linear-to-r from-teal-500 to-emerald-500 transition-all duration-300 ease-out"
                     style={{ width: `${progress[script.id]}%` }}
@@ -379,7 +379,7 @@ export default function QuantScriptRunner() {
                 ref={(el) => {
                   outputRefs.current[script.id] = el;
                 }}
-                className="mt-3 p-3 rounded-md bg-slate-950 border border-slate-800 max-h-64 overflow-y-auto font-mono text-xs text-slate-300"
+                className="mt-3 p-3 rounded-md bg-background border border-border max-h-64 overflow-y-auto font-mono text-xs text-foreground/80"
               >
                 <pre className="whitespace-pre-wrap">{outputs[script.id]}</pre>
               </div>
