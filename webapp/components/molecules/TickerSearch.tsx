@@ -174,7 +174,7 @@ export default function TickerSearch({
           onKeyDown={handleKeyDown}
           placeholder="Search for stocks (e.g. AAPL, Tesla, Microsoft)..."
           disabled={disabled}
-          className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-primary disabled:opacity-50"
+          className="w-full rounded-lg border border-border bg-background/50 px-3 py-2.5 text-sm text-foreground outline-none transition-colors focus:border-primary disabled:opacity-50"
         />
 
         {/* Dropdown */}

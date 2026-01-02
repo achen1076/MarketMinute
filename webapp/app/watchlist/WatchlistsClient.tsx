@@ -536,7 +536,7 @@ export default function WatchlistsClient({
               Watchlist Name
             </label>
             <input
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-primary"
+              className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-primary"
               placeholder="e.g. Tech Stocks, Growth Portfolio, Dividend Picks"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -691,7 +691,7 @@ export default function WatchlistsClient({
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
                         disabled={loading}
-                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-primary disabled:opacity-50"
+                        className="w-full rounded-lg border border-border bg-background/50 px-3 py-2 text-sm text-foreground outline-none transition-colors focus:border-primary disabled:opacity-50"
                         placeholder="Watchlist name"
                       />
                     </div>
@@ -743,7 +743,7 @@ export default function WatchlistsClient({
                         disabled={loading}
                         className="rounded-lg border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50 hover:cursor-pointer"
                       >
-                        Cancel
+                        Close
                       </button>
                       <Button
                         onClick={() => handleSaveAllChanges(w.id)}

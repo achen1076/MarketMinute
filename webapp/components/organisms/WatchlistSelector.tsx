@@ -96,7 +96,7 @@ export default function WatchlistSelector({
               className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:cursor-default ${
                 activeWatchlist?.id === w.id
                   ? "bg-primary text-primary-foreground ring-2 ring-primary/50"
-                  : "bg-muted text-foreground hover:bg-muted/80 disabled:opacity-50 hover:cursor-pointer"
+                  : "bg-muted text-foreground hover:bg-muted/50 disabled:opacity-50 hover:cursor-pointer"
               }`}
             >
               <span className="flex items-center gap-2">

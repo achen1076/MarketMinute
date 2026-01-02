@@ -431,7 +431,7 @@ export function TickerListClient({
               placeholder="Search symbols..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-ring"
+              className="w-full pl-9 pr-3 py-2 bg-background/50 border border-border rounded-lg text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-ring"
             />
           </div>
 
@@ -439,7 +439,7 @@ export function TickerListClient({
           <select
             value={sortMode}
             onChange={(e) => setSortMode(e.target.value as any)}
-            className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-ring"
+            className="w-full px-3 py-2 bg-background/50 border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-ring"
           >
             <option value="a-z">A-Z</option>
             <option value="highest-gain">Highest Gain</option>
