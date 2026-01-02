@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { shouldSummarize, summarizeArticle } from "@/lib/articleSummarizer";
 
 /**
  * Batch news processing endpoint for Lambda
@@ -58,6 +59,7 @@ export async function POST(req: NextRequest) {
 
         for (const item of newsData.slice(0, 20)) {
           const headline = item.title;
+          const articleUrl = item.url;
           if (!headline) continue;
 
           const [sentResp, relResp] = await Promise.all([
@@ -84,6 +86,18 @@ export async function POST(req: NextRequest) {
             category: string;
           };
 
+          // Generate AI summary for highly relevant articles with strong sentiment
+          let summary: string | null = null;
+          if (
+            articleUrl &&
+            shouldSummarize(relevanceData.score, sentimentData.score)
+          ) {
+            console.log(
+              `  🤖 Summarizing highly relevant article for ${ticker}...`
+            );
+            summary = await summarizeArticle(articleUrl, headline, ticker);
+          }
+
           // Save to database
           await prisma.newsItem.create({
             data: {
@@ -92,6 +106,8 @@ export async function POST(req: NextRequest) {
               sentiment: sentimentData.score,
               relevance: relevanceData.score,
               category: relevanceData.category,
+              summary,
+              url: articleUrl,
             },
           });
 
