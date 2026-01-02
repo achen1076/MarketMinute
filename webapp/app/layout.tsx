@@ -75,7 +75,7 @@ export const metadata: Metadata = {
       "Get AI-powered market explanations, quant predictions and forecasts, and daily summaries tailored to your watchlist.",
     images: [
       {
-        url: "https://marketminute.io/og.png",
+        url: "https://marketminute.io/og-image.png",
         width: 1200,
         height: 630,
         alt: "MarketMinute – AI-Powered Market Insights",
@@ -87,7 +87,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "MarketMinute – AI-Powered Market Insights",
     description: "Understand every stock move with AI-powered insights",
-    images: ["https://marketminute.io/og.png"],
+    images: ["https://marketminute.io/og-image.png"],
   },
 
   robots: {

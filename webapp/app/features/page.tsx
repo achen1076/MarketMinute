@@ -41,7 +41,7 @@ export default function FeaturesPage() {
           style={{ color: COLORS.text.main }}
         >
           Powerful Features for{" "}
-          <span className="bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
+          <span className="bg-lineaar-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
             Smart Investors
           </span>
         </h1>

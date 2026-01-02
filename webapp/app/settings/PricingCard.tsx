@@ -52,7 +52,7 @@ export default function PricingCard({
           <li key={idx} className="flex items-start gap-3">
             {feature.included ? (
               <svg
-                className="w-5 h-5 text-teal-500 mt-0.5 flex-shrink-0"
+                className="w-5 h-5 text-teal-500 mt-0.5 shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -66,7 +66,7 @@ export default function PricingCard({
               </svg>
             ) : (
               <svg
-                className="w-5 h-5 text-slate-600 mt-0.5 flex-shrink-0"
+                className="w-5 h-5 text-slate-600 mt-0.5 shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"

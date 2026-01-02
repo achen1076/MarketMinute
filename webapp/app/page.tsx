@@ -36,7 +36,7 @@ function LandingPage() {
 
           <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
             Your Markets,{" "}
-            <span className="bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
               Simplified
             </span>
           </h1>
@@ -50,7 +50,7 @@ function LandingPage() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/signin"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white font-semibold rounded-xl transition-all shadow-lg shadow-teal-500/25"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-linear-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-white font-semibold rounded-xl transition-all shadow-lg shadow-teal-500/25"
             >
               Get Started
               <ArrowRight className="w-5 h-5" />
