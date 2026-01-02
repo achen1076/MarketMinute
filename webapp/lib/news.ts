@@ -1,4 +1,5 @@
 import "server-only";
+import { prisma } from "@/lib/prisma";
 
 export type NewsItem = {
   symbol: string;
@@ -144,14 +145,46 @@ export async function analyzeNewsImpact(
 }
 
 /**
- * Fetch and analyze news for a symbol.
- * This is a convenience method that combines fetching and analysis.
+ * Get news from database first (with AI summaries), fallback to FMP API.
  */
 export async function getAnalyzedNewsForSymbol(
   symbol: string,
   changePct?: number,
   maxItems = 5
 ): Promise<NewsItem[]> {
+  try {
+    const since = new Date();
+    since.setDate(since.getDate() - 1);
+
+    const dbNews = await prisma.newsItem.findMany({
+      where: {
+        ticker: symbol.toUpperCase(),
+        createdAt: { gte: since },
+      },
+      orderBy: [{ relevance: "desc" }, { createdAt: "desc" }],
+      take: maxItems,
+    });
+
+    if (dbNews.length > 0) {
+      return dbNews.map((item) => ({
+        symbol: item.ticker,
+        title: item.headline,
+        summary: item.summary || "",
+        source: "Database",
+        publishedAt: item.createdAt.toISOString(),
+        relevanceScore: item.relevance,
+        sentiment:
+          item.sentiment > 0.25
+            ? "positive"
+            : item.sentiment < -0.25
+            ? "negative"
+            : "neutral",
+      }));
+    }
+  } catch (error) {
+    console.warn("[News] Database fetch failed, falling back to FMP:", error);
+  }
+
   const news = await getNewsForSymbol(symbol, maxItems);
   return analyzeNewsImpact(news, symbol, changePct);
 }
