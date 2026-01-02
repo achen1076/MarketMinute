@@ -267,9 +267,7 @@ export function TickerChart({
                 style={{ fontSize: "11px" }}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(value) =>
-                  `$${value > 100 ? value.toFixed(0) : value.toFixed(2)}`
-                }
+                tickFormatter={(value) => `${value.toFixed(2)}`}
                 width={45}
               />
               <Tooltip

@@ -1,18 +1,18 @@
 import "server-only";
 import { redis } from "@/lib/redis";
-import { getTickerCacheTTL, isTradingActive } from "@/lib/marketHours";
+import { getExplainCacheTTL, isMainTradingWindow } from "@/lib/marketHours";
 
 export type ExplanationCacheEntry = {
   explanation: string;
   timestamp: number;
 };
 
-const DEFAULT_CACHE_DURATION_MS = 30 * 60 * 1000; // 30 minutes during trading
-const DEFAULT_CACHE_DURATION_SECONDS = 30 * 60; // 30 minutes during trading
+const DEFAULT_CACHE_DURATION_MS = 30 * 60 * 1000;
+const DEFAULT_CACHE_DURATION_SECONDS = 30 * 60;
 
-function getDynamicCacheDuration(): { ms: number; seconds: number } {
-  const ttlSeconds = getTickerCacheTTL(DEFAULT_CACHE_DURATION_SECONDS);
-  return { ms: ttlSeconds * 1000, seconds: ttlSeconds };
+function getCacheDuration(): { ms: number; seconds: number } {
+  const seconds = getExplainCacheTTL();
+  return { ms: seconds * 1000, seconds };
 }
 
 // In-memory fallback for when Redis is unavailable
@@ -67,11 +67,11 @@ export async function setExplanationInCache(
 
   if (redis) {
     try {
-      // Use dynamic TTL based on market hours
-      // During trading: 2 hours for stale-while-revalidate
-      // Outside trading: cache until next premarket (with 5 min cushion)
-      const { seconds: baseTTL } = getDynamicCacheDuration();
-      const redisTTL = isTradingActive()
+      // Use dynamic TTL based on trading window
+      // During main trading window (9:30 AM - 8 PM): 2 hours for stale-while-revalidate
+      // Outside: cache until next market open
+      const { seconds: baseTTL } = getCacheDuration();
+      const redisTTL = isMainTradingWindow()
         ? DEFAULT_CACHE_DURATION_SECONDS * 4
         : baseTTL;
       await redis.setex(cacheKey, redisTTL, entry);
@@ -93,12 +93,12 @@ export async function setExplanationInCache(
 
 /**
  * Check if cached explanation is stale
- * During trading: stale after 30 minutes
- * Outside trading: never stale (handled in route via isTradingActive check)
+ * Uses dynamic TTL based on trading window
  */
 export function isCacheStale(entry: ExplanationCacheEntry): boolean {
   const now = Date.now();
-  return now - entry.timestamp >= DEFAULT_CACHE_DURATION_MS;
+  const { ms: cacheDurationMs } = getCacheDuration();
+  return now - entry.timestamp >= cacheDurationMs;
 }
 
 /**
@@ -202,8 +202,8 @@ export async function getExplanationCacheStats() {
 export function cleanExpiredExplanations() {
   const now = Date.now();
   let cleaned = 0;
-  const { ms: cacheDurationMs } = getDynamicCacheDuration();
-  const MAX_AGE_MS = isTradingActive()
+  const { ms: cacheDurationMs } = getCacheDuration();
+  const MAX_AGE_MS = isMainTradingWindow()
     ? DEFAULT_CACHE_DURATION_MS * 4
     : cacheDurationMs * 2;
 

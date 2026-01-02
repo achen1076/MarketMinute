@@ -322,90 +322,105 @@ export function TickerListClient({
     return filtered;
   }, [snapshots, searchQuery, sortMode]);
 
+  const formatTimestamp = (unixTimestamp: number | undefined) => {
+    if (!unixTimestamp) return "";
+    // FMP timestamps are in seconds, convert to milliseconds
+    const ms =
+      unixTimestamp > 9999999999 ? unixTimestamp : unixTimestamp * 1000;
+    const date = new Date(ms);
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+  };
+
   return (
     <Card className="p-4 text-sm h-full overflow-hidden flex flex-col">
-      <div className="mb-3 flex items-center justify-between shrink-0">
-        <h3 className="text-sm font-semibold text-foreground/80">
-          Your Symbols
-        </h3>
+      <div className="mb-3 shrink-0">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-semibold text-foreground/80">
+            Your Symbols
+          </h3>
 
-        {/* Alerts Bell Icon + Dropdown */}
-        <div className="relative" ref={alertsDropdownRef}>
-          <button
-            onClick={() => setAlertsOpen(!alertsOpen)}
-            className="relative p-2 rounded-lg transition-colors hover:bg-slate-700/50"
-            aria-label="Alerts"
-          >
-            <Bell className="w-5 h-5 text-slate-400" />
-            {activeAlerts.length > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white">
-                {activeAlerts.length > 9 ? "9+" : activeAlerts.length}
-              </span>
-            )}
-          </button>
+          {/* Alerts Bell Icon + Dropdown */}
+          <div className="relative" ref={alertsDropdownRef}>
+            <button
+              onClick={() => setAlertsOpen(!alertsOpen)}
+              className="relative p-2 rounded-lg transition-colors hover:bg-slate-700/50"
+              aria-label="Alerts"
+            >
+              <Bell className="w-5 h-5 text-slate-400" />
+              {activeAlerts.length > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white">
+                  {activeAlerts.length > 9 ? "9+" : activeAlerts.length}
+                </span>
+              )}
+            </button>
 
-          {alertsOpen && (
-            <div className="absolute right-0 mt-2 w-80 rounded-xl border shadow-xl z-50 bg-card border-border">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-                <h3 className="font-semibold text-foreground">Alerts</h3>
-              </div>
+            {alertsOpen && (
+              <div className="absolute right-0 mt-2 w-80 rounded-xl border shadow-xl z-50 bg-card border-border">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+                  <h3 className="font-semibold text-foreground">Alerts</h3>
+                </div>
 
-              <div className="max-h-80 overflow-y-auto">
-                {activeAlerts.length === 0 ? (
-                  <div className="px-4 py-8 text-center text-muted-foreground text-sm">
-                    No alerts for this watchlist
-                  </div>
-                ) : (
-                  activeAlerts.map((alert) => (
-                    <div
-                      key={alert.id}
-                      className="px-4 py-3 border-b border-border cursor-pointer transition-colors hover:bg-muted/50 bg-muted/30"
-                    >
-                      <div className="flex items-start gap-3">
-                        <span
-                          className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${
-                            alert.severity === "high"
-                              ? "bg-rose-400"
-                              : alert.severity === "medium"
-                              ? "bg-amber-400"
-                              : "bg-teal-400"
-                          }`}
-                        />
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`text-sm font-medium ${getSeverityTextColor(
-                                alert.severity
-                              )}`}
-                            >
-                              {alert.title}
-                            </span>
-                            <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                              {alert.symbol}
-                            </span>
+                <div className="max-h-80 overflow-y-auto">
+                  {activeAlerts.length === 0 ? (
+                    <div className="px-4 py-8 text-center text-muted-foreground text-sm">
+                      No alerts for this watchlist
+                    </div>
+                  ) : (
+                    activeAlerts.map((alert) => (
+                      <div
+                        key={alert.id}
+                        className="px-4 py-3 border-b border-border cursor-pointer transition-colors hover:bg-muted/50 bg-muted/30"
+                      >
+                        <div className="flex items-start gap-3">
+                          <span
+                            className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${
+                              alert.severity === "high"
+                                ? "bg-rose-400"
+                                : alert.severity === "medium"
+                                ? "bg-amber-400"
+                                : "bg-teal-400"
+                            }`}
+                          />
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`text-sm font-medium ${getSeverityTextColor(
+                                  alert.severity
+                                )}`}
+                              >
+                                {alert.title}
+                              </span>
+                              <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                {alert.symbol}
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                              {alert.message}
+                            </p>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                            {alert.message}
-                          </p>
                         </div>
                       </div>
-                    </div>
-                  ))
+                    ))
+                  )}
+                </div>
+
+                {activeAlerts.length > 0 && (
+                  <div className="px-4 py-2 border-t border-border text-center">
+                    <button
+                      onClick={() => setAlertsOpen(false)}
+                      className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Close
+                    </button>
+                  </div>
                 )}
               </div>
-
-              {activeAlerts.length > 0 && (
-                <div className="px-4 py-2 border-t border-border text-center">
-                  <button
-                    onClick={() => setAlertsOpen(false)}
-                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    Close
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -526,7 +541,7 @@ export function TickerListClient({
                       </div>
                       {s.extendedHoursSession &&
                         s.extendedHoursPrice !== undefined && (
-                          <div className="flex items-center gap-1.5 mt-1">
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1">
                             <span className="text-xs text-violet-400">
                               {s.extendedHoursSession === "premarket"
                                 ? "Pre-market"
@@ -543,6 +558,11 @@ export function TickerListClient({
                               >
                                 {s.extendedHoursChangePct >= 0 ? "+" : ""}
                                 {s.extendedHoursChangePct.toFixed(2)}%
+                              </span>
+                            )}
+                            {s.extendedHoursTimestamp && (
+                              <span className="text-[10px] text-muted-foreground">
+                                {formatTimestamp(s.extendedHoursTimestamp)}
                               </span>
                             )}
                           </div>
@@ -567,11 +587,15 @@ export function TickerListClient({
                       {s.changePct > 0 ? "+" : ""}
                       {s.changePct.toFixed(2)}%
                     </div>
-                    {s.extendedHoursSession && (
+                    {s.extendedHoursSession ? (
                       <div className="text-[10px] text-muted-foreground mt-0.5">
                         {s.extendedHoursSession === "premarket"
                           ? "prev close"
                           : "at close"}
+                      </div>
+                    ) : (
+                      <div className="text-[10px] text-muted-foreground mt-0.5">
+                        {s.timestamp ? formatTimestamp(s.timestamp) : ""}
                       </div>
                     )}
                   </div>

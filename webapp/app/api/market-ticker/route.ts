@@ -40,9 +40,10 @@ export async function GET() {
     });
 
     const cacheTTL = getTickerCacheTTL(2);
+    const lastUpdated = new Date().toISOString();
 
     return NextResponse.json(
-      { tickers },
+      { tickers, lastUpdated },
       {
         headers: {
           "X-Cache-Hits": String(cacheStats.hits),

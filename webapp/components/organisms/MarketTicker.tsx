@@ -1,8 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { CACHE_TTL_MS } from "@/lib/constants";
-import { isMarketOpen } from "@/lib/marketHours";
+import {
+  isMarketOpen,
+  isPreMarket,
+  isAfterHours,
+  isOvernightPeriod,
+} from "@/lib/marketHours";
 
 type TickerItem = {
   symbol: string;
@@ -10,6 +14,19 @@ type TickerItem = {
   price: number;
   changePct: number;
 };
+
+function getPollingInterval(): number {
+  if (isMarketOpen()) {
+    return 5000;
+  }
+  if (isPreMarket() || isAfterHours()) {
+    return 60000;
+  }
+  if (isOvernightPeriod()) {
+    return 300000;
+  }
+  return 300000;
+}
 
 export function MarketTicker() {
   const [tickers, setTickers] = useState<TickerItem[]>([]);
@@ -34,15 +51,12 @@ export function MarketTicker() {
 
   useEffect(() => {
     fetchTickers();
-    if (!isMarketOpen()) {
-      return;
-    }
 
+    // Set up dynamic polling based on market hours
+    const pollInterval = getPollingInterval();
     const interval = setInterval(() => {
-      if (isMarketOpen()) {
-        fetchTickers();
-      }
-    }, CACHE_TTL_MS);
+      fetchTickers();
+    }, pollInterval);
 
     return () => clearInterval(interval);
   }, [fetchTickers]);

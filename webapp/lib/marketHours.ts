@@ -12,29 +12,27 @@
  * Note: This does not account for market holidays (e.g., Thanksgiving, Christmas)
  * For production use, consider integrating a holiday calendar API
  */
+
+const CACHE_CUSHION_SECONDS = 5 * 60;
+
 export function isMarketOpen(): boolean {
   const now = new Date();
 
-  // Convert to ET timezone
   const etTime = new Date(
     now.toLocaleString("en-US", { timeZone: "America/New_York" })
   );
 
-  // Check if it's a weekend
   const day = etTime.getDay();
   if (day === 0 || day === 6) {
-    return false; // Sunday = 0, Saturday = 6
+    return false;
   }
 
-  // Get current time in ET
   const hours = etTime.getHours();
   const minutes = etTime.getMinutes();
   const timeInMinutes = hours * 60 + minutes;
 
-  // Market hours: 9:30 AM (570 minutes) to 4:05 PM (965 minutes)
-  // Extended to 4:05 PM to give a breather for final settlements
-  const marketOpen = 9 * 60 + 30; // 9:30 AM
-  const marketClose = 16 * 60 + 5; // 4:05 PM
+  const marketOpen = 9 * 60 + 30;
+  const marketClose = 16 * 60 + 5;
 
   return timeInMinutes >= marketOpen && timeInMinutes < marketClose;
 }
@@ -55,8 +53,8 @@ export function isPreMarket(): boolean {
   const minutes = etTime.getMinutes();
   const timeInMinutes = hours * 60 + minutes;
 
-  const preMarketStart = 4 * 60; // 4:00 AM
-  const marketOpen = 9 * 60 + 30; // 9:30 AM
+  const preMarketStart = 4 * 60;
+  const marketOpen = 9 * 60 + 30;
 
   return timeInMinutes >= preMarketStart && timeInMinutes < marketOpen;
 }
@@ -77,8 +75,8 @@ export function isAfterHours(): boolean {
   const minutes = etTime.getMinutes();
   const timeInMinutes = hours * 60 + minutes;
 
-  const marketClose = 16 * 60 + 5; // 4:05 PM
-  const afterHoursEnd = 20 * 60; // 8:00 PM
+  const marketClose = 16 * 60 + 5;
+  const afterHoursEnd = 20 * 60;
 
   return timeInMinutes >= marketClose && timeInMinutes < afterHoursEnd;
 }
@@ -101,10 +99,9 @@ export function isOvernightPeriod(): boolean {
   const minutes = etTime.getMinutes();
   const timeInMinutes = hours * 60 + minutes;
 
-  const afterHoursEnd = 20 * 60; // 8:00 PM
-  const preMarketStart = 4 * 60; // 4:00 AM
+  const afterHoursEnd = 20 * 60;
+  const preMarketStart = 4 * 60;
 
-  // After 8 PM or before 4 AM (overnight)
   return timeInMinutes >= afterHoursEnd || timeInMinutes < preMarketStart;
 }
 
@@ -133,22 +130,17 @@ export function getLastMarketOpenTime(): Date {
   const hours = etTime.getHours();
   const minutes = etTime.getMinutes();
   const timeInMinutes = hours * 60 + minutes;
-  const marketOpenMinutes = 9 * 60 + 30; // 9:30 AM
+  const marketOpenMinutes = 9 * 60 + 30;
 
-  // If it's before market open today, use previous trading day
   if (timeInMinutes < marketOpenMinutes) {
     lastOpen.setDate(lastOpen.getDate() - 1);
   }
 
-  // If it's a weekend, go back to Friday
   if (day === 0) {
-    // Sunday - go back to Friday
     lastOpen.setDate(lastOpen.getDate() - 2);
   } else if (day === 6) {
-    // Saturday - go back to Friday
     lastOpen.setDate(lastOpen.getDate() - 1);
   } else if (day === 1 && timeInMinutes < marketOpenMinutes) {
-    // Monday before market open - go back to Friday
     lastOpen.setDate(lastOpen.getDate() - 2);
   }
 
@@ -229,33 +221,49 @@ export function shouldShowAfterHours(): boolean {
   return isAfterHours() || isOvernightPeriod();
 }
 
-const CACHE_CUSHION_SECONDS = 5 * 60; // 5 minutes before premarket/open
+/**
+ * Check if we're in the main trading window (market open + after-hours: 9:30 AM - 8 PM)
+ * This is when AI summaries/explanations should refresh
+ */
+export function isMainTradingWindow(): boolean {
+  return isMarketOpen() || isAfterHours();
+}
 
 /**
- * Get cache TTL in seconds for ticker/summary/explain data
- * During trading hours (pre-market, market, after-hours): return default TTL (5 seconds)
- * Outside trading hours: return seconds until 5 min before next pre-market
+ * Check if today is a weekend (non-trading day)
+ */
+export function isWeekend(): boolean {
+  const now = new Date();
+  const etTime = new Date(
+    now.toLocaleString("en-US", { timeZone: "America/New_York" })
+  );
+  const day = etTime.getDay();
+  return day === 0 || day === 6;
+}
+
+/**
+ * Get cache TTL in seconds for market price snapshots
+ * Market hours (9:30-4): 5 seconds
+ * Pre-market and after-hours: 60 seconds (1 minute)
+ * Overnight (8pm-4am) and weekends: 300 seconds (5 minutes), max 24 hours
  */
 export function getTickerCacheTTL(defaultTTL: number = 5): number {
-  if (isTradingActive()) {
-    return defaultTTL;
+  if (isMarketOpen()) {
+    return 5;
   }
 
-  const now = new Date();
-  const nextPreMarket = getNextPreMarket();
-  const secondsUntilPreMarket = Math.floor(
-    (nextPreMarket.getTime() - now.getTime()) / 1000
-  );
+  if (isPreMarket() || isAfterHours()) {
+    return 60;
+  }
 
-  // Expire 5 min early to refresh before premarket starts
-  const ttlWithCushion = secondsUntilPreMarket - CACHE_CUSHION_SECONDS;
-  return Math.max(defaultTTL, Math.min(ttlWithCushion, 86400));
+  // Overnight or weekend - use 5 min cache, capped at 24 hours
+  return 300;
 }
 
 /**
  * Get cache TTL in seconds for historical chart data
  * During market hours: return default TTL (60 seconds for 1D, 300 for others)
- * Outside market hours: return seconds until 5 min before next market open
+ * Outside market hours: cache until next market open, max 24 hours
  */
 export function getChartCacheTTL(defaultTTL: number): number {
   if (isMarketOpen()) {
@@ -268,7 +276,48 @@ export function getChartCacheTTL(defaultTTL: number): number {
     (nextOpen.getTime() - now.getTime()) / 1000
   );
 
-  // Expire 5 min early to refresh before market opens
+  const ttlWithCushion = secondsUntilOpen - CACHE_CUSHION_SECONDS;
+  return Math.max(defaultTTL, Math.min(ttlWithCushion, 86400));
+}
+
+/**
+ * Get cache TTL in seconds for AI summary data
+ * During main trading window (9:30 AM - 8 PM): 1 hour (3600s)
+ * Pre-market, overnight, weekends: cache until next market open, max 24 hours
+ */
+export function getSummaryCacheTTL(defaultTTL: number = 3600): number {
+  if (isMainTradingWindow()) {
+    return defaultTTL;
+  }
+
+  // Pre-market, overnight, or weekend - cache until market open
+  const now = new Date();
+  const nextOpen = getNextMarketOpen();
+  const secondsUntilOpen = Math.floor(
+    (nextOpen.getTime() - now.getTime()) / 1000
+  );
+
+  const ttlWithCushion = secondsUntilOpen - CACHE_CUSHION_SECONDS;
+  return Math.max(defaultTTL, Math.min(ttlWithCushion, 86400));
+}
+
+/**
+ * Get cache TTL in seconds for AI explanation data
+ * During main trading window (9:30 AM - 8 PM): 30 minutes (1800s)
+ * Pre-market, overnight, weekends: cache until next market open, max 24 hours
+ */
+export function getExplainCacheTTL(defaultTTL: number = 1800): number {
+  if (isMainTradingWindow()) {
+    return defaultTTL;
+  }
+
+  // Pre-market, overnight, or weekend - cache until market open
+  const now = new Date();
+  const nextOpen = getNextMarketOpen();
+  const secondsUntilOpen = Math.floor(
+    (nextOpen.getTime() - now.getTime()) / 1000
+  );
+
   const ttlWithCushion = secondsUntilOpen - CACHE_CUSHION_SECONDS;
   return Math.max(defaultTTL, Math.min(ttlWithCushion, 86400));
 }

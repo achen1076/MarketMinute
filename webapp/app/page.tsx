@@ -202,7 +202,7 @@ export default async function HomePage() {
           </Stack>
 
           {/* Right Sidebar */}
-          <Stack spacing="xl" className="xl:w-96">
+          <Stack spacing="xl" className="xl:w-1/3">
             {snapshots.length > 0 && (
               <TickerListClient
                 snapshots={snapshots}

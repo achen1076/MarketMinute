@@ -15,13 +15,11 @@ export type TickerSnapshot = {
   previousClose?: number;
   dayLow?: number;
   dayHigh?: number;
-  // eps?: number;
-  // pe?: number;
-  // Extended hours data (premarket/postmarket)
+  timestamp?: number;
   extendedHoursPrice?: number;
   extendedHoursChangePct?: number;
   extendedHoursSession?: "premarket" | "postmarket";
-  // Extended hours bid/ask
+  extendedHoursTimestamp?: number;
   extendedHoursBid?: number;
   extendedHoursBidSize?: number;
   extendedHoursAsk?: number;
@@ -70,7 +68,6 @@ function checkFMPRateLimit(): { allowed: boolean; retryAfter?: number } {
     return { allowed: false, retryAfter };
   }
 
-  // Record this API call
   apiCallTimestamps.push(now);
   console.log(
     `[FMP RateLimit] ALLOWED: ${apiCallTimestamps.length}/${MAX_CALLS_PER_MINUTE} calls in last 60s`
@@ -105,17 +102,14 @@ export async function getSnapshotsForSymbols(
     }));
   }
 
-  // Import earnings calendar
   const earningsCalendar = await getEarningsCalendar();
 
-  // Split indices (^) from regular symbols - indices must be fetched individually
   const indices = symbols.filter((s) => s.startsWith("^"));
   const regularSymbols = symbols.filter((s) => !s.startsWith("^"));
 
   try {
     const results: TickerSnapshot[] = [];
 
-    // Fetch regular symbols via batch endpoint
     if (regularSymbols.length > 0) {
       const symbolsParam = regularSymbols.join(",");
       const url = new URL(
@@ -149,7 +143,6 @@ export async function getSnapshotsForSymbols(
         const data = await res.json();
 
         if (Array.isArray(data)) {
-          // Map response to TickerSnapshot format
           const batchResults = data.map((quote: any) => {
             const key = quote.symbol.toUpperCase();
             return {
@@ -168,8 +161,7 @@ export async function getSnapshotsForSymbols(
                 : undefined,
               dayLow: quote.dayLow ? Number(quote.dayLow) : undefined,
               dayHigh: quote.dayHigh ? Number(quote.dayHigh) : undefined,
-              // eps: quote.eps ? Number(quote.eps) : undefined,
-              // pe: quote.pe ? Number(quote.pe) : undefined,
+              timestamp: quote.timestamp ? Number(quote.timestamp) : undefined,
             };
           });
           results.push(...batchResults);
@@ -179,12 +171,10 @@ export async function getSnapshotsForSymbols(
       }
     }
 
-    // Fetch indices individually (batch-quote doesn't support them)
-    // Map Yahoo-style symbols to FMP format
     const indexMapping: Record<string, string> = {
-      "^GSPC": "^GSPC", // S&P 500
-      "^DJI": "^DJI", // Dow Jones
-      "^IXIC": "^IXIC", // Nasdaq
+      "^GSPC": "^GSPC",
+      "^DJI": "^DJI",
+      "^IXIC": "^IXIC",
     };
 
     for (const indexSymbol of indices) {
@@ -256,27 +246,22 @@ export async function getSnapshotsForSymbols(
       }
     }
 
-    // Check if we should fetch/display after-hours data
-    // This includes actual after-hours trading (4:05 PM - 8:00 PM) AND overnight period (8:00 PM - 4:00 AM)
-    // During overnight, we still fetch to get the last after-hours price
     const inPremarket = isPreMarket();
     const showAfterHours = shouldShowAfterHours();
 
     if ((inPremarket || showAfterHours) && regularSymbols.length > 0) {
       try {
-        // Fetch both trade price and bid/ask quotes in parallel
         const [afterMarketTrades, afterMarketQuotes] = await Promise.all([
           getAfterMarketTrades(regularSymbols),
           getAfterMarketQuotes(regularSymbols),
         ]);
 
-        // Merge extended hours data into results
         for (const snapshot of results) {
           const ahTrade = afterMarketTrades[snapshot.symbol];
           const ahQuote = afterMarketQuotes[snapshot.symbol];
 
           if (ahTrade && ahTrade.price > 0) {
-            const closePrice = snapshot.price; // End of day / previous close price
+            const closePrice = snapshot.price;
             const ahChangePct =
               closePrice > 0
                 ? ((ahTrade.price - closePrice) / closePrice) * 100
@@ -287,9 +272,9 @@ export async function getSnapshotsForSymbols(
             snapshot.extendedHoursSession = inPremarket
               ? "premarket"
               : "postmarket";
+            snapshot.extendedHoursTimestamp = ahTrade.timestamp;
           }
 
-          // Add bid/ask data if available
           if (ahQuote) {
             if (ahQuote.bidPrice > 0) {
               snapshot.extendedHoursBid = ahQuote.bidPrice;
@@ -299,7 +284,6 @@ export async function getSnapshotsForSymbols(
               snapshot.extendedHoursAsk = ahQuote.askPrice;
               snapshot.extendedHoursAskSize = ahQuote.askSize;
             }
-            // Set session even if we only have quote data
             if (
               !snapshot.extendedHoursSession &&
               (ahQuote.bidPrice > 0 || ahQuote.askPrice > 0)
