@@ -11,7 +11,7 @@ on:
 jobs:
   collect:
     runs-on: ubuntu-latest
-
+    environment: Production
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -37,4 +37,3 @@ jobs:
         if: failure()
         run: |
           echo "Training data collection failed!"
-          # Add Slack/Discord webhook notification here if desired
