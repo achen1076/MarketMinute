@@ -59,6 +59,9 @@ export const metadata: Metadata = {
       { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
       { url: "/favicon-48x48.png", sizes: "48x48", type: "image/png" },
     ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
     shortcut: [{ url: "/favicon.ico", type: "image/x-icon" }],
   },
 
@@ -72,7 +75,7 @@ export const metadata: Metadata = {
       "Get AI-powered market explanations, quant predictions and forecasts, and daily summaries tailored to your watchlist.",
     images: [
       {
-        url: "https://marketminute.io/og-image.png",
+        url: "https://marketminute.io/og.png",
         width: 1200,
         height: 630,
         alt: "MarketMinute – AI-Powered Market Insights",
@@ -84,7 +87,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "MarketMinute – AI-Powered Market Insights",
     description: "Understand every stock move with AI-powered insights",
-    images: ["https://marketminute.io/og-image.png"],
+    images: ["https://marketminute.io/og.png"],
   },
 
   robots: {
