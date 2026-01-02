@@ -49,6 +49,8 @@ export async function GET(req: NextRequest) {
         relevance: item.relevance,
         category: item.category,
         headline: item.headline,
+        summary: item.summary,
+        url: item.url,
         createdAt: item.createdAt,
       })),
     });

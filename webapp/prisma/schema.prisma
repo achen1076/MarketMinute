@@ -333,8 +333,18 @@ model NewsItem {
   sentiment Float
   relevance Float
   category  String?
-  summary   String?
+  summary   String?  @db.Text
+  url       String?
   createdAt DateTime @default(now())
+}
+
+model ApiCache {
+  key       String   @id
+  value     Json
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("api_cache")
 }
 
 model TickerNewsTraining {

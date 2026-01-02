@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { shouldSummarize, summarizeArticle } from "@/lib/articleSummarizer";
 
 // Request validation schema
 const ProcessNewsSchema = z.object({
@@ -62,6 +63,19 @@ export async function POST(request: Request) {
 
     const relevanceData: RelevanceResponse = await relevanceRes.json();
 
+    // Generate AI summary for highly relevant articles with strong sentiment
+    let summary: string | null = null;
+    if (url && shouldSummarize(relevanceData.score, sentimentData.score)) {
+      console.log(
+        `🤖 Article is highly relevant (${relevanceData.score.toFixed(
+          2
+        )}) with strong sentiment (${sentimentData.score.toFixed(
+          2
+        )}), generating summary...`
+      );
+      summary = await summarizeArticle(url, headline, ticker);
+    }
+
     // Combine results and store in database
     const newsItem = await prisma.newsItem.create({
       data: {
@@ -70,6 +84,8 @@ export async function POST(request: Request) {
         sentiment: sentimentData.score,
         relevance: relevanceData.score,
         category: relevanceData.category,
+        summary,
+        url,
         createdAt: date ? new Date(date) : new Date(),
       },
     });
@@ -86,6 +102,8 @@ export async function POST(request: Request) {
         sentimentCategory: sentimentData.category,
         relevance: relevanceData.score,
         relevanceCategory: relevanceData.category,
+        summary: newsItem.summary,
+        url: newsItem.url,
         createdAt: newsItem.createdAt,
       },
     });

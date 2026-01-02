@@ -331,7 +331,6 @@ export function TickerListClient({
     return date.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
-      second: "2-digit",
     });
   };
 
