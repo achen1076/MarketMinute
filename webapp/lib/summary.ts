@@ -203,6 +203,7 @@ export async function buildSummary(
         category: n.category,
         impact: n.impact,
         publishedAt: n.publishedAt,
+        summary: n.summary,
       })),
     },
   };
