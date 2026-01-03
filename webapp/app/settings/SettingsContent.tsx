@@ -637,20 +637,9 @@ function ThemeAwarePreferences({
     { value: "system" as const, label: "System", icon: Monitor },
   ];
 
-  const handleThemeChange = async (newTheme: "light" | "dark" | "system") => {
+  const handleThemeChange = (newTheme: "light" | "dark" | "system") => {
+    // ThemeProvider's setTheme handles both localStorage and database saves
     setTheme(newTheme);
-    // Also save to localStorage for when logged out
-    localStorage.setItem("theme", newTheme);
-    // Save to database for account persistence
-    try {
-      await fetch("/api/user/theme", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ theme: newTheme }),
-      });
-    } catch (error) {
-      console.error("Failed to save theme to database:", error);
-    }
   };
 
   return (

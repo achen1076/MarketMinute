@@ -35,10 +35,27 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-    const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
-    if (stored && ["light", "dark", "system"].includes(stored)) {
-      setThemeState(stored);
-    }
+
+    // Try to fetch from database first (for logged-in users)
+    fetch("/api/user/theme")
+      .then((res) => {
+        if (res.ok) {
+          return res.json();
+        }
+        throw new Error("Not authenticated or fetch failed");
+      })
+      .then((data) => {
+        if (data.theme && ["light", "dark", "system"].includes(data.theme)) {
+          setThemeState(data.theme);
+        }
+      })
+      .catch(() => {
+        // Fall back to localStorage if not logged in or fetch fails
+        const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+        if (stored && ["light", "dark", "system"].includes(stored)) {
+          setThemeState(stored);
+        }
+      });
   }, []);
 
   useEffect(() => {
@@ -69,6 +86,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
     localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+
+    // Also save to database for logged-in users (async, don't block)
+    fetch("/api/user/theme", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ theme: newTheme }),
+    }).catch((error) => {
+      // Silently fail if not logged in or error occurs
+      console.debug("Failed to save theme to database:", error);
+    });
   };
 
   // Prevent flash of wrong theme
