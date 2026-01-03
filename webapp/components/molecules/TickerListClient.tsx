@@ -453,7 +453,7 @@ export function TickerListClient({
           <select
             value={sortMode}
             onChange={(e) => setSortMode(e.target.value as any)}
-            className="w-full px-3 py-2 bg-background/50 border border-border rounded-lg text-sm text-foreground focus:outline-none focus:border-ring"
+            className="w-full px-3 py-2 rounded-lg text-sm bg-background/50 text-foreground border border-border hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
           >
             <option value="a-z">A-Z</option>
             <option value="highest-gain">Highest Gain</option>
