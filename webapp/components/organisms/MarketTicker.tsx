@@ -61,6 +61,18 @@ export function MarketTicker() {
     return () => clearInterval(interval);
   }, [fetchTickers]);
 
+  // Calculate how many times to duplicate tickers to fill the screen
+  const getRepeatCount = () => {
+    // Estimate: each ticker takes roughly 150px, we want enough to fill 2x screen width
+    const estimatedTickerWidth = 150;
+    const screenWidth =
+      typeof window !== "undefined" ? window.innerWidth : 1920;
+    const tickersNeeded = Math.ceil(
+      (screenWidth * 2) / (tickers.length * estimatedTickerWidth)
+    );
+    return Math.max(2, tickersNeeded); 
+  };
+
   // Start animation once when tickers are first loaded
   useEffect(() => {
     const scrollContainer = scrollRef.current;
@@ -76,6 +88,7 @@ export function MarketTicker() {
       lastTime = currentTime;
 
       const pixelsPerSecond = (window.innerWidth * vwPerSecond) / 100;
+      // Single set is half the total content (we duplicate for seamless loop)
       const singleSetWidth = scrollContainer.scrollWidth / 2;
 
       scrollPositionRef.current += pixelsPerSecond * deltaTime;
@@ -139,6 +152,8 @@ export function MarketTicker() {
     </div>
   );
 
+  const repeatCount = getRepeatCount();
+
   return (
     <div className="fixed top-0 left-0 right-0 z-50 border-b bg-card border-border">
       <div className="flex items-center justify-between px-4 py-2">
@@ -153,9 +168,17 @@ export function MarketTicker() {
               </div>
             ) : (
               <>
-                {tickers.map((ticker, idx) => renderTickerItem(ticker, idx))}
-                {tickers.map((ticker, idx) =>
-                  renderTickerItem(ticker, idx, "-dup")
+                {/* First set */}
+                {Array.from({ length: repeatCount }).map((_, setIdx) =>
+                  tickers.map((ticker, idx) =>
+                    renderTickerItem(ticker, idx, `-set${setIdx}`)
+                  )
+                )}
+                {/* Duplicate set for seamless loop */}
+                {Array.from({ length: repeatCount }).map((_, setIdx) =>
+                  tickers.map((ticker, idx) =>
+                    renderTickerItem(ticker, idx, `-dup${setIdx}`)
+                  )
                 )}
               </>
             )}
