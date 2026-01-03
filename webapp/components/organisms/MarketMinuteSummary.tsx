@@ -90,10 +90,10 @@ function highlightTickers(
     if (matchingPattern) {
       const color =
         matchingPattern.changePct > 0
-          ? "text-success"
+          ? "text-market-up"
           : matchingPattern.changePct < 0
-          ? "text-error"
-          : "text-muted-foreground";
+          ? "text-market-down"
+          : "text-market-neutral";
       parts.push(
         <span
           key={`ticker-${match.index}`}
@@ -122,7 +122,26 @@ export function MarketMinuteSummary({ watchlistId }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isTTSLoading, setIsTTSLoading] = useState(false);
+  const [tickerColoringEnabled, setTickerColoringEnabled] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Load ticker coloring preference from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("tickerColoringEnabled");
+    if (saved !== null) {
+      setTickerColoringEnabled(saved === "true");
+    }
+
+    // Listen for changes to localStorage from settings page
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "tickerColoringEnabled" && e.newValue !== null) {
+        setTickerColoringEnabled(e.newValue === "true");
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
 
   const fetchSummary = async () => {
     if (!watchlistId) {
@@ -248,9 +267,10 @@ export function MarketMinuteSummary({ watchlistId }: Props) {
     );
   }
 
-  const highlightedBody = summary.tickerPerformance
-    ? highlightTickers(summary.body, summary.tickerPerformance)
-    : summary.body;
+  const highlightedBody =
+    tickerColoringEnabled && summary.tickerPerformance
+      ? highlightTickers(summary.body, summary.tickerPerformance)
+      : summary.body;
 
   const formatTimestamp = (isoString: string) => {
     const date = new Date(isoString);
@@ -269,30 +289,11 @@ export function MarketMinuteSummary({ watchlistId }: Props) {
         <h2 className="text-2xl font-bold text-foreground">
           {summary.headline}
         </h2>
-        <div className="flex items-center gap-3">
-          {/* <button
-            onClick={handleTextToSpeech}
-            disabled={isTTSLoading}
-            className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 text-sm text-muted-foreground transition-all hover:bg-primary/10 hover:text-primary hover:border-primary/30 border border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-            title={isPlaying ? "Stop reading" : "Read summary aloud"}
-          >
-            {isTTSLoading ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : isPlaying ? (
-              <VolumeX size={16} />
-            ) : (
-              <Volume2 size={16} />
-            )}
-            <span className="hidden sm:inline">
-              {isPlaying ? "Stop" : "Listen"}
-            </span>
-          </button> */}
-          <div className="flex flex-col items-end">
-            <span className="text-xs text-muted-foreground">MarketMinute</span>
-            <span className="text-[10px] text-muted-foreground/70">
-              {formatTimestamp(summary.generatedAt)}
-            </span>
-          </div>
+        <div className="flex flex-col items-end">
+          <span className="text-xs text-muted-foreground">MarketMinute</span>
+          <span className="text-[10px] text-muted-foreground/70">
+            {formatTimestamp(summary.generatedAt)}
+          </span>
         </div>
       </div>
 
@@ -336,7 +337,7 @@ export function MarketMinuteSummary({ watchlistId }: Props) {
 
       <div className="prose prose-invert dark:prose-invert max-w-none">
         <div className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
-          {summary.body}
+          {highlightedBody}
         </div>
       </div>
     </Card>

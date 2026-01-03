@@ -87,9 +87,14 @@ export default function SettingsContent({
   const [alertLoading, setAlertLoading] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
 
+  // Ticker coloring preference
+  const [tickerColoringEnabled, setTickerColoringEnabled] = useState(true);
+  const [tickerColoringMessage, setTickerColoringMessage] = useState("");
+
   useEffect(() => {
     fetchSubscriptionStatus();
     fetchAlertPreference();
+    fetchTickerColoringPreference();
   }, []);
 
   const fetchAlertPreference = async () => {
@@ -125,6 +130,23 @@ export default function SettingsContent({
     } finally {
       setAlertLoading(false);
     }
+  };
+
+  const fetchTickerColoringPreference = () => {
+    const saved = localStorage.getItem("tickerColoringEnabled");
+    if (saved !== null) {
+      setTickerColoringEnabled(saved === "true");
+    }
+  };
+
+  const handleTickerColoringToggle = () => {
+    const newValue = !tickerColoringEnabled;
+    setTickerColoringEnabled(newValue);
+    localStorage.setItem("tickerColoringEnabled", String(newValue));
+    setTickerColoringMessage(
+      newValue ? "Ticker coloring enabled" : "Ticker coloring disabled"
+    );
+    setTimeout(() => setTickerColoringMessage(""), 3000);
   };
 
   const fetchSubscriptionStatus = async () => {
@@ -519,6 +541,9 @@ export default function SettingsContent({
           alertLoading={alertLoading}
           alertMessage={alertMessage}
           handleAlertToggle={handleAlertToggle}
+          tickerColoringEnabled={tickerColoringEnabled}
+          tickerColoringMessage={tickerColoringMessage}
+          handleTickerColoringToggle={handleTickerColoringToggle}
         />
       )}
 
@@ -566,11 +591,17 @@ function ThemeAwarePreferences({
   alertLoading,
   alertMessage,
   handleAlertToggle,
+  tickerColoringEnabled,
+  tickerColoringMessage,
+  handleTickerColoringToggle,
 }: {
   alertsEnabled: boolean;
   alertLoading: boolean;
   alertMessage: string;
   handleAlertToggle: () => void;
+  tickerColoringEnabled: boolean;
+  tickerColoringMessage: string;
+  handleTickerColoringToggle: () => void;
 }) {
   const { theme, setTheme } = useTheme();
 
@@ -650,6 +681,45 @@ function ThemeAwarePreferences({
             }`}
           >
             {alertMessage}
+          </p>
+        )}
+      </div>
+
+      {/* Ticker Coloring Preferences */}
+      <div className="bg-card border border-border rounded-lg p-6">
+        <h2 className="text-xl font-semibold mb-4">Ticker Coloring</h2>
+        <p className="text-muted-foreground mb-4">
+          Highlight ticker symbols and company names in summaries with colors
+          based on stock performance (green for up, red for down).
+        </p>
+
+        <label className="flex items-center justify-between cursor-pointer">
+          <div>
+            <span className="text-foreground font-medium">
+              Enable Ticker Coloring
+            </span>
+            <p className="text-muted-foreground text-sm">
+              Color-code tickers in market summaries
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleTickerColoringToggle}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              tickerColoringEnabled ? "bg-primary" : "bg-muted"
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                tickerColoringEnabled ? "translate-x-6" : "translate-x-1"
+              }`}
+            />
+          </button>
+        </label>
+
+        {tickerColoringMessage && (
+          <p className="mt-4 text-sm text-emerald-500">
+            {tickerColoringMessage}
           </p>
         )}
       </div>

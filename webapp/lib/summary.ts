@@ -8,6 +8,7 @@ import {
   setSummaryInCache,
   cleanExpiredSummaries,
 } from "./summaryCache";
+import { TICKER_TO_COMPANY } from "./tickerMappings";
 
 export type MarketMinuteSummary = {
   headline: string;
@@ -23,6 +24,51 @@ export type MarketMinuteSummary = {
   tickerPerformance: Array<{ symbol: string; changePct: number }>;
   generatedAt: string;
 };
+
+function formatTickersInText(
+  text: string,
+  snapshots: TickerSnapshot[]
+): string {
+  // Build patterns for both ticker symbols and company names
+  const patterns: Array<{ pattern: string; changePct: number }> = [];
+
+  snapshots.forEach((s) => {
+    const ticker = s.symbol.toUpperCase();
+    const changePct = s.changePct;
+
+    // Add ticker symbol
+    patterns.push({ pattern: ticker, changePct });
+
+    // Add company names from mapping
+    const companyNames = TICKER_TO_COMPANY[ticker];
+    if (companyNames) {
+      companyNames.forEach((name) => {
+        patterns.push({ pattern: name, changePct });
+      });
+    }
+  });
+
+  // Sort by length (longest first) to avoid partial matches
+  patterns.sort((a, b) => b.pattern.length - a.pattern.length);
+
+  let formatted = text;
+  const replaced = new Set<string>(); // Track what's been replaced to avoid double-replacing
+
+  patterns.forEach(({ pattern, changePct }) => {
+    if (replaced.has(pattern.toLowerCase())) return;
+
+    const colorClass = changePct >= 0 ? "ticker-up" : "ticker-down";
+    const escapedPattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`\\b${escapedPattern}\\b`, "gi");
+
+    formatted = formatted.replace(regex, (match) => {
+      replaced.add(match.toLowerCase());
+      return `<span class="${colorClass}">${match}</span>`;
+    });
+  });
+
+  return formatted;
+}
 
 export async function buildSummary(
   listName: string,
@@ -265,7 +311,7 @@ export async function buildSummary(
 
         Style guidelines:
         - Clear, professional, and conversational. Aim for plain English, not Wall Street jargon.
-        - Avoid phrases like “these items,” “this coverage,” “themes,” “sentiment,” “narrative,” or “shape sentiment.”
+        - Avoid phrases like "these items," "this coverage," "themes," "sentiment," "narrative," or "shape sentiment."
         - Every sentence should refer to specific companies, indexes, prices, moves, or events from the JSON, not vague commentary.
         - Short paragraphs (3-4 sentences each), no bullet points.
         - Never give buy/sell/hold advice.
@@ -288,12 +334,15 @@ export async function buildSummary(
     user: JSON.stringify(contextPayload, null, 2),
   });
 
+  // Don't format tickers here - will be done on frontend
+  const formattedBody = body;
+
   let headline: string = "Market Summary";
 
   const summary: MarketMinuteSummary = {
     headline,
     body:
-      body ||
+      formattedBody ||
       "Unable to generate summary at this time. Please try again later.",
     stats: {
       listName,

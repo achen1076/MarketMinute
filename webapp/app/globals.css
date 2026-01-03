@@ -179,4 +179,13 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+  .text-market-up {
+    color: var(--market-up);
+  }
+  .text-market-down {
+    color: var(--market-down);
+  }
+  .text-market-neutral {
+    color: var(--market-neutral);
+  }
 }
