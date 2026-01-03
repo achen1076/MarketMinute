@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Card from "@/components/atoms/Card";
 import {
   Calendar,
@@ -150,12 +150,18 @@ export function EventsTimeline({ symbols }: Props) {
   const [events, setEvents] = useState<UpcomingEvents | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const fetchInitiated = useRef<string | null>(null);
 
   useEffect(() => {
     if (symbols.length === 0) {
       setLoading(false);
       return;
     }
+
+    // Prevent duplicate fetch for same symbols
+    const symbolsKey = symbols.sort().join(",");
+    if (fetchInitiated.current === symbolsKey) return;
+    fetchInitiated.current = symbolsKey;
 
     async function fetchEvents() {
       try {

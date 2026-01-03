@@ -237,43 +237,45 @@ export async function setMacroEventsInDb(events: MacroEvent[]): Promise<void> {
 /**
  * Clean expired events from database
  * Removes events whose date has passed
+ * DISABLED: DELETE operations removed to reduce DB load
  */
 export async function cleanExpiredEventsFromDb(): Promise<number> {
-  const today = new Date().toISOString().split("T")[0];
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  // const today = new Date().toISOString().split("T")[0];
+  // const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-  const [deletedExpired, deletedOldSentinels, deletedMacro] =
-    await prisma.$transaction([
-      // Delete past events
-      prisma.tickerEvent.deleteMany({
-        where: {
-          date: {
-            lt: today,
-          },
-        },
-      }),
-      // Delete old sentinel records (force refetch if >7 days old)
-      prisma.tickerEvent.deleteMany({
-        where: {
-          title: "No upcoming events",
-          updatedAt: {
-            lt: sevenDaysAgo,
-          },
-        },
-      }),
-      prisma.macroEvent.deleteMany({
-        where: {
-          date: {
-            lt: today,
-          },
-        },
-      }),
-    ]);
+  // const [deletedExpired, deletedOldSentinels, deletedMacro] =
+  //   await prisma.$transaction([
+  //     // Delete past events
+  //     prisma.tickerEvent.deleteMany({
+  //       where: {
+  //         date: {
+  //           lt: today,
+  //         },
+  //       },
+  //     }),
+  //     // Delete old sentinel records (force refetch if >7 days old)
+  //     prisma.tickerEvent.deleteMany({
+  //       where: {
+  //         title: "No upcoming events",
+  //         updatedAt: {
+  //           lt: sevenDaysAgo,
+  //         },
+  //       },
+  //     }),
+  //     prisma.macroEvent.deleteMany({
+  //       where: {
+  //         date: {
+  //           lt: today,
+  //         },
+  //       },
+  //     }),
+  //   ]);
 
-  const totalDeleted =
-    deletedExpired.count + deletedOldSentinels.count + deletedMacro.count;
+  // const totalDeleted =
+  //   deletedExpired.count + deletedOldSentinels.count + deletedMacro.count;
 
-  return totalDeleted;
+  // return totalDeleted;
+  return 0;
 }
 
 /**

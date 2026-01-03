@@ -7,6 +7,44 @@ import {
   RateLimitPresets,
   createRateLimitResponse,
 } from "@/lib/rateLimit";
+import { redis } from "@/lib/redis";
+import {
+  getCachedWatchlistSymbols,
+  setCachedWatchlistSymbols,
+} from "@/lib/request-cache";
+
+const WATCHLIST_CACHE_TTL = 31536000;
+
+type CachedWatchlistItem = {
+  id: string;
+  symbol: string;
+  isFavorite: boolean;
+};
+
+async function getCachedWatchlistItems(
+  watchlistId: string
+): Promise<CachedWatchlistItem[] | null> {
+  if (!redis) return null;
+  try {
+    const cacheKey = `watchlist:${watchlistId}:items`;
+    return await redis.get<CachedWatchlistItem[]>(cacheKey);
+  } catch {
+    return null;
+  }
+}
+
+async function setCachedWatchlistItems(
+  watchlistId: string,
+  items: CachedWatchlistItem[]
+): Promise<void> {
+  if (!redis) return;
+  try {
+    const cacheKey = `watchlist:${watchlistId}:items`;
+    await redis.setex(cacheKey, WATCHLIST_CACHE_TTL, items);
+  } catch (error) {
+    console.error("[WatchlistCache] Failed to cache:", error);
+  }
+}
 
 export async function GET(request: Request) {
   const session = await auth();
@@ -24,7 +62,6 @@ export async function GET(request: Request) {
     );
   }
 
-  // Rate limiting: 30 snapshot requests per minute per user
   const rateLimitResult = checkRateLimit(
     "snapshots",
     session.user.email,
@@ -35,16 +72,41 @@ export async function GET(request: Request) {
     return createRateLimitResponse(rateLimitResult);
   }
 
-  const watchlist = await prisma.watchlist.findUnique({
-    where: { id: watchlistId },
-    include: { items: true },
-  });
+  // Try to get watchlist items from cache first
+  let watchlistItems = await getCachedWatchlistItems(watchlistId);
+  let cacheHit = !!watchlistItems;
 
-  if (!watchlist) {
-    return NextResponse.json({ error: "Watchlist not found" }, { status: 404 });
+  if (!watchlistItems) {
+    // Cache miss - fetch from database
+    const watchlist = await prisma.watchlist.findUnique({
+      where: { id: watchlistId },
+      include: { items: true },
+    });
+
+    if (!watchlist) {
+      return NextResponse.json(
+        { error: "Watchlist not found" },
+        { status: 404 }
+      );
+    }
+
+    watchlistItems = watchlist.items.map((i) => ({
+      id: i.id,
+      symbol: i.symbol,
+      isFavorite: (i as any).isFavorite ?? false,
+    }));
+
+    // Cache for next time
+    setCachedWatchlistItems(watchlistId, watchlistItems);
+
+    // Also cache symbols list for other endpoints
+    setCachedWatchlistSymbols(
+      watchlistId,
+      watchlistItems.map((i) => i.symbol)
+    );
   }
 
-  const symbols = watchlist.items.map((i) => i.symbol);
+  const symbols = watchlistItems.map((i) => i.symbol);
 
   if (symbols.length === 0) {
     return NextResponse.json({ snapshots: [] });
@@ -52,14 +114,13 @@ export async function GET(request: Request) {
 
   const { snapshots, cacheStats } = await getCachedSnapshots(symbols);
 
-  // Enrich snapshots with favorite status and item IDs
   const enrichedSnapshots = snapshots.map((snapshot) => {
-    const item = watchlist.items.find(
+    const item = watchlistItems!.find(
       (i) => i.symbol.toUpperCase() === snapshot.symbol.toUpperCase()
     );
     return {
       ...snapshot,
-      isFavorite: (item as any)?.isFavorite ?? false,
+      isFavorite: item?.isFavorite ?? false,
       itemId: item?.id ?? null,
     };
   });

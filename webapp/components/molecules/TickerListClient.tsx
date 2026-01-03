@@ -62,6 +62,7 @@ export function TickerListClient({
   );
   const [alertsOpen, setAlertsOpen] = useState(false);
   const alertsDropdownRef = useRef<HTMLDivElement>(null);
+  const alertsFetchInitiated = useRef<string | null>(null);
   const [expandedSymbols, setExpandedSymbols] = useState<Set<string>>(
     new Set()
   );
@@ -85,25 +86,30 @@ export function TickerListClient({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const fetchAlerts = useCallback(async () => {
+  useEffect(() => {
     if (!watchlistId) {
       setAlerts([]);
       return;
     }
-    try {
-      const res = await fetch(`/api/alerts?watchlistId=${watchlistId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setAlerts(data.alerts || []);
-      }
-    } catch (err) {
-      console.error("Failed to fetch alerts:", err);
-    }
-  }, [watchlistId]);
 
-  useEffect(() => {
+    // Prevent duplicate fetch for same watchlistId
+    if (alertsFetchInitiated.current === watchlistId) return;
+    alertsFetchInitiated.current = watchlistId;
+
+    const fetchAlerts = async () => {
+      try {
+        const res = await fetch(`/api/alerts?watchlistId=${watchlistId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setAlerts(data.alerts || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch alerts:", err);
+      }
+    };
+
     fetchAlerts();
-  }, [fetchAlerts]);
+  }, [watchlistId]);
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {

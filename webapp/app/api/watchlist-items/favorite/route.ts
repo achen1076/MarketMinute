@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { invalidateWatchlistCaches } from "@/lib/request-cache";
 
 /**
  * Toggle favorite status for a watchlist item
@@ -47,6 +48,9 @@ export async function POST(req: Request) {
       where: { id: itemId },
       data: { isFavorite },
     });
+
+    // Invalidate cache
+    await invalidateWatchlistCaches(item.watchlist.id);
 
     return NextResponse.json({
       success: true,

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import PricingCard from "./PricingCard";
 import { useTheme } from "@/lib/theme-context";
+import { useUserPreferences } from "@/lib/user-preferences-context";
 
 type Tab = "account" | "preferences" | "support";
 
@@ -82,93 +83,29 @@ export default function SettingsContent({
   const [subscriptionData, setSubscriptionData] =
     useState<SubscriptionData | null>(null);
 
-  // Alert preference
-  const [alertsEnabled, setAlertsEnabled] = useState(true);
+  // Use shared preferences context
+  const { preferences, setTickerColoring, setAlertPreference } =
+    useUserPreferences();
   const [alertLoading, setAlertLoading] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
-
-  // Ticker coloring preference
-  const [tickerColoringEnabled, setTickerColoringEnabled] = useState(true);
   const [tickerColoringMessage, setTickerColoringMessage] = useState("");
 
   useEffect(() => {
     fetchSubscriptionStatus();
-    fetchAlertPreference();
-    fetchTickerColoringPreference();
   }, []);
-
-  const fetchAlertPreference = async () => {
-    try {
-      const res = await fetch("/api/user/alert-preference");
-      if (res.ok) {
-        const data = await res.json();
-        setAlertsEnabled(data.alertPreference !== "off");
-      }
-    } catch (err) {
-      console.error("Failed to fetch alert preference");
-    }
-  };
 
   const handleAlertToggle = async () => {
     setAlertLoading(true);
     setAlertMessage("");
-    const newValue = !alertsEnabled;
-    try {
-      const res = await fetch("/api/user/alert-preference", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ alertPreference: newValue ? "on" : "off" }),
-      });
-      if (res.ok) {
-        setAlertsEnabled(newValue);
-        setAlertMessage(newValue ? "Alerts enabled" : "Alerts disabled");
-      } else {
-        setAlertMessage("Failed to update preference");
-      }
-    } catch (err) {
-      setAlertMessage("An error occurred");
-    } finally {
-      setAlertLoading(false);
-    }
+    const newValue = !preferences.alertPreference;
+    setAlertPreference(newValue);
+    setAlertMessage(newValue ? "Alerts enabled" : "Alerts disabled");
+    setAlertLoading(false);
   };
 
-  const fetchTickerColoringPreference = async () => {
-    try {
-      // Try to fetch from database (for logged-in users)
-      const res = await fetch("/api/user/ticker-coloring");
-      if (res.ok) {
-        const data = await res.json();
-        setTickerColoringEnabled(data.tickerColoring === "on");
-        return;
-      }
-    } catch (error) {
-      // Fall through to localStorage
-    }
-    // Fallback to localStorage
-    const saved = localStorage.getItem("tickerColoringEnabled");
-    if (saved !== null) {
-      setTickerColoringEnabled(saved === "true");
-    }
-  };
-
-  const handleTickerColoringToggle = async () => {
-    const newValue = !tickerColoringEnabled;
-    setTickerColoringEnabled(newValue);
-
-    // Save to localStorage for immediate effect and fallback
-    localStorage.setItem("tickerColoringEnabled", String(newValue));
-
-    // Save to database for logged-in users
-    try {
-      await fetch("/api/user/ticker-coloring", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tickerColoring: newValue ? "on" : "off" }),
-      });
-    } catch (error) {
-      console.error("Failed to save ticker coloring to database:", error);
-    }
-
+  const handleTickerColoringToggle = () => {
+    const newValue = !preferences.tickerColoring;
+    setTickerColoring(newValue);
     setTickerColoringMessage(
       newValue ? "Ticker coloring enabled" : "Ticker coloring disabled"
     );
@@ -563,11 +500,11 @@ export default function SettingsContent({
       {/* Preferences Tab */}
       {activeTab === "preferences" && (
         <ThemeAwarePreferences
-          alertsEnabled={alertsEnabled}
+          alertsEnabled={preferences.alertPreference}
           alertLoading={alertLoading}
           alertMessage={alertMessage}
           handleAlertToggle={handleAlertToggle}
-          tickerColoringEnabled={tickerColoringEnabled}
+          tickerColoringEnabled={preferences.tickerColoring}
           tickerColoringMessage={tickerColoringMessage}
           handleTickerColoringToggle={handleTickerColoringToggle}
         />

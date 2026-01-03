@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { checkLimit, SubscriptionTier } from "@/lib/subscription-tiers";
+import { invalidateWatchlistCaches } from "@/lib/request-cache";
 
 // Add items to watchlist
 export async function POST(req: Request) {
@@ -87,6 +88,9 @@ export async function POST(req: Request) {
     })),
   });
 
+  // Invalidate cache
+  await invalidateWatchlistCaches(watchlistId);
+
   // Return updated watchlist
   const updated = await prisma.watchlist.findUnique({
     where: { id: watchlistId },
@@ -132,6 +136,9 @@ export async function DELETE(req: Request) {
   await prisma.watchlistItem.delete({
     where: { id: itemId },
   });
+
+  // Invalidate cache
+  await invalidateWatchlistCaches(item.watchlistId);
 
   return new NextResponse(null, { status: 204 });
 }

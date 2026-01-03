@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { AlertCircle, TrendingUp, TrendingDown } from "lucide-react";
 import { Accordion } from "@/components/molecules/Accordion";
 import { Badge } from "@/components/atoms/Badge";
@@ -30,12 +30,18 @@ type AlertsSummary = {
 export function MovementAlertsBar({ symbols }: Props) {
   const [summary, setSummary] = useState<AlertsSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const fetchInitiated = useRef<string | null>(null);
 
   useEffect(() => {
     if (symbols.length === 0) {
       setLoading(false);
       return;
     }
+
+    // Prevent duplicate fetch for same symbols
+    const symbolsKey = symbols.sort().join(",");
+    if (fetchInitiated.current === symbolsKey) return;
+    fetchInitiated.current = symbolsKey;
 
     const fetchAlerts = async () => {
       try {

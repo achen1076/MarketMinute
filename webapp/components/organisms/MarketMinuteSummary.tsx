@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useUserPreferences } from "@/lib/user-preferences-context";
 import Card from "@/components/atoms/Card";
 import { Volume2, VolumeX, Loader2 } from "lucide-react";
 import { TICKER_TO_COMPANY } from "@/lib/tickerMappings";
@@ -122,53 +123,14 @@ export function MarketMinuteSummary({ watchlistId }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isTTSLoading, setIsTTSLoading] = useState(false);
-  const [tickerColoringEnabled, setTickerColoringEnabled] = useState(true);
+  const { preferences } = useUserPreferences();
+  const tickerColoringEnabled = preferences.tickerColoring;
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const fetchInitiated = useRef<string | null>(null);
 
-  // Load ticker coloring preference - try DB first, fallback to localStorage
-  useEffect(() => {
-    const loadTickerColoringPreference = async () => {
-      try {
-        // Try to fetch from database (for logged-in users)
-        const res = await fetch("/api/user/ticker-coloring");
-        if (res.ok) {
-          const data = await res.json();
-          setTickerColoringEnabled(data.tickerColoring === "on");
-          return;
-        }
-      } catch (error) {
-        // Not logged in or API error - fall through to localStorage
-      }
-
-      // Fallback to localStorage for non-logged-in users
-      const saved = localStorage.getItem("tickerColoringEnabled");
-      if (saved !== null) {
-        setTickerColoringEnabled(saved === "true");
-      }
-    };
-
-    loadTickerColoringPreference();
-
-    // Listen for changes to localStorage from settings page
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "tickerColoringEnabled" && e.newValue !== null) {
-        setTickerColoringEnabled(e.newValue === "true");
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
-
-  const fetchSummary = async () => {
-    if (!watchlistId) {
-      setLoading(false);
-      setSummary(null);
-      return;
-    }
-
+  const fetchSummary = async (wlId: string) => {
     try {
-      const res = await fetch(`/api/summary?watchlistId=${watchlistId}`);
+      const res = await fetch(`/api/summary?watchlistId=${wlId}`);
       if (!res.ok) throw new Error("Failed to fetch summary");
       const data: SummaryData = await res.json();
       setSummary(data);
@@ -188,8 +150,12 @@ export function MarketMinuteSummary({ watchlistId }: Props) {
       return;
     }
 
+    // Prevent duplicate fetch for same watchlistId
+    if (fetchInitiated.current === watchlistId) return;
+    fetchInitiated.current = watchlistId;
+
     setLoading(true);
-    fetchSummary();
+    fetchSummary(watchlistId);
   }, [watchlistId]);
 
   const handleTextToSpeech = async () => {
