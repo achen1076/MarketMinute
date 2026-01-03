@@ -71,8 +71,8 @@ html {
   --ring: #059669;
 
   /* Market colors for light mode */
-  --market-up: #059669;
-  --market-down: #dc2626;
+  --market-up: #4ed6a3;
+  --market-down: #e65c4b;
   --market-neutral: #64748b;
 
   /* Extended colors */
