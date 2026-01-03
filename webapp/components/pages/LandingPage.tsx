@@ -124,8 +124,8 @@ export default function LandingPage() {
           <p className="text-lg md:text-xl text-muted-foreground mb-6 max-w-3xl mx-auto">
             Stop spending hours reading financial news. MarketMinute uses AI to
             analyze your portfolio and explain exactly why your stocks moved, in
-            plain English, delivered in minutes. Custom insights and signals
-            tailored to your watchlist using custom trained models.
+            plain English, delivered in minutes. Perfect for new investors
+            starting out or busy investors who want to make informed decisions.
           </p>
 
           <div className="flex flex-wrap gap-4 justify-center text-sm text-muted-foreground mb-10">
@@ -210,6 +210,99 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Why Choose MarketMinute Section */}
+      <section className="px-4 py-16 border-t border-border">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-4xl font-bold text-foreground mb-4">
+              Why Choose MarketMinute?
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            <div className="p-6 rounded-2xl bg-muted/50 border border-border">
+              <h3 className="text-xl font-semibold text-foreground mb-3">
+                Built for New or Busy Investors
+              </h3>
+              <p className="text-muted-foreground">
+                Get your daily market brief in under 5 minutes. No need to open
+                10 tabs or scroll through endless headlines. Everything in one
+                place. Told to you in simple to understand language.
+              </p>
+            </div>
+            <div className="p-6 rounded-2xl bg-muted/50 border border-border">
+              <h3 className="text-xl font-semibold text-foreground mb-3">
+                Personalized for Your Watchlist
+              </h3>
+              <p className="text-muted-foreground">
+                Unlike generic market apps, every insight is tailored to the
+                stocks you actually own. No clutter, no noise—just relevant
+                information that matters to you.
+              </p>
+            </div>
+            <div className="p-6 rounded-2xl bg-muted/50 border border-border">
+              <h3 className="text-xl font-semibold text-foreground mb-3">
+                AI That Explains &quot;Why&quot;
+              </h3>
+              <p className="text-muted-foreground">
+                We don&apos;t just show you what happened. Our AI explains the
+                reasons behind price movements with news citations and context
+                you can actually understand.
+              </p>
+            </div>
+            <div className="p-6 rounded-2xl bg-muted/50 border border-border">
+              <h3 className="text-xl font-semibold text-foreground mb-3">
+                Institutional Tools, For Free
+              </h3>
+              <p className="text-muted-foreground">
+                Access quant analytics, price forecasts, and real-time data that
+                used to require expensive professional tools now accessible to
+                everyone.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 p-8 rounded-2xl bg-muted/50 border border-border">
+            <div className="text-center">
+              <div className="w-14 h-14 rounded-xl bg-teal-500/10 flex items-center justify-center mx-auto mb-4">
+                <Shield className="w-7 h-7 text-teal-400" />
+              </div>
+              <h4 className="text-lg font-semibold text-foreground mb-2">
+                No Credit Card Required
+              </h4>
+              <p className="text-muted-foreground text-sm">
+                Start tracking your portfolio immediately. No payment info
+                needed to get started.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-14 h-14 rounded-xl bg-cyan-500/10 flex items-center justify-center mx-auto mb-4">
+                <Clock className="w-7 h-7 text-cyan-400" />
+              </div>
+              <h4 className="text-lg font-semibold text-foreground mb-2">
+                Save Hours Every Week
+              </h4>
+              <p className="text-muted-foreground text-sm">
+                Get your daily brief in minutes instead of hours of research
+                across multiple sites.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-14 h-14 rounded-xl bg-purple-500/10 flex items-center justify-center mx-auto mb-4">
+                <Users className="w-7 h-7 text-purple-400" />
+              </div>
+              <h4 className="text-lg font-semibold text-foreground mb-2">
+                Built for Retail Investors
+              </h4>
+              <p className="text-muted-foreground text-sm">
+                Institutional-quality insights without the complexity or
+                $100+/mo price tags.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Core Features Section */}
       <section className="px-4 py-16 border-t border-border">
         <div className="max-w-6xl mx-auto">
@@ -228,13 +321,25 @@ export default function LandingPage() {
               icon={<Sparkles className="w-6 h-6 text-teal-400" />}
               iconBg="bg-teal-500/10"
               title="AI-Powered Summaries"
-              description="Get personalized daily briefs that explain why your stocks moved. Our AI reads news and distills it into clear, actionable insights—no jargon."
+              description="Get personalized daily briefs that explain why your stocks moved. Our AI reads news and distills it into clear, actionable insights, no jargon."
             />
             <FeatureCard
-              icon={<Bell className="w-6 h-6 text-cyan-400" />}
-              iconBg="bg-cyan-500/10"
-              title="Smart Alerts"
-              description="Never miss important events. Get instant alerts for earnings, unusual volume, price milestones, and breaking news—all tailored to your watchlist."
+              icon={<Clock className="w-6 h-6 text-indigo-400" />}
+              iconBg="bg-indigo-500/10"
+              title="Real-Time Data"
+              description="Live prices, volume, and market indicators updated every second. Stay current without constantly refreshing."
+            />
+            <FeatureCard
+              icon={<Target className="w-6 h-6 text-rose-400" />}
+              iconBg="bg-rose-500/10"
+              title="Custom Watchlists"
+              description="Create custom watchlists and star your most important holdings. Get deeper insights on what matters most to you."
+            />
+            <FeatureCard
+              icon={<BarChart3 className="w-6 h-6 text-amber-400" />}
+              iconBg="bg-amber-500/10"
+              title="Quant Analytics"
+              description="Access model powered analytics: technical indicators, volatility metrics, momentum scores, and pattern recognition, all in one place."
             />
             <FeatureCard
               icon={<LineChart className="w-6 h-6 text-purple-400" />}
@@ -243,22 +348,10 @@ export default function LandingPage() {
               description="Data-driven price forecasts based on decades of market history. See where your stocks might be headed with quantitative models."
             />
             <FeatureCard
-              icon={<BarChart3 className="w-6 h-6 text-amber-400" />}
-              iconBg="bg-amber-500/10"
-              title="Quant Analytics"
-              description="Access institutional-grade analytics: technical indicators, volatility metrics, momentum scores, and pattern recognition—all in one place."
-            />
-            <FeatureCard
-              icon={<Target className="w-6 h-6 text-rose-400" />}
-              iconBg="bg-rose-500/10"
-              title="Custom Watchlists"
-              description="Create unlimited watchlists and star your most important holdings. Get deeper insights on what matters most to you."
-            />
-            <FeatureCard
-              icon={<Clock className="w-6 h-6 text-indigo-400" />}
-              iconBg="bg-indigo-500/10"
-              title="Real-Time Data"
-              description="Live prices, volume, and market indicators updated every 30 seconds. Stay current without constantly refreshing."
+              icon={<Bell className="w-6 h-6 text-cyan-400" />}
+              iconBg="bg-cyan-500/10"
+              title="Chat Agent"
+              description="Custom chat agent for you and your watchlist. Get recommendations and insights based on your watchlist. Create and modify watchlists."
             />
           </div>
 
@@ -350,99 +443,6 @@ export default function LandingPage() {
                 "Create and manage watchlists",
               ]}
             />
-          </div>
-        </div>
-      </section>
-
-      {/* Why Choose MarketMinute Section */}
-      <section className="px-4 py-16 border-t border-border">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-4xl font-bold text-foreground mb-4">
-              Why Choose MarketMinute?
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8 mb-12">
-            <div className="p-6 rounded-2xl bg-muted/50 border border-border">
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                Personalized for Your Watchlist
-              </h3>
-              <p className="text-muted-foreground">
-                Unlike generic market apps, every insight is tailored to the
-                stocks you actually own. No clutter, no noise—just relevant
-                information that matters to you.
-              </p>
-            </div>
-            <div className="p-6 rounded-2xl bg-muted/50 border border-border">
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                AI That Explains &quot;Why&quot;
-              </h3>
-              <p className="text-muted-foreground">
-                We don&apos;t just show you what happened. Our AI explains the
-                reasons behind price movements with news citations and context
-                you can actually understand.
-              </p>
-            </div>
-            <div className="p-6 rounded-2xl bg-muted/50 border border-border">
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                Built for Busy Investors
-              </h3>
-              <p className="text-muted-foreground">
-                Get your daily market brief in under 5 minutes. No need to open
-                10 tabs or scroll through endless headlines. Everything in one
-                place.
-              </p>
-            </div>
-            <div className="p-6 rounded-2xl bg-muted/50 border border-border">
-              <h3 className="text-xl font-semibold text-foreground mb-3">
-                Institutional Tools, Retail Price
-              </h3>
-              <p className="text-muted-foreground">
-                Access quant analytics, price forecasts, and real-time data that
-                used to require expensive professional tools—now accessible to
-                everyone.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 p-8 rounded-2xl bg-muted/50 border border-border">
-            <div className="text-center">
-              <div className="w-14 h-14 rounded-xl bg-teal-500/10 flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-7 h-7 text-teal-400" />
-              </div>
-              <h4 className="text-lg font-semibold text-foreground mb-2">
-                No Credit Card Required
-              </h4>
-              <p className="text-muted-foreground text-sm">
-                Start tracking your portfolio immediately. No payment info
-                needed to get started.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-14 h-14 rounded-xl bg-cyan-500/10 flex items-center justify-center mx-auto mb-4">
-                <Clock className="w-7 h-7 text-cyan-400" />
-              </div>
-              <h4 className="text-lg font-semibold text-foreground mb-2">
-                Save Hours Every Week
-              </h4>
-              <p className="text-muted-foreground text-sm">
-                Get your daily brief in minutes instead of hours of research
-                across multiple sites.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="w-14 h-14 rounded-xl bg-purple-500/10 flex items-center justify-center mx-auto mb-4">
-                <Users className="w-7 h-7 text-purple-400" />
-              </div>
-              <h4 className="text-lg font-semibold text-foreground mb-2">
-                Built for Retail Investors
-              </h4>
-              <p className="text-muted-foreground text-sm">
-                Institutional-quality insights without the complexity or
-                $100+/mo price tags.
-              </p>
-            </div>
           </div>
         </div>
       </section>
