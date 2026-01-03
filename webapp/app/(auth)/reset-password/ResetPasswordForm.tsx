@@ -99,7 +99,7 @@ export default function ResetPasswordForm() {
         </div>
         <Link
           href="/forgot-password"
-          className="block text-center text-teal-400 hover:text-teal-300 transition-colors"
+          className="block text-center text-primary hover:text-primary/80 transition-colors"
         >
           Request new reset link →
         </Link>
@@ -124,7 +124,7 @@ export default function ResetPasswordForm() {
       <div>
         <label
           htmlFor="password"
-          className="block text-sm font-medium text-slate-300 mb-2"
+          className="block text-sm font-medium text-foreground mb-2"
         >
           New Password
         </label>
@@ -135,11 +135,11 @@ export default function ResetPasswordForm() {
           onChange={(e) => setPassword(e.target.value)}
           required
           minLength={8}
-          className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+          className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           placeholder="••••••••"
           disabled={isLoading}
         />
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-muted-foreground">
           Must be at least 8 characters
         </p>
       </div>
@@ -147,7 +147,7 @@ export default function ResetPasswordForm() {
       <div>
         <label
           htmlFor="confirmPassword"
-          className="block text-sm font-medium text-slate-300 mb-2"
+          className="block text-sm font-medium text-foreground mb-2"
         >
           Confirm Password
         </label>
@@ -158,7 +158,7 @@ export default function ResetPasswordForm() {
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
           minLength={8}
-          className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+          className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           placeholder="••••••••"
           disabled={isLoading}
         />
@@ -169,7 +169,7 @@ export default function ResetPasswordForm() {
         variant="primary"
         fullWidth
         disabled={isLoading}
-        className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-3"
+        className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3"
       >
         {isLoading ? "Resetting..." : "Reset Password"}
       </Button>

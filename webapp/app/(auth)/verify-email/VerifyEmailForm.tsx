@@ -132,7 +132,7 @@ export default function VerifyEmailForm() {
         </div>
         <Link
           href="/signin"
-          className="block text-center text-teal-400 hover:text-teal-300 transition-colors"
+          className="block text-center text-primary hover:text-primary/80 transition-colors"
         >
           Go to sign in →
         </Link>
@@ -160,8 +160,10 @@ export default function VerifyEmailForm() {
         <div className="text-center">
           {isLoading ? (
             <div className="py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-500 mx-auto"></div>
-              <p className="mt-4 text-slate-400">Verifying your email...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">
+                Verifying your email...
+              </p>
             </div>
           ) : (
             message?.type !== "success" && (
@@ -170,7 +172,7 @@ export default function VerifyEmailForm() {
                 variant="primary"
                 fullWidth
                 disabled={isLoading}
-                className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-3"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3"
               >
                 Verify Email
               </Button>
@@ -179,7 +181,7 @@ export default function VerifyEmailForm() {
         </div>
       ) : (
         <div className="space-y-4">
-          <p className="text-slate-400 text-sm text-center">
+          <p className="text-muted-foreground text-sm text-center">
             Didn't receive the verification email?
           </p>
           <Button

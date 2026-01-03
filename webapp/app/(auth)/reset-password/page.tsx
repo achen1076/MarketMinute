@@ -19,12 +19,12 @@ export default async function ResetPasswordPage() {
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-10rem)] px-4">
       <div className="w-full max-w-md">
-        <div className="bg-slate-900/50 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl p-8">
+        <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-white mb-2">
+            <h1 className="text-2xl font-bold text-foreground mb-2">
               Reset Password
             </h1>
-            <p className="text-slate-400">Enter your new password</p>
+            <p className="text-muted-foreground">Enter your new password</p>
           </div>
 
           <ResetPasswordForm />
@@ -32,7 +32,7 @@ export default async function ResetPasswordPage() {
           <div className="mt-6 text-center">
             <Link
               href="/signin"
-              className="text-sm text-teal-400 hover:text-teal-300 transition-colors"
+              className="text-sm text-primary hover:text-primary/80 transition-colors"
             >
               ← Back to sign in
             </Link>

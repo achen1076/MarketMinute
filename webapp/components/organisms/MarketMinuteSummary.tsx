@@ -125,12 +125,29 @@ export function MarketMinuteSummary({ watchlistId }: Props) {
   const [tickerColoringEnabled, setTickerColoringEnabled] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Load ticker coloring preference from localStorage
+  // Load ticker coloring preference - try DB first, fallback to localStorage
   useEffect(() => {
-    const saved = localStorage.getItem("tickerColoringEnabled");
-    if (saved !== null) {
-      setTickerColoringEnabled(saved === "true");
-    }
+    const loadTickerColoringPreference = async () => {
+      try {
+        // Try to fetch from database (for logged-in users)
+        const res = await fetch("/api/user/ticker-coloring");
+        if (res.ok) {
+          const data = await res.json();
+          setTickerColoringEnabled(data.tickerColoring === "on");
+          return;
+        }
+      } catch (error) {
+        // Not logged in or API error - fall through to localStorage
+      }
+
+      // Fallback to localStorage for non-logged-in users
+      const saved = localStorage.getItem("tickerColoringEnabled");
+      if (saved !== null) {
+        setTickerColoringEnabled(saved === "true");
+      }
+    };
+
+    loadTickerColoringPreference();
 
     // Listen for changes to localStorage from settings page
     const handleStorageChange = (e: StorageEvent) => {

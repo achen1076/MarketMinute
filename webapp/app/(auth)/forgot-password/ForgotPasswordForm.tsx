@@ -64,7 +64,7 @@ export default function ForgotPasswordForm() {
       <div>
         <label
           htmlFor="email"
-          className="block text-sm font-medium text-slate-300 mb-2"
+          className="block text-sm font-medium text-foreground mb-2"
         >
           Email Address
         </label>
@@ -74,7 +74,7 @@ export default function ForgotPasswordForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+          className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
           placeholder="you@example.com"
           disabled={isLoading}
         />
@@ -85,7 +85,7 @@ export default function ForgotPasswordForm() {
         variant="primary"
         fullWidth
         disabled={isLoading}
-        className="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-3"
+        className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-3"
       >
         {isLoading ? "Sending..." : "Send Reset Link"}
       </Button>

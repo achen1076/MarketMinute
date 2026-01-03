@@ -132,17 +132,43 @@ export default function SettingsContent({
     }
   };
 
-  const fetchTickerColoringPreference = () => {
+  const fetchTickerColoringPreference = async () => {
+    try {
+      // Try to fetch from database (for logged-in users)
+      const res = await fetch("/api/user/ticker-coloring");
+      if (res.ok) {
+        const data = await res.json();
+        setTickerColoringEnabled(data.tickerColoring === "on");
+        return;
+      }
+    } catch (error) {
+      // Fall through to localStorage
+    }
+    // Fallback to localStorage
     const saved = localStorage.getItem("tickerColoringEnabled");
     if (saved !== null) {
       setTickerColoringEnabled(saved === "true");
     }
   };
 
-  const handleTickerColoringToggle = () => {
+  const handleTickerColoringToggle = async () => {
     const newValue = !tickerColoringEnabled;
     setTickerColoringEnabled(newValue);
+
+    // Save to localStorage for immediate effect and fallback
     localStorage.setItem("tickerColoringEnabled", String(newValue));
+
+    // Save to database for logged-in users
+    try {
+      await fetch("/api/user/ticker-coloring", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tickerColoring: newValue ? "on" : "off" }),
+      });
+    } catch (error) {
+      console.error("Failed to save ticker coloring to database:", error);
+    }
+
     setTickerColoringMessage(
       newValue ? "Ticker coloring enabled" : "Ticker coloring disabled"
     );
@@ -611,6 +637,22 @@ function ThemeAwarePreferences({
     { value: "system" as const, label: "System", icon: Monitor },
   ];
 
+  const handleThemeChange = async (newTheme: "light" | "dark" | "system") => {
+    setTheme(newTheme);
+    // Also save to localStorage for when logged out
+    localStorage.setItem("theme", newTheme);
+    // Save to database for account persistence
+    try {
+      await fetch("/api/user/theme", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ theme: newTheme }),
+      });
+    } catch (error) {
+      console.error("Failed to save theme to database:", error);
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Theme Preference */}
@@ -626,7 +668,7 @@ function ThemeAwarePreferences({
           {themeOptions.map((option) => (
             <button
               key={option.value}
-              onClick={() => setTheme(option.value)}
+              onClick={() => handleThemeChange(option.value)}
               className={`flex items-center justify-center sm:justify-start gap-2 px-4 py-2.5 sm:py-3 rounded-lg border transition-all w-full sm:w-auto ${
                 theme === option.value
                   ? "border-primary bg-primary/10 text-primary"

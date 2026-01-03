@@ -26,6 +26,12 @@ model User {
   // Alert preferences
   alertPreference  String?      @default("on") @map("alert_preference") // "on", "off"
 
+  // Theme preference
+  theme            String?      @default("system") // "light", "dark", "system"
+
+  // Ticker coloring preference
+  tickerColoring   String?      @default("on") @map("ticker_coloring") // "on", "off"
+
   // Subscription fields
   subscriptionTier   String?    @default("free") @map("subscription_tier") // "free", "basic", "pro", etc.
   stripeCustomerId   String?    @unique @map("stripe_customer_id")
