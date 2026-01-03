@@ -24,8 +24,8 @@ export function AlertCard({ symbol, message, type, badge }: AlertCardProps) {
     <div className={`p-3 rounded-lg border ${typeStyles[type]}`}>
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <div className="font-semibold text-slate-100">{symbol}</div>
-          <div className="text-sm text-slate-300 mt-1">{message}</div>
+          <div className="font-semibold text-foreground">{symbol}</div>
+          <div className="text-sm text-foreground/80 mt-1">{message}</div>
         </div>
         {badge && <div className="ml-3">{badge}</div>}
       </div>

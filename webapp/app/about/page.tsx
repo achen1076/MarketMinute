@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { auth } from "@/auth";
+import SupportForm from "../support/SupportForm";
 
 export const metadata: Metadata = {
   title: "About - MarketMinute",
@@ -92,27 +93,27 @@ export default async function AboutPage() {
           </h2>
           <div className="grid gap-4 md:grid-cols-2">
             <FeatureCard
-              title="📰 Your Daily Brief"
+              title="Your Daily Brief"
               description="AI-powered summaries that explain why your stocks moved. No jargon, no fluff—just the facts."
             />
             <FeatureCard
-              title="🎯 Smart Prioritization"
+              title="Smart Prioritization"
               description="Star your most important holdings. Get deeper insights on what matters most to you."
             />
             <FeatureCard
-              title="🔮 Price Forecasts"
+              title="Price Forecasts"
               description="Data-driven predictions for where your stocks might be headed, backed by decades of market history."
             />
             <FeatureCard
-              title="🔔 Never Miss a Beat"
+              title="Never Miss a Beat"
               description="Automatic alerts for earnings, unusual volume, and price milestones—so you're always in the loop."
             />
             <FeatureCard
-              title="🤖 Sentinel AI"
+              title="Sentinel AI"
               description="Your personal market analyst. Spots unusual patterns, tracks volatility shifts, and flags opportunities."
             />
             <FeatureCard
-              title="⚡ Real-time Updates"
+              title="Real-time Updates"
               description="Live prices and breaking news, refreshed every 30 seconds. Stay current without constantly refreshing."
             />
           </div>
@@ -126,7 +127,7 @@ export default async function AboutPage() {
           <div className="space-y-4 text-muted-foreground">
             <div>
               <h3 className="font-semibold mb-2 text-foreground">
-                💼 Busy Professionals
+                Busy Professionals
               </h3>
               <p>
                 You want to stay invested but don't have hours to research. Get
@@ -136,7 +137,7 @@ export default async function AboutPage() {
             </div>
             <div>
               <h3 className="font-semibold mb-2 text-foreground">
-                📚 Active Learners
+                Active Learners
               </h3>
               <p>
                 You're building your investing knowledge and want to understand
@@ -146,7 +147,7 @@ export default async function AboutPage() {
             </div>
             <div>
               <h3 className="font-semibold mb-2 text-foreground">
-                🎯 Focused Investors
+                Focused Investors
               </h3>
               <p>
                 You track 10–50 stocks and want a single dashboard that brings

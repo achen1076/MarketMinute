@@ -48,7 +48,7 @@ export default async function ForecastsPage() {
             <h2 className="text-lg font-bold text-teal-500 mb-2">
               Market Forecasts – Probabilistic Analysis
             </h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-foreground/80 leading-relaxed">
               <strong>Educational Tool:</strong> These forecasts show expected
               price ranges and probability distributions based on historical
               volatility and model predictions. Use as one of many inputs for

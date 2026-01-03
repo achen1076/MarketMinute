@@ -464,7 +464,7 @@ export default function LandingPage() {
               <ExampleStep
                 time="9:30 AM"
                 action="Market opens, you check your dashboard"
-                result="See NVDA is up 3.2% on earnings beat, MSFT flat, AAPL down 1.1% on analyst downgrade—all at a glance"
+                result="See NVDA is up 3.2% on earnings beat, MSFT flat, AAPL down 1.1% on analyst downgrade, all at a glance"
               />
               <ExampleStep
                 time="9:35 AM"

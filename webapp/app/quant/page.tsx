@@ -48,7 +48,7 @@ export default async function QuantLabPage() {
             <h2 className="text-lg font-bold text-amber-500 mb-2">
               Quant Lab – Educational & Research Tool
             </h2>
-            <p className="text-sm text-slate-300 leading-relaxed">
+            <p className="text-sm text-foreground/80 leading-relaxed">
               <strong>Not Financial Advice:</strong> All model outputs are
               hypothetical probabilities based on historical patterns. Past
               performance does not guarantee future results. These tools are for

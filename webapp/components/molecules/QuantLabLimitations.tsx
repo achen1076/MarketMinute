@@ -42,7 +42,7 @@ export function QuantLabLimitations() {
             • <strong>Model Quality Varies:</strong> Not every model can be
             great. Each ticker has its own model trained on historical data.
             Some stocks are more predictable than others. Quality ratings (Best,
-            Excellent, Good, Losing) reflect backtested performance and are
+            Excellent, Good, Low Quality) reflect backtested performance and are
             updated with each retrain.
           </li>
           <li>
@@ -61,7 +61,8 @@ export function QuantLabLimitations() {
             • <strong>Past ≠ Future:</strong> Models learn from historical
             patterns. If market dynamics change (regime shift, new regulations,
             unprecedented events), historical patterns may not hold. Model
-            quality can improve or degrade over time as markets evolve.
+            quality can improve or degrade over time as markets evolve and
+            models are retrained.
           </li>
           <li>
             • <strong>Probability, Not Certainty:</strong> A 70% confidence

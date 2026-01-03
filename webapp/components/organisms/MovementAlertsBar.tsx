@@ -91,7 +91,7 @@ export function MovementAlertsBar({ symbols }: Props) {
           <div className="flex items-start gap-3">
             <AlertCircle className="mt-0.5 shrink-0 text-amber-400" size={18} />
             <div className="flex-1">
-              <h3 className="text-sm font-semibold text-slate-200">
+              <h3 className="text-sm font-semibold text-foreground">
                 Today's Alerts
               </h3>
               <div className="mt-2 flex flex-wrap gap-3">

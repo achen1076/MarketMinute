@@ -122,7 +122,7 @@ export function QuantLabMethodology() {
           </details>
 
           {/* Technical Details Subsection */}
-          <details className="mt-4">
+          {/* <details className="mt-4">
             <summary className="cursor-pointer text-muted-foreground hover:text-teal-400 transition-colors text-xs">
               Model Architecture (Technical)
             </summary>
@@ -145,7 +145,7 @@ export function QuantLabMethodology() {
                 to 20 years of daily OHLCV data per symbol
               </p>
             </div>
-          </details>
+          </details> */}
         </div>
       )}
     </Card>
