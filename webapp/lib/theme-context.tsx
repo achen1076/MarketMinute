@@ -15,6 +15,7 @@ interface ThemeContextType {
   theme: Theme;
   resolvedTheme: ResolvedTheme;
   setTheme: (theme: Theme) => void;
+  refreshTheme: () => Promise<void>;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -32,30 +33,36 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("system");
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("dark");
   const [mounted, setMounted] = useState(false);
+  const [themeLoaded, setThemeLoaded] = useState(false);
+
+  const fetchTheme = async () => {
+    try {
+      const res = await fetch("/api/user/theme");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.theme && ["light", "dark", "system"].includes(data.theme)) {
+          setThemeState(data.theme);
+          return;
+        }
+      }
+    } catch {
+      // Fall through to localStorage
+    }
+    // Fall back to localStorage if not logged in or fetch fails
+    const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+    if (stored && ["light", "dark", "system"].includes(stored)) {
+      setThemeState(stored);
+    }
+  };
+
+  // Function to refresh theme (call after login)
+  const refreshTheme = async () => {
+    await fetchTheme();
+  };
 
   useEffect(() => {
     setMounted(true);
-
-    // Try to fetch from database first (for logged-in users)
-    fetch("/api/user/theme")
-      .then((res) => {
-        if (res.ok) {
-          return res.json();
-        }
-        throw new Error("Not authenticated or fetch failed");
-      })
-      .then((data) => {
-        if (data.theme && ["light", "dark", "system"].includes(data.theme)) {
-          setThemeState(data.theme);
-        }
-      })
-      .catch(() => {
-        // Fall back to localStorage if not logged in or fetch fails
-        const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
-        if (stored && ["light", "dark", "system"].includes(stored)) {
-          setThemeState(stored);
-        }
-      });
+    fetchTheme().finally(() => setThemeLoaded(true));
   }, []);
 
   useEffect(() => {
@@ -98,19 +105,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  // Prevent flash of wrong theme
-  if (!mounted) {
-    return (
-      <ThemeContext.Provider
-        value={{ theme: "dark", resolvedTheme: "dark", setTheme }}
-      >
-        {children}
-      </ThemeContext.Provider>
-    );
+  // Block rendering until theme is loaded to prevent flash
+  if (!mounted || !themeLoaded) {
+    return null;
   }
 
   return (
-    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>
+    <ThemeContext.Provider
+      value={{ theme, resolvedTheme, setTheme, refreshTheme }}
+    >
       {children}
     </ThemeContext.Provider>
   );

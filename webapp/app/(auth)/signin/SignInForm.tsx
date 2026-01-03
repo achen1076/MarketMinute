@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Lock, AlertCircle, CheckCircle } from "lucide-react";
+import { useTheme } from "@/lib/theme-context";
 
 export default function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { refreshTheme } = useTheme();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -65,6 +67,7 @@ export default function SignInForm() {
             "Account created, but sign in failed. Please try signing in."
           );
         } else {
+          await refreshTheme();
           router.push("/");
           router.refresh();
         }
@@ -105,6 +108,7 @@ export default function SignInForm() {
           // At this point, it's likely a password error
           setError("Incorrect password. Please try again.");
         } else {
+          await refreshTheme();
           router.push("/");
           router.refresh();
         }
