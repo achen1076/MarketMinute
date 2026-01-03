@@ -23,7 +23,7 @@ export function ModelQualityFilter({ value, onChange, filteredCount }: Props) {
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as QualityFilterValue)}
-        className="px-3 py-2 rounded-lg text-sm bg-background text-foreground border border-border hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
+        className="px-3 py-2 rounded-lg text-sm bg-muted text-foreground border border-border focus:outline-none focus:ring-2 focus:ring-primary/50"
       >
         <option value="all">All Models</option>
         <option value="deployable">Recommended (Best + Excellent)</option>

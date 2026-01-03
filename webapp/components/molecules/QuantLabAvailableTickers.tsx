@@ -679,7 +679,7 @@ export function QuantLabAvailableTickers() {
                   onChange={(e) =>
                     setQualityFilter(e.target.value as typeof qualityFilter)
                   }
-                  className="px-3 py-2 rounded-lg text-sm bg-foreground/5 text-foreground/50 border border-border hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="px-3 py-2 rounded-lg text-sm bg-muted text-foreground/50 border border-border focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
                   <option value="all">All Quality</option>
                   <option value="excellent">Best</option>
