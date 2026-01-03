@@ -162,8 +162,6 @@ export async function buildSummary(
     };
   });
 
-  // For large watchlists, also include basic info for symbols without detailed news
-  // This helps LLM understand full watchlist context
   const symbolsWithoutDetailedNews: Record<
     string,
     { changePct: number; price: number }

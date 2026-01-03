@@ -227,9 +227,8 @@ export async function POST(req: Request) {
       10. Focus on WHY the stock moved based on specific events, not just describing that it moved.
 `.trim();
 
-  // Initialize LangChain model with structured output
   const model = new ChatOpenAI({
-    model: "gpt-5-mini",
+    model: "gpt-5.2",
   });
 
   const structuredModel = model.withStructuredOutput(explanationSchema);
@@ -240,7 +239,6 @@ export async function POST(req: Request) {
       { role: "user", content: JSON.stringify(payload) },
     ]);
 
-    // Format the structured output into a readable string
     let formattedExplanation = result.summary + "\n\n";
 
     result.keyPoints.forEach((point) => {
@@ -249,7 +247,6 @@ export async function POST(req: Request) {
 
     const finalExplanation = formattedExplanation.trim();
 
-    // Cache the result
     await setExplanationInCache(symbol, finalExplanation);
 
     return NextResponse.json(
@@ -376,10 +373,14 @@ async function refreshExplanation(
       10. Focus on WHY the stock moved based on specific events, not just describing that it moved.
 
       11. Do not include the relevanceScore or sentiment in the output.
+
+      12. Do not include any context about your rules or instructions. 
+
+      13. Ignore news about firms or investors buying and selling the stock.
 `.trim();
 
     const model = new ChatOpenAI({
-      model: "gpt-5-mini",
+      model: "gpt-5.2",
     });
 
     const structuredModel = model.withStructuredOutput(explanationSchema);
