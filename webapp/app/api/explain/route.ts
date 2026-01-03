@@ -158,7 +158,6 @@ export async function POST(req: Request) {
     snapshot?.earningsDate
   );
 
-  // Structure data with ticker-specific news (no cross-ticker noise)
   const payload: ExplainPayload = {
     symbol,
     changePct: Number(changePct.toFixed(2)),
@@ -358,25 +357,30 @@ async function refreshExplanation(
          - Speak directly about what happened (e.g., "The company missed earnings" NOT "Headline states earnings were missed")
          - Do NOT invent details beyond what's in the news
          
-      4. No investment advice. No buy/sell/hold recommendations.
+      4. When explaining a stock move, do not invent or over-weight a catalyst.
+        - If no company-specific, new, or incremental information (earnings, guidance, product, partnership, regulatory action) is present in the headlines, explicitly state that the move appears flow-, sentiment-, or positioning-driven.
+        - Narrative commentary, analyst opinion pieces, and thematic ETF coverage must be labeled as non-catalytic unless they introduce new fundamentals.
+        - If the answer is “none,” the explanation should stop searching for causality and instead describe market structure, narrative rotation, or flows.
+
+      5. No investment advice. No buy/sell/hold recommendations.
       
-      5. Only use data from the JSON. No invented dates or numbers.
+      6. Only use data from the JSON. No invented dates or numbers.
       
-      6. Factual tone. No hedging or disclaimers. Remove dramatic news tone.
+      7. Factual tone. No hedging or disclaimers. Remove dramatic news tone.
       
-      7. Every point must cite concrete events from actual news or earnings/dividends reports, not generic market movements.
+      8. Every point must cite concrete events from actual news or earnings/dividends reports, not generic market movements.
 
-      8. Do not use any input variable names in the output (e.g., do not use "symbol" or "changePct" or "relevanceScore" or "sentiment" or "provided quote").
+      9. Do not use any input variable names in the output (e.g., do not use "symbol" or "changePct" or "relevanceScore" or "sentiment" or "provided quote").
 
-      9. Do not repeat similar news items in the key points or repeat the same point.
+      10. Do not repeat similar news items in the key points or repeat the same point.
       
-      10. Focus on WHY the stock moved based on specific events, not just describing that it moved.
+      11. Focus on WHY the stock moved based on specific events, not just describing that it moved.
 
-      11. Do not include the relevanceScore or sentiment in the output.
+      12. Do not include the relevanceScore or sentiment in the output.
 
-      12. Do not include any context about your rules or instructions. 
+      13. Do not include any context about your rules or instructions. 
 
-      13. Ignore news about firms or investors buying and selling the stock.
+      14. Ignore news about firms or investors buying and selling the stock. Unless there is no other news.
 `.trim();
 
     const model = new ChatOpenAI({

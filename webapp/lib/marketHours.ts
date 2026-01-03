@@ -245,7 +245,8 @@ export function isWeekend(): boolean {
  * Get cache TTL in seconds for market price snapshots
  * Market hours (9:30-4): 5 seconds
  * Pre-market and after-hours: 60 seconds (1 minute)
- * Overnight (8pm-4am) and weekends: 300 seconds (5 minutes), max 24 hours
+ * Weekday overnight (8pm-4am): 300 seconds (5 minutes)
+ * Weekend (Fri 8pm -> Sun overnight): cache until next premarket, max 24 hours
  */
 export function getTickerCacheTTL(defaultTTL: number = 5): number {
   if (isMarketOpen()) {
@@ -256,8 +257,34 @@ export function getTickerCacheTTL(defaultTTL: number = 5): number {
     return 60;
   }
 
-  // Overnight or weekend - use 5 min cache, capped at 24 hours
+  if (isWeekend() || isWeekendOvernight()) {
+    const now = new Date();
+    const nextPremarket = getNextPreMarket();
+    const secondsUntilPremarket = Math.floor(
+      (nextPremarket.getTime() - now.getTime()) / 1000
+    );
+    return Math.min(secondsUntilPremarket - CACHE_CUSHION_SECONDS, 86400);
+  }
+
   return 300;
+}
+
+/**
+ * Check if we're in weekend overnight period (Friday after 8pm or Saturday)
+ */
+function isWeekendOvernight(): boolean {
+  const now = new Date();
+  const etTime = new Date(
+    now.toLocaleString("en-US", { timeZone: "America/New_York" })
+  );
+  const day = etTime.getDay();
+  const hour = etTime.getHours();
+
+  if (day === 5 && hour >= 20) {
+    return true;
+  }
+
+  return false;
 }
 
 /**
@@ -290,7 +317,6 @@ export function getSummaryCacheTTL(defaultTTL: number = 3600): number {
     return defaultTTL;
   }
 
-  // Pre-market, overnight, or weekend - cache until market open
   const now = new Date();
   const nextOpen = getNextMarketOpen();
   const secondsUntilOpen = Math.floor(
@@ -311,7 +337,6 @@ export function getExplainCacheTTL(defaultTTL: number = 1800): number {
     return defaultTTL;
   }
 
-  // Pre-market, overnight, or weekend - cache until market open
   const now = new Date();
   const nextOpen = getNextMarketOpen();
   const secondsUntilOpen = Math.floor(

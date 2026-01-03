@@ -145,7 +145,6 @@ export async function buildSummary(
     }
   > = {};
 
-  // Map news to symbols that we fetched for, marking favorited stocks
   symbolsToFetchNewsFor.forEach((snapshot, index) => {
     const newsForSymbol = allNewsArrays[index] || [];
     symbolsWithNews[snapshot.symbol] = {
@@ -206,7 +205,6 @@ export async function buildSummary(
     },
   };
 
-  // For large watchlists, add summary stats for other symbols
   if (totalSymbols > 20) {
     contextPayload.otherSymbols = symbolsWithoutDetailedNews;
     contextPayload.note = `This is a large watchlist with ${totalSymbols} symbols. Detailed news is provided only for the top movers. Other symbols are listed with their price changes.`;
@@ -236,7 +234,7 @@ export async function buildSummary(
 
         Your task is to write a market recap for this watchlist.
 
-        Key Movers & News (1–3 short paragraphs depending on watchlist size)
+        Key Movers & News (1–3 short paragraphs depending on watchlist size, 2 paragraphs minimum for large watchlists of the max 20 tickers)
         - Focus ONLY on stocks in symbolsWithDetailedNews that have both a noticeable move and at least one recent headline in their news array.
           Example style: "Nvidia rose 1.8% after headlines about [X]. Apple slipped 0.2% on reports of [Y]."
         - Prioritize news with HIGH relevanceScore (>0.7) - these are most relevant to the ticker according to ML model
@@ -251,7 +249,7 @@ export async function buildSummary(
         - Only connect news to the ticker it belongs to. If NVDA's news array has 2 items, only use those for NVDA.
         - For large watchlists, you may mention the overall trend (e.g., "Tech names were mostly higher") but focus details on top movers with news.
 
-        Market Context & Catalysts (1–3 short paragraphs depending on watchlist size)
+        Market Context & Catalysts (1–2 short paragraphs depending on watchlist size)
         - ALWAYS check macroContext.news first to explain broader market trends
         - If high-impact macro news exists (category: rates, inflation, employment), start with that context
           Example: "Markets moved lower today as the Fed signaled higher rates for longer" or "Stocks rallied after CPI came in below expectations"
@@ -260,7 +258,11 @@ export async function buildSummary(
         - Mention upcoming events from individual ticker news (earnings, product launches, FDA decisions)
         - Keep generic forward-looking statements brief if no specific events are mentioned
 
-        
+        When explaining a stock move, do not invent or over-weight a catalyst.
+        - If no company-specific, new, or incremental information (earnings, guidance, product, partnership, regulatory action) is present in the headlines, explicitly state that the move appears flow-, sentiment-, or positioning-driven.
+        - Narrative commentary, analyst opinion pieces, and thematic ETF coverage must be labeled as non-catalytic unless they introduce new fundamentals.
+        - If the answer is “none,” the explanation should stop searching for causality and instead describe market structure, narrative rotation, or flows.
+
         Style guidelines:
         - Clear, professional, and conversational. Aim for plain English, not Wall Street jargon.
         - Avoid phrases like “these items,” “this coverage,” “themes,” “sentiment,” “narrative,” or “shape sentiment.”
