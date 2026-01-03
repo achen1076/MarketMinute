@@ -7,8 +7,8 @@ import { shouldSummarize, summarizeArticle } from "@/lib/articleSummarizer";
 const ProcessNewsSchema = z.object({
   headline: z.string().min(1, "Headline is required"),
   ticker: z.string().min(1, "Ticker is required"),
-  date: z.string().optional(),
   url: z.string().url().optional(),
+  publishedDate: z.string().optional(),
 });
 
 // Service URLs (configure via environment variables)
@@ -29,9 +29,9 @@ interface RelevanceResponse {
 
 export async function POST(request: Request) {
   try {
-    // Parse and validate request body
     const body = await request.json();
-    const { headline, ticker, date, url } = ProcessNewsSchema.parse(body);
+    const { headline, ticker, url, publishedDate } =
+      ProcessNewsSchema.parse(body);
 
     // Call sentiment service
     console.log(
@@ -63,7 +63,6 @@ export async function POST(request: Request) {
 
     const relevanceData: RelevanceResponse = await relevanceRes.json();
 
-    // Generate AI summary for highly relevant articles with strong sentiment
     let summary: string | null = null;
     if (url && shouldSummarize(relevanceData.score, sentimentData.score)) {
       console.log(
@@ -76,7 +75,6 @@ export async function POST(request: Request) {
       summary = await summarizeArticle(url, headline, ticker);
     }
 
-    // Combine results and store in database
     const newsItem = await prisma.newsItem.create({
       data: {
         ticker,
@@ -86,7 +84,7 @@ export async function POST(request: Request) {
         category: relevanceData.category,
         summary,
         url,
-        createdAt: date ? new Date(date) : new Date(),
+        createdAt: publishedDate ? new Date(publishedDate) : new Date(),
       },
     });
 

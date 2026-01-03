@@ -60,6 +60,7 @@ export async function POST(req: NextRequest) {
         for (const item of newsData.slice(0, 20)) {
           const headline = item.title;
           const articleUrl = item.url;
+          const publishedDate = item.publishedDate;
           if (!headline) continue;
 
           const [sentResp, relResp] = await Promise.all([
@@ -108,6 +109,7 @@ export async function POST(req: NextRequest) {
               category: relevanceData.category,
               summary,
               url: articleUrl,
+              createdAt: publishedDate ? new Date(publishedDate) : new Date(),
             },
           });
 
