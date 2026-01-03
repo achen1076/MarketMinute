@@ -8,6 +8,26 @@ import {
 
 import { prisma } from "../../ops/dbcache";
 
+// Tier limits (matching webapp/lib/subscription-tiers.ts)
+const TIER_LIMITS = {
+  free: { maxWatchlists: 2, maxWatchlistItems: 20 },
+  basic: { maxWatchlists: Infinity, maxWatchlistItems: Infinity },
+};
+
+async function getUserTier(userId: string): Promise<"free" | "basic"> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { subscriptionTier: true, subscriptionStatus: true },
+  });
+  if (
+    user?.subscriptionStatus === "active" &&
+    user?.subscriptionTier === "basic"
+  ) {
+    return "basic";
+  }
+  return "free";
+}
+
 export async function handleEditWatchlist(
   rawInput: unknown
 ): Promise<EditWatchlistOutput> {
@@ -34,24 +54,52 @@ export async function handleEditWatchlist(
   switch (input.action) {
     case "add_tickers":
       if (input.tickers && input.tickers.length > 0) {
+        // Check subscription limits
+        const tier = await getUserTier(input.userId);
+        const limits = TIER_LIMITS[tier];
+        const currentCount = watchlist.items.length;
+
+        if (currentCount >= limits.maxWatchlistItems) {
+          return {
+            success: false,
+            watchlistId: input.watchlistId,
+            action: input.action,
+            message: `You've reached your limit of ${limits.maxWatchlistItems} tickers per watchlist. Upgrade to Basic for unlimited tickers!`,
+            currentTickers,
+          };
+        }
+
         const existingSymbols = new Set(currentTickers);
         const newTickers = input.tickers
           .map((t) => t.toUpperCase())
           .filter((t) => !existingSymbols.has(t));
 
-        if (newTickers.length > 0) {
+        // Cap to remaining slots
+        const remainingSlots = limits.maxWatchlistItems - currentCount;
+        const tickersToAdd = newTickers.slice(0, remainingSlots);
+
+        if (tickersToAdd.length > 0) {
           const maxOrder = Math.max(...watchlist.items.map((i) => i.order), -1);
           await prisma.watchlistItem.createMany({
-            data: newTickers.map((symbol, index) => ({
+            data: tickersToAdd.map((symbol, index) => ({
               watchlistId: input.watchlistId,
               symbol,
               order: maxOrder + 1 + index,
             })),
           });
-          currentTickers = [...currentTickers, ...newTickers];
-          message = `Added ${newTickers.length} ticker(s): ${newTickers.join(
-            ", "
-          )}`;
+          currentTickers = [...currentTickers, ...tickersToAdd];
+
+          if (tickersToAdd.length < newTickers.length) {
+            message = `Added ${
+              tickersToAdd.length
+            } ticker(s): ${tickersToAdd.join(", ")}. ${
+              newTickers.length - tickersToAdd.length
+            } ticker(s) not added due to limit.`;
+          } else {
+            message = `Added ${
+              tickersToAdd.length
+            } ticker(s): ${tickersToAdd.join(", ")}`;
+          }
         } else {
           message = "All tickers already exist in watchlist";
         }

@@ -17,6 +17,8 @@ RESPONSE STYLE:
 - Round numbers sensibly (prices to cents, percentages to 1-2 decimals)
 - Remember context from the conversation - if user mentioned a ticker before, you can reference it
 
+
+
 RULES:
 - Always use tools for real-time data - never guess or hallucinate numbers
 - If data is unavailable, say so clearly
@@ -83,7 +85,7 @@ export class MarketOrchestrator {
     let toolCallCount = 0;
     while (true) {
       if (toolCallCount >= MAX_TOOL_CALLS) {
-        return "I've gathered the available data. Unfortunately, some information wasn't available at this time.";
+        return "I've gathered the as much data as I could. Unfortunately, I hit the limit of tools I can call. Try breaking up your request into smaller chunks.";
       }
       onStatus?.("Thinking...");
 

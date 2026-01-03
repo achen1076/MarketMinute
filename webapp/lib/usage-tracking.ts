@@ -10,7 +10,7 @@ import {
  */
 export async function trackUsage(
   userId: string,
-  feature: "watchlist" | "quant_signal",
+  feature: "watchlist" | "quant_signal" | "summary" | "explain",
   metadata?: Record<string, any>
 ) {
   const today = new Date();
@@ -49,7 +49,7 @@ export async function trackUsage(
  */
 export async function getTodayUsage(
   userId: string,
-  feature: "watchlist" | "quant_signal"
+  feature: "watchlist" | "quant_signal" | "summary" | "explain"
 ): Promise<number> {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -77,24 +77,32 @@ export async function getTodayUsage(
  */
 export async function canUseFeature(
   userId: string,
-  feature: "watchlist" | "quant_signal",
-  tier: SubscriptionTier = "free"
+  feature: "watchlist" | "quant_signal" | "watchlistItems",
+  tier: SubscriptionTier = "free",
+  currentCount?: number
 ): Promise<{
   allowed: boolean;
   limit: number | "unlimited";
   current: number;
   message?: string;
 }> {
-  let currentUsage = 0;
-  let limitType: "watchlist" | "quantSignal";
+  let currentUsage = currentCount ?? 0;
+  let limitType: "watchlist" | "quantSignal" | "watchlistItems";
 
   switch (feature) {
     case "watchlist":
       // Count total watchlists
-      currentUsage = await prisma.watchlist.count({
-        where: { userId },
-      });
+      if (currentCount === undefined) {
+        currentUsage = await prisma.watchlist.count({
+          where: { userId },
+        });
+      }
       limitType = "watchlist";
+      break;
+
+    case "watchlistItems":
+      // Current count should be passed in
+      limitType = "watchlistItems";
       break;
 
     case "quant_signal":

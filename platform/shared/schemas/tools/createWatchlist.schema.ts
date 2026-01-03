@@ -21,6 +21,7 @@ export const CreateWatchlistOutputSchema = z.object({
   tickers: z.array(z.string()),
   isFavorite: z.boolean(),
   createdAt: z.string(),
+  error: z.string().optional(),
 });
 
 export type CreateWatchlistOutput = z.infer<typeof CreateWatchlistOutputSchema>;

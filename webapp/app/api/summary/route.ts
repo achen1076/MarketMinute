@@ -9,6 +9,7 @@ import {
   createRateLimitResponse,
   getRateLimitHeaders,
 } from "@/lib/rateLimit";
+import { trackUsage } from "@/lib/usage-tracking";
 
 export async function GET(req: Request) {
   const session = await auth();
@@ -70,6 +71,9 @@ export async function GET(req: Request) {
       tickerPerformance: [],
     });
   }
+
+  // Track usage
+  trackUsage(user.id, "summary", { watchlistId }).catch(console.error);
 
   const symbols = watchlist.items.map((i) => i.symbol);
   const favoritedSymbols = watchlist.items

@@ -20,6 +20,8 @@ import {
   getRateLimitHeaders,
 } from "@/lib/rateLimit";
 import { isTradingActive } from "@/lib/marketHours";
+import { trackUsage } from "@/lib/usage-tracking";
+import { prisma } from "@/lib/prisma";
 
 type ExplainPayload = {
   symbol: string;
@@ -84,6 +86,16 @@ export async function POST(req: Request) {
     price?: number;
     watchlistName?: string;
   };
+
+  // Track usage (async, don't block)
+  prisma.user
+    .findUnique({ where: { email: session.user.email }, select: { id: true } })
+    .then((user) => {
+      if (user) {
+        trackUsage(user.id, "explain", { symbol }).catch(console.error);
+      }
+    })
+    .catch(console.error);
 
   // Check cache first (don't clean before checking - we want to serve stale cache)
   const cachedEntry = await getExplanationFromCache(symbol);

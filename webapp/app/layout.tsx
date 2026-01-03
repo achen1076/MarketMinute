@@ -193,7 +193,7 @@ export default async function RootLayout({
 
           {/* Main content area */}
           <div className="min-h-screen md:ml-64">
-            <main className="mx-auto max-w-[2000px] px-4 py-6 pt-[105px] md:pt-14 md:px-8">
+            <main className="mx-auto max-w-[2400px] px-4 py-6 pt-[105px] md:pt-14 md:px-8">
               {/* Email Verification Banner */}
               {needsVerification && (
                 <div className="mb-6">
