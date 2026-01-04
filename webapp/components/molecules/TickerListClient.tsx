@@ -8,6 +8,7 @@ import { CACHE_TTL_MS } from "@/lib/constants";
 import ReactMarkdown from "react-markdown";
 import { isMarketOpen, isAfterHours, isPreMarket } from "@/lib/marketHours";
 import { TickerChart } from "@/components/molecules/TickerChart";
+import { TICKER_TO_COMPANY } from "@/lib/tickerMappings";
 
 interface TickerAlert {
   id: string;
@@ -330,14 +331,25 @@ export function TickerListClient({
 
   const formatTimestamp = (unixTimestamp: number | undefined) => {
     if (!unixTimestamp) return "";
-    // FMP timestamps are in seconds, convert to milliseconds
+
     const ms =
       unixTimestamp > 9999999999 ? unixTimestamp : unixTimestamp * 1000;
     const date = new Date(ms);
-    return date.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-    });
+    const now = new Date();
+
+    if (now.getDay() === date.getDay()) {
+      return date.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+      });
+    } else {
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      });
+    }
   };
 
   return (
@@ -516,7 +528,7 @@ export function TickerListClient({
                       />
                     </button>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-0.5">
                         <div className="font-medium text-foreground">
                           {s.symbol}
                           {s.isFavorite && (
@@ -533,6 +545,11 @@ export function TickerListClient({
                           </span>
                         )}
                       </div>
+                      {TICKER_TO_COMPANY[s.symbol.toUpperCase()]?.[0] && (
+                        <div className="text-xs text-muted-foreground -mt-0.5 mb-1">
+                          {TICKER_TO_COMPANY[s.symbol.toUpperCase()][0]}
+                        </div>
+                      )}
                       <div
                         className={`text-md text-foreground/90 transition-all ${
                           isFlashing

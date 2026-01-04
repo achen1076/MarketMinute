@@ -573,4 +573,332 @@ export const TICKER_TO_COMPANY: Record<string, string[]> = {
 
   // Construction (additional)
   FND: ["Floor & Decor"],
+
+  TQQQ: ["ProShares UltraPro QQQ"],
+  SQQQ: ["ProShares UltraPro Short QQQ"],
+  UPRO: ["ProShares UltraPro S&P 500"],
+  SPXU: ["ProShares UltraPro Short S&P 500"],
+  QLD: ["ProShares Ultra QQQ"],
+  QID: ["ProShares UltraShort QQQ"],
+  SSO: ["ProShares Ultra S&P 500"],
+  SDS: ["ProShares UltraShort S&P 500"],
+  TNA: ["Direxion Daily Small Cap Bull 3X"],
+  TZA: ["Direxion Daily Small Cap Bear 3X"],
+  SOXL: ["Direxion Daily Semiconductor Bull 3X"],
+  SOXS: ["Direxion Daily Semiconductor Bear 3X"],
+  TECL: ["Direxion Daily Technology Bull 3X"],
+  TECS: ["Direxion Daily Technology Bear 3X"],
+  LABU: ["Direxion Daily S&P Biotech Bull 3X"],
+  LABD: ["Direxion Daily S&P Biotech Bear 3X"],
+  FAS: ["Direxion Daily Financial Bull 3X"],
+  FAZ: ["Direxion Daily Financial Bear 3X"],
+  NUGT: ["Direxion Daily Gold Miners Bull 2X"],
+  DUST: ["Direxion Daily Gold Miners Bear 2X"],
+
+  // Dividend / Income ETFs
+  JEPI: ["JPMorgan Equity Premium Income"],
+  JEPQ: ["JPMorgan Nasdaq Equity Premium Income"],
+  SCHD: ["Schwab U.S. Dividend Equity"],
+  VYM: ["Vanguard High Dividend Yield"],
+  HDV: ["iShares Core High Dividend"],
+  DGRO: ["iShares Core Dividend Growth"],
+  SPYD: ["SPDR Portfolio S&P 500 High Dividend"],
+  DIVO: ["Amplify CWP Enhanced Dividend Income"],
+
+  // Core / Style / Broad Market ETFs
+  IVV: ["iShares Core S&P 500"],
+  SPLG: ["SPDR Portfolio S&P 500"],
+  SCHB: ["Schwab U.S. Broad Market"],
+  ITOT: ["iShares Core S&P Total U.S. Stock Market"],
+  VT: ["Vanguard Total World Stock"],
+  VUG: ["Vanguard Growth"],
+  VTV: ["Vanguard Value"],
+  IWF: ["iShares Russell 1000 Growth"],
+  IWD: ["iShares Russell 1000 Value"],
+
+  // Sector ETFs
+  XLK: ["Technology Select Sector SPDR"],
+  XLF: ["Financial Select Sector SPDR"],
+  XLE: ["Energy Select Sector SPDR"],
+  XLV: ["Health Care Select Sector SPDR"],
+  XLY: ["Consumer Discretionary Select Sector SPDR"],
+  XLP: ["Consumer Staples Select Sector SPDR"],
+  XLI: ["Industrial Select Sector SPDR"],
+  XLB: ["Materials Select Sector SPDR"],
+  XLU: ["Utilities Select Sector SPDR"],
+  XLRE: ["Real Estate Select Sector SPDR"],
+  XLC: ["Communication Services Select Sector SPDR"],
+
+  // Thematic ETFs
+  ARKK: ["ARK Innovation"],
+  ARKQ: ["ARK Autonomous Technology & Robotics"],
+  ARKW: ["ARK Next Generation Internet"],
+  SMH: ["VanEck Semiconductor"],
+  SOXX: ["iShares Semiconductor"],
+  IGV: ["iShares Expanded Tech-Software Sector"],
+  HACK: ["ETFMG Prime Cyber Security"],
+  CIBR: ["First Trust NASDAQ Cybersecurity"],
+  TAN: ["Invesco Solar"],
+  ICLN: ["iShares Global Clean Energy"],
+  XBI: ["SPDR S&P Biotech"],
+  IBB: ["iShares Biotechnology"],
+  KWEB: ["KraneShares CSI China Internet"],
+
+  // Fixed Income / Rates / Credit ETFs
+  TLT: ["iShares 20+ Year Treasury Bond"],
+  IEF: ["iShares 7-10 Year Treasury Bond"],
+  SHY: ["iShares 1-3 Year Treasury Bond"],
+  BIL: ["SPDR Bloomberg 1-3 Month T-Bill"],
+  SGOV: ["iShares 0-3 Month Treasury Bond"],
+  LQD: ["iShares iBoxx Investment Grade Corporate Bond"],
+  HYG: ["iShares iBoxx High Yield Corporate Bond"],
+  AGG: ["iShares Core U.S. Aggregate Bond"],
+  BND: ["Vanguard Total Bond Market"],
+  TIP: ["iShares TIPS Bond"],
+
+  // Commodities
+  GLD: ["SPDR Gold Shares"],
+  IAU: ["iShares Gold Trust"],
+  SLV: ["iShares Silver Trust"],
+  USO: ["United States Oil Fund"],
+  UNG: ["United States Natural Gas Fund"],
+  DBA: ["Invesco DB Agriculture Fund"],
+
+  // Volatility
+  VXX: ["iPath Series B S&P 500 VIX Short-Term Futures ETN"],
+  UVXY: ["ProShares Ultra VIX Short-Term Futures"],
+  SVXY: ["ProShares Short VIX Short-Term Futures"],
+
+  // Crypto-related ETFs / Trusts
+  BITO: ["ProShares Bitcoin Strategy ETF"],
+  IBIT: ["iShares Bitcoin Trust"],
+  FBTC: ["Fidelity Wise Origin Bitcoin Fund"],
+  ARKB: ["ARK 21Shares Bitcoin ETF"],
+  GBTC: ["Grayscale Bitcoin Trust"],
+  ETHE: ["Grayscale Ethereum Trust"],
+
+  // China / EM / FX (popular macro tickers)
+  FXI: ["iShares China Large-Cap"],
+  EEM: ["iShares MSCI Emerging Markets"],
+  VWO: ["Vanguard FTSE Emerging Markets"],
+  UUP: ["Invesco DB US Dollar Index Bullish Fund"],
+  FXE: ["Invesco CurrencyShares Euro Trust"],
+  FXY: ["Invesco CurrencyShares Japanese Yen Trust"],
+
+  // Meme / Retail favorites
+  GME: ["GameStop"],
+  AMC: ["AMC Entertainment"],
+  DKNG: ["DraftKings"],
+  ROKU: ["Roku"],
+
+  // Popular single-name “niche but common”
+  MSTR: ["MicroStrategy"],
+  PLUG: ["Plug Power"],
+  MARA: ["Marathon Digital"],
+  RIOT: ["Riot Platforms"],
+  CLF: ["Cleveland-Cliffs"],
+  X: ["United States Steel"],
+  FCEL: ["FuelCell Energy"],
+  BLNK: ["Blink Charging"],
+  QS: ["QuantumScape"],
+  IONQ: ["IonQ"],
+
+  SNAP: ["Snap"],
+  PINS: ["Pinterest"],
+  BILI: ["Bilibili"],
+  JD: ["JD.com"],
+  PDD: ["PDD Holdings", "Pinduoduo"],
+  TCEHY: ["Tencent"],
+  SEHK_0700: ["Tencent"],
+  PTON: ["Peloton"],
+  FVRR: ["Fiverr"],
+  UPWK: ["Upwork"],
+
+  // Payments / Fintech (additional)
+  PAYX: ["Paychex"],
+  STNE: ["StoneCo"],
+  PAGS: ["PagSeguro"],
+  ADYEY: ["Adyen"],
+
+  // Retail / Consumer (very common in news)
+  KR: ["Kroger"],
+  SFM: ["Sprouts Farmers Market"],
+  ACI: ["Albertsons"],
+  SIG: ["Signet Jewelers"],
+  ASO: ["Academy Sports"],
+  YETI: ["Yeti"],
+
+  // Industrials / Cyclicals
+  CCL: ["Carnival"],
+  RCL: ["Royal Caribbean"],
+  NCLH: ["Norwegian Cruise Line"],
+  WAB: ["Wabtec"],
+  AL: ["Air Lease"],
+  AER: ["AerCap"],
+
+  // Energy (frequent headline movers)
+  APA: ["APA Corporation"],
+  MRO: ["Marathon Oil"],
+  SM: ["SM Energy"],
+  CTRA: ["Coterra"],
+  AR: ["Antero Resources"],
+  EQT: ["EQT Corporation"],
+
+  // Materials / Metals (macro-linked)
+  AA: ["Alcoa"],
+  TECK: ["Teck Resources"],
+  SCCO: ["Southern Copper"],
+  MP: ["MP Materials"],
+  VALE: ["Vale"],
+
+  // Healthcare / Biopharma (commonly referenced)
+  HCA: ["HCA Healthcare"],
+  UHS: ["Universal Health Services"],
+  ICUI: ["ICU Medical"],
+  SGENX: ["Seagen"],
+
+  // Utilities / Infrastructure
+  PCG: ["PG&E"],
+  AES: ["AES Corporation"],
+  NI: ["NiSource"],
+  CNP: ["CenterPoint Energy"],
+
+  // Popular ETFs not yet covered
+  SCHG: ["Schwab U.S. Large-Cap Growth"],
+  VOOG: ["Vanguard S&P 500 Growth"],
+  VOOV: ["Vanguard S&P 500 Value"],
+  IJR: ["iShares Core S&P Small-Cap"],
+  MDY: ["SPDR S&P MidCap 400"],
+  VIXY: ["ProShares VIX Short-Term Futures"],
+
+  IBM: ["IBM"],
+  DELL: ["Dell Technologies"],
+  HPQ: ["HP"],
+  HPE: ["Hewlett Packard Enterprise"],
+  NOK: ["Nokia"],
+  ERIC: ["Ericsson"],
+  TTD: ["The Trade Desk"],
+  RDDT: ["Reddit"],
+  SPWR: ["SunPower"],
+  BOX: ["Box"],
+
+  // Consumer / Retail (highly visible)
+  KMX: ["CarMax"],
+  AZO: ["AutoZone"],
+  ORLY: ["O'Reilly Automotive", "OReilly"],
+  AAP: ["Advance Auto Parts"],
+  GPC: ["Genuine Parts"],
+  TSCO: ["Tractor Supply"],
+  BGFV: ["Big 5 Sporting Goods"],
+  HIBB: ["Hibbett"],
+  CONN: ["Conn's"],
+
+  // Travel / Leisure / Experiences
+  EXPE: ["Expedia"],
+  TRIP: ["TripAdvisor"],
+  WYNN: ["Wynn Resorts"],
+  LVS: ["Las Vegas Sands"],
+  MGM: ["MGM Resorts"],
+  CZR: ["Caesars Entertainment"],
+  PENN: ["Penn Entertainment"],
+
+  // Autos / Mobility
+  GMED: ["Globus Medical"],
+  MGA: ["Magna International"],
+  APTV: ["Aptiv"],
+  LEA: ["Lear"],
+  VC: ["Visteon"],
+  GOEV: ["Canoo"],
+  FSR: ["Fisker"],
+  PSNY: ["Polestar"],
+  HOG: ["Harley-Davidson"],
+
+  // Energy (widely discussed)
+  SHEL: ["Shell"],
+  SU: ["Suncor"],
+  CNQ: ["Canadian Natural Resources"],
+  IMO: ["Imperial Oil"],
+  CVE: ["Cenovus"],
+  ENB: ["Enbridge"],
+  TRP: ["TC Energy"],
+  PAA: ["Plains All American"],
+  ET: ["Energy Transfer"],
+
+  // Financials (common outside money-center banks)
+  KKR: ["KKR"],
+  BX: ["Blackstone"],
+  APO: ["Apollo Global Management"],
+  CG: ["Carlyle Group"],
+  TROW: ["T. Rowe Price"],
+  BEN: ["Franklin Resources"],
+  AMP: ["Ameriprise"],
+  LPLA: ["LPL Financial"],
+  MKTX: ["MarketAxess"],
+  NDAQ: ["Nasdaq Inc"],
+
+  // Insurance (frequently referenced)
+  RNR: ["RenaissanceRe"],
+  MKL: ["Markel"],
+  RE: ["Everest Re"],
+  AIZ: ["Assurant"],
+  THG: ["Hanover Insurance"],
+  CNA: ["CNA Financial"],
+
+  // Healthcare (very common)
+  HIMS: ["Hims & Hers"],
+  OSCR: ["Oscar Health"],
+  GH: ["Guardant Health"],
+  NTRA: ["Natera"],
+  ILMN: ["Illumina"],
+  PACB: ["Pacific Biosciences"],
+  RXDX: ["Prometheus Biosciences"],
+  SMMT: ["Summit Therapeutics"],
+
+  // Industrials / Infrastructure
+  GWW: ["Grainger"],
+  URI: ["United Rentals"],
+  TREX: ["Trex"],
+  EXP: ["Eagle Materials"],
+  SUM: ["Summit Materials"],
+  AXON: ["Axon Enterprise"],
+  GNRC: ["Generac"],
+  FLOW: ["Flowserve"],
+  BKR: ["Baker Hughes"],
+
+  // Materials / Chemicals
+  LYB: ["LyondellBasell"],
+  HUN: ["Huntsman"],
+  OLN: ["Olin"],
+  AXTA: ["Axalta"],
+  CC: ["Chemours"],
+  NEU: ["NewMarket"],
+  TROX: ["Tronox"],
+
+  // Media / Content / Streaming
+  WMG: ["Warner Music Group"],
+  IAC: ["IAC"],
+
+  // Consumer Brands (very common)
+  KTB: ["Kontoor Brands"],
+  CPRI: ["Capri Holdings"],
+  HBI: ["Hanesbrands"],
+  LEVI: ["Levi Strauss"],
+  COLM: ["Columbia Sportswear"],
+  WWW: ["Wolverine Worldwide"],
+  NKEV: ["Nike"],
+
+  // REITs (highly referenced)
+  BXP: ["Boston Properties"],
+  KIM: ["Kimco Realty"],
+  FRT: ["Federal Realty"],
+  REG: ["Regency Centers"],
+  HST: ["Host Hotels"],
+  REXR: ["Rexford Industrial"],
+  COLD: ["Americold"],
+
+  // Agriculture / Food (headline staples)
+  ADM: ["Archer Daniels Midland"],
+  BG: ["Bunge"],
+  PPC: ["Pilgrim's Pride"],
+  CALM: ["Cal-Maine Foods"],
 };

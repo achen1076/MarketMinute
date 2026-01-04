@@ -11,6 +11,7 @@ import { EventsTimeline } from "@/components/organisms/EventsTimeline";
 import { MovementAlertsBar } from "@/components/organisms/MovementAlertsBar";
 import SentinelExplainToday from "@/components/organisms/SentinelExplainToday";
 import LandingPage from "@/components/pages/LandingPage";
+import QuickStartWatchlist from "@/components/organisms/QuickStartWatchlist";
 import Link from "next/link";
 import { Metadata } from "next";
 
@@ -80,47 +81,35 @@ export default async function HomePage() {
           activeWatchlist={activeWatchlist ?? null}
         />
 
-        {/* Market Summary + Ticker List */}
-        <Box display="flex" direction="col" gap="xl" className="xl:flex-row">
-          {/* Main Content Area */}
-          <Stack spacing="xl" className="flex-1 min-w-0">
-            {activeWatchlistId && (
-              <MarketMinuteSummary watchlistId={activeWatchlistId} />
-            )}
-            {/* Sentinel Explain Today */}
-            <SentinelExplainToday />
-            {/* Upcoming Events */}
-            {snapshots.length > 0 && <EventsTimeline symbols={symbols} />}
-            {/* Movement Alerts */}
-            {snapshots.length > 0 && <MovementAlertsBar symbols={symbols} />}
+        {/* Quick Start for new users - full width */}
+        {(user?.watchlists?.length ?? 0) === 0 && <QuickStartWatchlist />}
 
-            {/* Sentinel Intelligence Panel */}
-
-            {user?.watchlists.length === 0 && (
-              <Card className="p-8 text-center">
-                <p className="text-muted-foreground mb-3">
-                  You don&apos;t have any watchlists yet.{" "}
-                  <Link
-                    href="/watchlist"
-                    className="text-teal-500 hover:text-cyan-400 hover:underline transition-colors"
-                  >
-                    Create your first watchlist
-                  </Link>
-                </p>
-              </Card>
-            )}
-          </Stack>
-
-          {/* Right Sidebar */}
-          <Stack spacing="xl" className="xl:w-1/3">
-            {snapshots.length > 0 && (
-              <TickerListClient
-                snapshots={snapshots}
-                watchlistId={activeWatchlistId ?? null}
-              />
-            )}
-          </Stack>
-        </Box>
+        {/* Market Summary + Ticker List - only show when user has watchlists */}
+        {(user?.watchlists?.length ?? 0) > 0 && (
+          <Box display="flex" direction="col" gap="xl" className="xl:flex-row">
+            {/* Right Sidebar */}
+            <Stack spacing="xl" className="xl:w-1/3">
+              {snapshots.length > 0 && (
+                <TickerListClient
+                  snapshots={snapshots}
+                  watchlistId={activeWatchlistId ?? null}
+                />
+              )}
+            </Stack>
+            {/* Main Content Area */}
+            <Stack spacing="xl" className="flex-1 min-w-0">
+              {activeWatchlistId && (
+                <MarketMinuteSummary watchlistId={activeWatchlistId} />
+              )}
+              {/* Sentinel Explain Today */}
+              {snapshots.length > 0 && <SentinelExplainToday />}
+              {/* Upcoming Events */}
+              {snapshots.length > 0 && <EventsTimeline symbols={symbols} />}
+              {/* Movement Alerts */}
+              {snapshots.length > 0 && <MovementAlertsBar symbols={symbols} />}
+            </Stack>
+          </Box>
+        )}
       </Stack>
 
       {/* Admin Settings */}

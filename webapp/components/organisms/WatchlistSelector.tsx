@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Star } from "lucide-react";
@@ -33,6 +33,11 @@ export default function WatchlistSelector({
   const router = useRouter();
   const [activeWatchlist, setActiveWatchlist] = useState(initialActive);
   const [loading, setLoading] = useState(false);
+
+  // Sync state when prop changes (e.g., after creating a new watchlist)
+  useEffect(() => {
+    setActiveWatchlist(initialActive);
+  }, [initialActive]);
 
   const handleSetActive = async (watchlistId: string | null) => {
     setLoading(true);
@@ -77,14 +82,14 @@ export default function WatchlistSelector({
       </div>
       {watchlists.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          No watchlists yet.{" "}
+          No watchlists yet. Use a Quick Start pack below or{" "}
           <Link
             href="/watchlist"
             className="text-emerald-500 hover:underline hover:cursor-pointer"
           >
-            Create one
-          </Link>{" "}
-          to get started.
+            create a custom one
+          </Link>
+          .
         </p>
       ) : (
         <div className="flex flex-wrap gap-2">
