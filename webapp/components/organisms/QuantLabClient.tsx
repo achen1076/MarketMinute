@@ -295,6 +295,22 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
             maxSignals={userTier === "free" ? 3 : 10}
           />
         </div>
+      ) : symbols.length === 0 ? (
+        <Card className="p-8 text-center">
+          <p className="text-muted-foreground">No watchlist selected.</p>
+          <p className="text-sm text-muted-foreground/70 mt-2">
+            Select a watchlist from the dashboard to see signals
+          </p>
+        </Card>
+      ) : getFilteredAndSortedSignals().length === 0 ? (
+        <Card className="p-8 text-center">
+          <p className="text-muted-foreground">
+            No signals available for your current watchlist and filter.
+          </p>
+          <p className="text-sm text-muted-foreground/70 mt-2">
+            Try adjusting your watchlist or filters
+          </p>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {getFilteredAndSortedSignals().map((signal) => (

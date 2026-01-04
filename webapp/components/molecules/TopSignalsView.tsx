@@ -166,10 +166,10 @@ export function TopSignalsView({
       ) : (
         <Card className="p-8 text-center">
           <p className="text-muted-foreground">
-            No tradeable signals identified today.
+            No top signals identified today.
           </p>
           <p className="text-sm text-muted-foreground/70 mt-2">
-            Check back later or lower the score threshold.
+            Check back tomorrow
           </p>
         </Card>
       )}

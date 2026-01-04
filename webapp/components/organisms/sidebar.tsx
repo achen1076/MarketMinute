@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import NavLink from "../molecules/NavLink";
 import SignOutButton from "../atoms/SignOutButton";
 import UserInfo from "../molecules/UserInfo";
 import useWindowSize from "@/hooks/useWindowSize";
+import { useMobileMenu } from "@/lib/mobile-menu-context";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: "default" | "secondary";
@@ -24,11 +25,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   user,
   ...props
 }) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isMenuOpen, toggleMenu, closeMenu } = useMobileMenu();
   const { isMobile } = useWindowSize();
-
-  const toggleMenu = () => setIsMenuOpen((prev) => !prev);
-  const closeMenu = () => setIsMenuOpen(false);
 
   return (
     <>
@@ -145,7 +143,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         </nav>
         <div className="border-t border-sidebar-border px-3 py-3">
           {user ? (
-            <SignOutButton />
+            <SignOutButton size="full" />
           ) : (
             <NavLink to="/signin" onClick={closeMenu}>
               Sign In

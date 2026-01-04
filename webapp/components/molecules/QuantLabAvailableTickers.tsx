@@ -609,14 +609,14 @@ export function QuantLabAvailableTickers() {
   return (
     <Card className="border border-slate-700/50">
       <div
-        className="flex items-center justify-between cursor-pointer p-4 hover:bg-slate-800/30 transition-colors"
+        className="flex items-center justify-between cursor-pointer p-4 hover:bg-foreground/5 transition-colors"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-3">
           <Info className="w-5 h-5 text-blue-400" />
           <div>
             <h3 className="text-sm font-semibold text-foreground/80">
-              Available Tickers in QuantLab
+              Available Tickers in QuantLab and Forcast
             </h3>
             <p className="text-xs text-foreground/50 mt-0.5">
               {AVAILABLE_TICKERS.length} stocks currently supported by the model
@@ -624,7 +624,7 @@ export function QuantLabAvailableTickers() {
           </div>
         </div>
         <button
-          className="p-2 rounded-lg hover:bg-slate-700/50 transition-colors"
+          className="p-2 rounded-lg hover:bg-foreground/5 transition-colors"
           aria-label={isExpanded ? "Collapse" : "Expand"}
         >
           {isExpanded ? (
@@ -700,7 +700,7 @@ export function QuantLabAvailableTickers() {
               <>
                 <p className="text-xs text-foreground/50 mb-3">
                   Add any of these tickers to your watchlist to receive QuantLab
-                  signals:
+                  and Forecasts signals:
                 </p>
                 <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
                   {filteredTickers.map((ticker) => {
@@ -749,8 +749,8 @@ export function QuantLabAvailableTickers() {
             <div className="mt-4 pt-4 border-t border-slate-700/50">
               <p className="text-xs text-slate-500">
                 💡 <strong>Tip:</strong> Tickers not in your watchlist
-                won&apos;t appear in QuantLab signals. Add them to your
-                watchlist from the dashboard to get predictions.
+                won&apos;t appear in QuantLab or Forcast signals. Add them to
+                your watchlist from the dashboard to get predictions.
               </p>
             </div>
           </div>

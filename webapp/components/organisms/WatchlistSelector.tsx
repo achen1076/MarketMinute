@@ -82,7 +82,7 @@ export default function WatchlistSelector({
       </div>
       {watchlists.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          No watchlists yet. Use a Quick Start pack below or{" "}
+          No watchlists yet. Use a Quick Start pack or{" "}
           <Link
             href="/watchlist"
             className="text-emerald-500 hover:underline hover:cursor-pointer"

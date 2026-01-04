@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
 type DialogProps = {
@@ -59,7 +60,7 @@ export default function Dialog({
     }
   };
 
-  return (
+  const dialogContent = (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
       onClick={handleBackdropClick}
@@ -121,4 +122,6 @@ export default function Dialog({
       </div>
     </div>
   );
+
+  return createPortal(dialogContent, document.body);
 }

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { MarketForecastsClient } from "@/components/organisms/MarketForecastsClient";
 import WatchlistSelector from "@/components/organisms/WatchlistSelector";
+import { QuantLabAvailableTickers } from "@/components/molecules/QuantLabAvailableTickers";
 
 export const metadata = {
   title: "MarketMinute - Market Forecasts",
@@ -68,6 +69,7 @@ export default async function ForecastsPage() {
         symbols={symbols}
         watchlistName={activeWatchlist?.name}
       />
+      <QuantLabAvailableTickers />
     </div>
   );
 }

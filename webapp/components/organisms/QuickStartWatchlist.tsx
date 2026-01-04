@@ -103,9 +103,6 @@ export default function QuickStartWatchlist() {
       {/* Welcome Header */}
       <Card className="p-6 border-dashed border-2 border-muted-foreground/20">
         <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500/20 to-teal-500/20 mb-2">
-            <Rocket className="w-6 h-6 text-emerald-400" />
-          </div>
           <h2 className="text-xl font-semibold">Welcome to MarketMinute!</h2>
           <p className="text-muted-foreground max-w-md mx-auto">
             Get started by creating your first watchlist. Track stocks, get
@@ -117,12 +114,10 @@ export default function QuickStartWatchlist() {
       {/* Quick Start Section */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-amber-400" />
-          <h3 className="text-sm font-semibold text-foreground">
+          <h3 className="text-md font-semibold text-foreground">
             Quick Start - Choose a Starter Pack
           </h3>
         </div>
-
         {/* 2x2 Grid of Starter Packs */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {(
@@ -141,7 +136,7 @@ export default function QuickStartWatchlist() {
                 <div className="flex flex-col h-full">
                   <div className="flex items-start gap-3 mb-3">
                     <div
-                      className={`p-2.5 rounded-xl bg-gradient-to-br ${pack.color}`}
+                      className={`p-2.5 rounded-xl bg-linear-to-br ${pack.color}`}
                     >
                       <IconComponent className="w-5 h-5 text-white" />
                     </div>
@@ -181,7 +176,7 @@ export default function QuickStartWatchlist() {
                       </>
                     ) : (
                       <>
-                        Add
+                        Create
                         <ChevronRight className="w-4 h-4" />
                       </>
                     )}
@@ -191,34 +186,14 @@ export default function QuickStartWatchlist() {
             );
           })}
         </div>
-
+        <h3 className="text-md font-semibold text-foreground">
+          or{" "}
+          <a href="/watchlist" className="text-emerald-500 hover:underline">
+            create your own watchlist...
+          </a>
+        </h3>
         {error && <p className="text-sm text-red-400 text-center">{error}</p>}
       </div>
-
-      {/* Tips Section */}
-      <Card className="p-5 bg-gradient-to-br from-slate-900/50 to-slate-800/50">
-        <h4 className="text-sm font-semibold text-foreground mb-3">
-          What you&apos;ll get:
-        </h4>
-        <ul className="space-y-2 text-sm text-muted-foreground">
-          <li className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            Real-time price updates and market data
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            AI-powered daily market summaries
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            Smart alerts for significant price movements
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            Upcoming earnings and events calendar
-          </li>
-        </ul>
-      </Card>
     </div>
   );
 }

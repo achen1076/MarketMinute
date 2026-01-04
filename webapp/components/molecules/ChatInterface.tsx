@@ -310,7 +310,7 @@ export default function ChatInterface({ userId }: ChatInterfaceProps) {
             <button
               type="submit"
               disabled={loading || !input.trim()}
-              className="absolute right-1.5 px-3 py-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-700 disabled:text-zinc-500 rounded-md text-xs font-medium transition-colors"
+              className="absolute right-1.5 px-3 py-1 bg-emerald-500 hover:bg-emerald-600 disabled:bg-background disabled:text-background rounded-md text-xs text-foreground font-medium transition-colors"
             >
               {loading ? "Thinking" : "Send"}
             </button>

@@ -13,6 +13,7 @@ import {
 import PricingCard from "./PricingCard";
 import { useTheme } from "@/lib/theme-context";
 import { useUserPreferences } from "@/lib/user-preferences-context";
+import SignOutButton from "@/components/atoms/SignOutButton";
 
 type Tab = "account" | "preferences" | "support";
 
@@ -424,6 +425,15 @@ export default function SettingsContent({
                 )}
             </div>
           )}
+
+          {/* Sign Out */}
+          <div className="bg-card border border-border rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">Sign Out</h2>
+            <p className="text-muted-foreground text-sm mb-4">
+              Sign out of your MarketMinute account
+            </p>
+            <SignOutButton variant="red" size="lg" />
+          </div>
 
           {/* Change Password */}
           {canChangePassword && (

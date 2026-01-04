@@ -23,6 +23,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { QuantLabAvailableTickers } from "@/components/molecules/QuantLabAvailableTickers";
 
 type WatchlistItem = {
   id: string;
@@ -790,6 +791,8 @@ export default function WatchlistsClient({
         variant="danger"
         loading={loading}
       />
+
+      <QuantLabAvailableTickers />
     </div>
   );
 }

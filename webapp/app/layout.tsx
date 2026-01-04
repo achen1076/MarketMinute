@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 
 import "./globals.css";
 import Sidebar from "@/components/organisms/sidebar";
+import MobileBottomNav from "@/components/organisms/MobileBottomNav";
 import { MarketTicker } from "@/components/organisms/MarketTicker";
 import { auth } from "@/auth";
 import { Analytics } from "@vercel/analytics/next";
@@ -10,6 +11,7 @@ import EmailVerificationBanner from "@/components/organisms/EmailVerificationBan
 import { prisma } from "@/lib/prisma";
 import { ThemeProvider } from "@/lib/theme-context";
 import { UserPreferencesProvider } from "@/lib/user-preferences-context";
+import { MobileMenuProvider } from "@/lib/mobile-menu-context";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -187,25 +189,31 @@ export default async function RootLayout({
       <body className="min-h-screen bg-background text-foreground">
         <ThemeProvider>
           <UserPreferencesProvider>
-            {/* Sidebar handles its own responsive behavior */}
-            <Sidebar user={session?.user} />
+            <MobileMenuProvider>
+              {/* Sidebar handles its own responsive behavior */}
+              <Sidebar user={session?.user} />
 
-            {/* Market ticker - fixed at very top */}
-            <MarketTicker />
+              {/* Market ticker - fixed at very top */}
+              <MarketTicker />
 
-            {/* Main content area */}
-            <div className="min-h-screen md:ml-64">
-              <main className="mx-auto max-w-[2400px] px-4 py-6 pt-[105px] md:pt-14 md:px-8">
-                {/* Email Verification Banner */}
-                {needsVerification && (
-                  <div className="mb-6">
-                    <EmailVerificationBanner userEmail={userEmail} />
-                  </div>
-                )}
-                {children}
-              </main>
-            </div>
-            <Analytics />
+              {/* Main content area */}
+              <div className="min-h-screen md:ml-64">
+                <main className="mx-auto max-w-[2400px] px-4 py-6 pt-[105px] md:pt-14 md:px-8 pb-20 md:pb-6">
+                  {/* Email Verification Banner */}
+                  {needsVerification && (
+                    <div className="mb-6">
+                      <EmailVerificationBanner userEmail={userEmail} />
+                    </div>
+                  )}
+                  {children}
+                </main>
+              </div>
+
+              {/* Mobile Bottom Navigation */}
+              <MobileBottomNav user={session?.user} />
+
+              <Analytics />
+            </MobileMenuProvider>
           </UserPreferencesProvider>
         </ThemeProvider>
       </body>

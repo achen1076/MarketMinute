@@ -144,14 +144,14 @@ export default function TickerSearch({
           {selectedSymbols.map((symbol) => (
             <div
               key={symbol}
-              className="group flex items-center gap-1.5 rounded-full bg-emerald-900/30 px-3 py-1.5 text-sm font-medium text-emerald-300 ring-1 ring-emerald-700/50 transition-colors hover:bg-emerald-900/50"
+              className="group flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-sm font-medium text-emerald-400 ring-1 ring-emerald-400 transition-colors hover:bg-emerald-400/25"
             >
               <span>{symbol}</span>
               <button
                 type="button"
                 onClick={() => handleRemoveSymbol(symbol)}
                 disabled={disabled}
-                className="rounded-full p-0.5 transition-colors hover:bg-emerald-800 disabled:opacity-50"
+                className="rounded-full p-0.5 transition-colors hover:bg-rose-400 text-foreground disabled:opacity-50"
               >
                 <X className="h-3 w-3" />
               </button>
