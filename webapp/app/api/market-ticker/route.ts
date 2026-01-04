@@ -23,6 +23,7 @@ const TICKER_SYMBOLS = [
 ];
 
 export async function GET() {
+
   try {
     const symbols = TICKER_SYMBOLS.map((t) => t.symbol);
     const { snapshots, cacheStats } = await getCachedSnapshots(symbols);

@@ -7,6 +7,7 @@ import {
   isAfterHours,
   isOvernightPeriod,
 } from "@/lib/marketHours";
+import useWindowSize from "@/hooks/useWindowSize";
 
 type TickerItem = {
   symbol: string;
@@ -34,6 +35,7 @@ export function MarketTicker() {
   const scrollPositionRef = useRef(0);
   const animationFrameRef = useRef<number | null>(null);
   const isAnimatingRef = useRef(false);
+  const { isMobile } = useWindowSize();
 
   const fetchTickers = useCallback(async () => {
     try {
@@ -52,7 +54,6 @@ export function MarketTicker() {
   useEffect(() => {
     fetchTickers();
 
-    // Set up dynamic polling based on market hours
     const pollInterval = getPollingInterval();
     const interval = setInterval(() => {
       fetchTickers();
@@ -61,26 +62,23 @@ export function MarketTicker() {
     return () => clearInterval(interval);
   }, [fetchTickers]);
 
-  // Calculate how many times to duplicate tickers to fill the screen
   const getRepeatCount = () => {
-    // Estimate: each ticker takes roughly 150px, we want enough to fill 2x screen width
     const estimatedTickerWidth = 150;
     const screenWidth =
       typeof window !== "undefined" ? window.innerWidth : 1920;
     const tickersNeeded = Math.ceil(
       (screenWidth * 2) / (tickers.length * estimatedTickerWidth)
     );
-    return Math.max(2, tickersNeeded); 
+    return Math.max(2, tickersNeeded);
   };
 
-  // Start animation once when tickers are first loaded
   useEffect(() => {
     const scrollContainer = scrollRef.current;
     if (!scrollContainer || tickers.length === 0 || isAnimatingRef.current)
       return;
 
     isAnimatingRef.current = true;
-    const vwPerSecond = 7.5;
+    const vwPerSecond = isMobile ? 25 : 7.5;
     let lastTime = performance.now();
 
     const animate = (currentTime: number) => {
@@ -88,7 +86,6 @@ export function MarketTicker() {
       lastTime = currentTime;
 
       const pixelsPerSecond = (window.innerWidth * vwPerSecond) / 100;
-      // Single set is half the total content (we duplicate for seamless loop)
       const singleSetWidth = scrollContainer.scrollWidth / 2;
 
       scrollPositionRef.current += pixelsPerSecond * deltaTime;
@@ -119,7 +116,7 @@ export function MarketTicker() {
       window.removeEventListener("resize", handleResize);
       isAnimatingRef.current = false;
     };
-  }, [tickers.length > 0]); // Only run when tickers become available
+  }, [tickers.length > 0]);
 
   const renderTickerItem = (
     ticker: TickerItem,
