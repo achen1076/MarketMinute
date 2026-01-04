@@ -35,7 +35,7 @@ export default function MobileBottomNav({ user }: Props) {
     { href: "/", icon: Home, label: "Home" },
     { href: "/watchlist", icon: List, label: "Watchlists" },
     { href: "/forecasts", icon: TrendingUp, label: "Forecasts" },
-    { href: "/quant", icon: LineChart, label: "Quant" },
+    { href: "/quant", icon: LineChart, label: "QuantLab" },
     { href: "/sentinel", icon: Shield, label: "Sentinel" },
     { href: "/chat", icon: MessageSquare, label: "Chat" },
   ];
