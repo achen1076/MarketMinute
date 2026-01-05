@@ -92,7 +92,12 @@ const Sidebar: React.FC<SidebarProps> = ({
         {...props}
       >
         {!isMobile && (
-          <div className="mb-4 px-4">
+          <div
+            className={cn(
+              "mb-4 px-4",
+              user ? "" : "border-b-2 border-sidebar-border pb-4"
+            )}
+          >
             <Link href="/" className="text-xl font-bold">
               MarketMinute
             </Link>
@@ -109,9 +114,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           <NavLink to="/" onClick={closeMenu}>
             Home
           </NavLink>
-          <NavLink to="/watchlist" onClick={closeMenu}>
-            Watchlists
-          </NavLink>
+          {user && (
+            <NavLink to="/watchlist" onClick={closeMenu}>
+              Watchlists
+            </NavLink>
+          )}
           <NavLink to="/forecasts" onClick={closeMenu}>
             Market Forecasts
           </NavLink>
@@ -146,7 +153,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             <SignOutButton size="full" />
           ) : (
             <NavLink to="/signin" onClick={closeMenu}>
-              Sign In
+              Sign In / Sign Up
             </NavLink>
           )}
         </div>

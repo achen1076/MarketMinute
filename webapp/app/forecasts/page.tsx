@@ -1,9 +1,9 @@
 import { auth } from "@/auth";
-import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { MarketForecastsClient } from "@/components/organisms/MarketForecastsClient";
 import WatchlistSelector from "@/components/organisms/WatchlistSelector";
 import { QuantLabAvailableTickers } from "@/components/molecules/QuantLabAvailableTickers";
+import ForecastsInfo from "@/components/pages/ForecastsInfo";
 
 export const metadata = {
   title: "MarketMinute - Market Forecasts",
@@ -15,7 +15,7 @@ export default async function ForecastsPage() {
   const session = await auth();
 
   if (!session?.user?.email) {
-    redirect("/api/auth/signin");
+    return <ForecastsInfo />;
   }
 
   const user = await prisma.user.findUnique({

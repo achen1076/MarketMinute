@@ -5,6 +5,7 @@ import "./globals.css";
 import Sidebar from "@/components/organisms/sidebar";
 import MobileBottomNav from "@/components/organisms/MobileBottomNav";
 import { MarketTicker } from "@/components/organisms/MarketTicker";
+import { ScrollToTop } from "@/components/organisms/ScrollToTop";
 import { auth } from "@/auth";
 import { Analytics } from "@vercel/analytics/next";
 import EmailVerificationBanner from "@/components/organisms/EmailVerificationBanner";
@@ -58,9 +59,9 @@ export const metadata: Metadata = {
 
   icons: {
     icon: [
-      { url: "/favicon.ico", type: "image/x-icon" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
       { url: "/favicon-48x48.png", sizes: "48x48", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.ico", type: "image/x-icon" },
     ],
     apple: [
       { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
@@ -190,6 +191,7 @@ export default async function RootLayout({
         <ThemeProvider>
           <UserPreferencesProvider>
             <MobileMenuProvider>
+              <ScrollToTop />
               {/* Sidebar handles its own responsive behavior */}
               <Sidebar user={session?.user} />
 

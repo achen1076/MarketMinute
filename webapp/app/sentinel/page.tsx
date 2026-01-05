@@ -1,9 +1,8 @@
 import { auth } from "@/auth";
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import SentinelDashboardClient from "./SentinelDashboardClient";
-
+import SentinelInfo from "@/components/pages/SentinelInfo";
 
 export const metadata: Metadata = {
   robots: {
@@ -16,7 +15,7 @@ export default async function SentinelDashboard() {
   const session = await auth();
 
   if (!session?.user?.email) {
-    redirect("/signin");
+    return <SentinelInfo />;
   }
 
   // Fetch latest report
@@ -59,6 +58,7 @@ export default async function SentinelDashboard() {
       vix: true,
       vixChangePct: true,
       realizedVol: true,
+      context: true,
     },
   });
 

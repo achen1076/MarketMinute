@@ -1,8 +1,9 @@
 import { auth } from "@/auth";
-import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { QuantLabClient } from "@/components/organisms/QuantLabClient";
 import WatchlistSelector from "@/components/organisms/WatchlistSelector";
+import QuantLabInfo from "@/components/pages/QuantLabInfo";
+
 export const metadata = {
   title: "MarketMinute - Quant Lab",
   description: "Quantitative model predictions and research tools",
@@ -12,7 +13,7 @@ export default async function QuantLabPage() {
   const session = await auth();
 
   if (!session?.user?.email) {
-    redirect("/api/auth/signin");
+    return <QuantLabInfo />;
   }
 
   // Get user's active watchlist

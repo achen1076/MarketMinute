@@ -3,14 +3,16 @@ import Card from "@/components/atoms/Card";
 interface RegimeComponentsCardProps {
   vix: number | null;
   sectorRotation: boolean;
+  className?: string;
 }
 
 export default function RegimeComponentsCard({
   vix,
   sectorRotation,
+  className,
 }: RegimeComponentsCardProps) {
   return (
-    <Card className="bg-card border-border">
+    <Card className={`bg-card border-border ${className || ""}`}>
       <div className="p-4">
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
           Regime Components

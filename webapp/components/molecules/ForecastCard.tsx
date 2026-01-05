@@ -1,11 +1,14 @@
 import Card from "@/components/atoms/Card";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import type { DistributionalForecast } from "@/types/quant";
+import { cn } from "@/lib/utils";
 
 export function ForecastCard({
   forecast,
+  hover = true,
 }: {
   forecast: DistributionalForecast;
+  hover?: boolean;
 }) {
   const {
     ticker,
@@ -61,7 +64,7 @@ export function ForecastCard({
       : "text-muted-foreground";
 
   return (
-    <Card className="p-5 hover:bg-muted/20 transition-all">
+    <Card className={cn("p-5 transition-all", hover && "hover:bg-muted/20")}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>

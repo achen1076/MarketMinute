@@ -10,6 +10,7 @@ import {
   Settings,
   LineChart,
   Shield,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMobileMenu } from "@/lib/mobile-menu-context";
@@ -31,17 +32,21 @@ export default function MobileBottomNav({ user }: Props) {
   const pathname = usePathname();
   const { isMenuOpen } = useMobileMenu();
 
-  const navItems: NavItem[] = [
-    { href: "/", icon: Home, label: "Home" },
-    { href: "/watchlist", icon: List, label: "Watchlists" },
-    { href: "/forecasts", icon: TrendingUp, label: "Forecasts" },
-    { href: "/quant", icon: LineChart, label: "QuantLab" },
-    { href: "/sentinel", icon: Shield, label: "Sentinel" },
-    { href: "/chat", icon: MessageSquare, label: "Chat" },
-  ];
+  const navItems: NavItem[] = [{ href: "/", icon: Home, label: "Home" }];
 
   if (user) {
-    navItems.push({ href: "/settings", icon: Settings, label: "Settings" });
+    navItems.push({ href: "/watchlist", icon: List, label: "Watchlists" });
+    navItems.push({ href: "/forecasts", icon: TrendingUp, label: "Forecasts" }),
+      navItems.push({ href: "/quant", icon: LineChart, label: "QuantLab" }),
+      navItems.push({ href: "/sentinel", icon: Shield, label: "Sentinel" }),
+      navItems.push({ href: "/chat", icon: MessageSquare, label: "Chat" }),
+      navItems.push({ href: "/settings", icon: Settings, label: "Settings" });
+  } else {
+    navItems.push({ href: "/forecasts", icon: TrendingUp, label: "Forecasts" }),
+      navItems.push({ href: "/quant", icon: LineChart, label: "QuantLab" }),
+      navItems.push({ href: "/sentinel", icon: Shield, label: "Sentinel" }),
+      navItems.push({ href: "/chat", icon: MessageSquare, label: "Chat" }),
+      navItems.push({ href: "/signin", icon: User, label: "Sign In" });
   }
 
   const isActive = (href: string) => {

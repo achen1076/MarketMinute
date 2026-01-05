@@ -243,7 +243,7 @@ export default function SignInForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-teal-500 hover:bg-teal-600 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold py-3.5 rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+          className="w-full bg-teal-500 hover:bg-teal-600 disabled:bg-muted disabled:text-muted-foreground text-white font-semibold py-3.5 rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
         >
           {loading
             ? "Loading..."
@@ -270,7 +270,7 @@ export default function SignInForm() {
         type="button"
         onClick={handleGoogleSignIn}
         disabled={loading}
-        className="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-100 disabled:bg-slate-700 disabled:text-slate-500 text-slate-900 font-semibold py-3.5 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+        className="w-full flex items-center justify-center gap-3 bg-white hover:bg-muted/90 disabled:bg-muted disabled:text-muted-foreground text-slate-900 font-semibold py-3.5 px-6 rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
       >
         <svg className="w-5 h-5" viewBox="0 0 24 24">
           <path

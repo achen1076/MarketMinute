@@ -67,20 +67,6 @@ export default async function SignInPage() {
           {/* Feature highlights */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6">
             <div className="flex items-start gap-3 text-left">
-              <div className="p-2 rounded-lg bg-teal-500/10 text-teal-400">
-                <BarChart3 className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground text-sm">
-                  Quant Labs
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  Model trained analytics
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3 text-left">
               <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400">
                 <LineChart className="w-5 h-5" />
               </div>
@@ -89,7 +75,7 @@ export default async function SignInPage() {
                   Custom Watchlists
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  Track what matters to you
+                  Track what matters
                 </p>
               </div>
             </div>
@@ -104,6 +90,19 @@ export default async function SignInPage() {
                 </h3>
                 <p className="text-xs text-muted-foreground">
                   News based insights
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 text-left">
+              <div className="p-2 rounded-lg bg-teal-500/10 text-teal-400">
+                <BarChart3 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground text-sm">
+                  Quant Labs
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Model trained analytics
                 </p>
               </div>
             </div>

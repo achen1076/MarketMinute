@@ -15,6 +15,12 @@ import {
   Calendar,
   ChevronDown,
 } from "lucide-react";
+import {
+  MockTickerListClient,
+  MockMarketMinuteSummary,
+  MockEventsTimeline,
+  MockMovementAlertsBar,
+} from "@/components/mock";
 
 function FeatureCard({
   icon,
@@ -152,14 +158,49 @@ export default function LandingPage() {
               <ArrowRight className="w-5 h-5" />
             </Link>
             <a
-              href="#how-it-works"
+              href="#preview"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-muted/50 hover:bg-muted text-foreground font-semibold rounded-xl transition-all border border-border"
             >
-              See How It Works
+              Take a look
               <ChevronDown className="w-5 h-5" />
             </a>
           </div>
         </div>
+      </section>
+
+      {/* Mock Dashboard Preview Section */}
+      <section className="px-4 py-16" id="preview">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-4xl font-bold text-foreground mb-4">
+              Your Personalized Dashboard
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Track your favorite stocks, get AI-powered insights, and see
+              market movements, all in one place
+            </p>
+          </div>
+
+          {/* Dashboard Preview - Using Mock Components */}
+          <div className="rounded-2xl bg-background border-2 border-border shadow-2xl overflow-hidden">
+            <div className="flex flex-col lg:flex-row">
+              {/* Left Column - Ticker List */}
+              <div className="lg:w-[340px] border-r border-border">
+                <MockTickerListClient />
+              </div>
+
+              {/* Right Column - Market Summary & Events */}
+              <div className="flex-1 p-6 space-y-6">
+                <MockMarketMinuteSummary />
+                <MockEventsTimeline />
+                <MockMovementAlertsBar />
+              </div>
+            </div>
+          </div>
+        </div>
+        <span className="text-muted-foreground text-sm ml-15">
+          * This is a mock dashboard preview, data and information are mocked
+        </span>
       </section>
 
       {/* What is MarketMinute Section */}
@@ -373,10 +414,7 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works Section */}
-      <section
-        id="how-it-works"
-        className="px-4 py-16 border-t border-border scroll-mt-20"
-      >
+      <section className="px-4 py-16 border-t border-border scroll-mt-20">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-2xl md:text-4xl font-bold text-foreground mb-4">
@@ -494,6 +532,107 @@ export default function LandingPage() {
                 informed all day without constant tab-switching. You understood
                 why your portfolio moved and got timely alerts for actionable
                 events.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="px-4 py-16 border-t border-border">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-4xl font-bold text-foreground mb-4">
+              What Our Users Say
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Join thousands of investors who have simplified their market
+              research
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="p-6 rounded-2xl bg-card border border-border">
+              <div className="flex items-center gap-3 mb-4">
+                <div>
+                  <div className="font-semibold text-foreground">Sarah M.</div>
+                </div>
+              </div>
+              <p className="text-muted-foreground italic">
+                &quot;I used to spend 2 hours every morning reading news across
+                multiple sites. Now I get everything I need in 5 minutes. The AI
+                summaries are incredibly accurate and save me so much
+                time.&quot;
+              </p>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-card border border-border">
+              <div className="flex items-center gap-3 mb-4">
+                <div>
+                  <div className="font-semibold text-foreground">James C.</div>
+                </div>
+              </div>
+              <p className="text-muted-foreground italic">
+                &quot;The quant signals and price forecasts have been
+                game-changers for my trading strategy. Having
+                institutional-level analytics for free is unbelievable. Best
+                tool I&apos;ve found this year.&quot;
+              </p>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-card border border-border">
+              <div className="flex items-center gap-3 mb-4">
+                <div>
+                  <div className="font-semibold text-foreground">Emily R.</div>
+                </div>
+              </div>
+              <p className="text-muted-foreground italic">
+                &quot;As someone new to investing, MarketMinute explains
+                everything in plain English. No confusing jargon, just clear
+                explanations of why my stocks moved. It&apos;s like having a
+                personal analyst.&quot;
+              </p>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-card border border-border">
+              <div className="flex items-center gap-3 mb-4">
+                <div>
+                  <div className="font-semibold text-foreground">David L.</div>
+                </div>
+              </div>
+              <p className="text-muted-foreground italic">
+                &quot;I manage multiple portfolios and MarketMinute keeps me
+                organized. The custom watchlists and real-time alerts ensure I
+                never miss important movements. Worth every penny of the premium
+                tier.&quot;
+              </p>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-card border border-border">
+              <div className="flex items-center gap-3 mb-4">
+                <div>
+                  <div className="font-semibold text-foreground">Maria A.</div>
+                </div>
+              </div>
+              <p className="text-muted-foreground italic">
+                &quot;With a full-time job, I don&apos;t have time to track
+                markets constantly. The daily summaries and Sentinel alerts keep
+                me informed without overwhelming me. Perfect for busy investors
+                like me.&quot;
+              </p>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-card border border-border">
+              <div className="flex items-center gap-3 mb-4">
+                <div>
+                  <div className="font-semibold text-foreground">Robert P.</div>
+                </div>
+              </div>
+              <p className="text-muted-foreground italic">
+                &quot;The chat agent is brilliant. I can ask it anything about
+                my holdings and get instant, personalized answers. It&apos;s
+                helped me understand market movements I would have missed
+                otherwise.&quot;
               </p>
             </div>
           </div>

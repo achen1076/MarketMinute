@@ -10,7 +10,11 @@ Allow: /how-it-works
 Allow: /features
 Allow: /use-cases
 Allow: /why-marketminute
-
+Allow: /watchlist
+Allow: /quant
+Allow: /sentinel
+Allow: /forecasts
+Allow: /chat
 
 # Disallow all private, authenticated, and backend routes
 Disallow: /logout
@@ -18,12 +22,9 @@ Disallow: /api/
 Disallow: /admin
 Disallow: /settings
 Disallow: /dashboard
-Disallow: /watchlist
-Disallow: /quant
-Disallow: /sentinel
-Disallow: /forecasts
 Disallow: /reset-password
 Disallow: /forgot-password
 Disallow: /verify-email
+Disallow: /watchlist/
 
 Sitemap: https://marketminute.io/sitemap.xml

@@ -249,39 +249,43 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
 
       {/* Filter and Sort Controls - only show for All Signals view */}
       {viewMode === "signals" && (
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex flex-col gap-3">
           {/* Search */}
           {userTier !== "free" && (
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Search ticker..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-3 py-2 w-40 bg-background border border-border rounded-lg text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-ring"
+                className="pl-9 pr-3 py-2 w-full sm:w-40 bg-background border border-border rounded-lg text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-ring"
               />
             </div>
           )}
-          <ModelQualityFilter
-            value={qualityFilter}
-            onChange={setQualityFilter}
-            filteredCount={getFilteredAndSortedSignals().length}
-          />
-          {/* Sort */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Sort:</span>
-            <select
-              value={sortBy}
-              onChange={(e) =>
-                setSortBy(e.target.value as "default" | "score" | "name")
-              }
-              className="px-3 py-2 rounded-lg text-sm bg-background text-foreground border border-border hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/50"
-            >
-              <option value="default">Default</option>
-              <option value="score">Quant Score</option>
-              <option value="name">Name (A-Z)</option>
-            </select>
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-3">
+            <ModelQualityFilter
+              value={qualityFilter}
+              onChange={setQualityFilter}
+              filteredCount={getFilteredAndSortedSignals().length}
+            />
+            {/* Sort */}
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                Sort:
+              </span>
+              <select
+                value={sortBy}
+                onChange={(e) =>
+                  setSortBy(e.target.value as "default" | "score" | "name")
+                }
+                className="px-3 py-2 rounded-lg text-sm bg-background text-foreground border border-border hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/50 flex-1 sm:flex-none sm:w-40"
+              >
+                <option value="default">Default</option>
+                <option value="score">Quant Score</option>
+                <option value="name">Name (A-Z)</option>
+              </select>
+            </div>
           </div>
         </div>
       )}
@@ -312,7 +316,7 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
           </p>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
           {getFilteredAndSortedSignals().map((signal) => (
             <EnhancedPredictionCard
               key={signal.ticker}

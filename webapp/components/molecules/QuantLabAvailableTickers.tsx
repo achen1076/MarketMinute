@@ -616,7 +616,7 @@ export function QuantLabAvailableTickers() {
           <Info className="w-5 h-5 text-blue-400" />
           <div>
             <h3 className="text-sm font-semibold text-foreground/80">
-              Available Tickers in QuantLab and Forcast
+              Available Tickers in QuantLab and Forecast
             </h3>
             <p className="text-xs text-foreground/50 mt-0.5">
               {AVAILABLE_TICKERS.length} stocks currently supported by the model
@@ -749,7 +749,7 @@ export function QuantLabAvailableTickers() {
             <div className="mt-4 pt-4 border-t border-slate-700/50">
               <p className="text-xs text-slate-500">
                 💡 <strong>Tip:</strong> Tickers not in your watchlist
-                won&apos;t appear in QuantLab or Forcast signals. Add them to
+                won&apos;t appear in QuantLab or Forecast signals. Add them to
                 your watchlist from the dashboard to get predictions.
               </p>
             </div>

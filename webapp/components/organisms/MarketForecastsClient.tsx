@@ -103,7 +103,7 @@ export function MarketForecastsClient({ symbols, watchlistName }: Props) {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
         {filteredForecasts.map((forecast) => (
           <ForecastCard key={forecast.ticker} forecast={forecast} />
         ))}

@@ -97,9 +97,9 @@ export default function SentinelDashboardClient({
       {latestReport ? (
         <>
           {/* Above the Fold */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:items-start">
             {/* LEFT COLUMN - Market Data */}
-            <div className="space-y-4">
+            <div className="flex flex-col gap-4 h-full">
               <VolatilityCard
                 vix={latestReport.vix}
                 vixChangePct={latestReport.vixChangePct}
@@ -112,10 +112,24 @@ export default function SentinelDashboardClient({
                 volSpike={latestReport.volSpike}
                 macroSurprise={latestReport.macroSurprise}
               />
+
+              {/* Macro Context */}
+              {latestReport.macroContext && (
+                <Card className="bg-card border-border flex-1">
+                  <div className="p-4">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                      Macro Context
+                    </h3>
+                    <p className="text-sm text-foreground/80 leading-relaxed">
+                      {latestReport.macroContext}
+                    </p>
+                  </div>
+                </Card>
+              )}
             </div>
 
             {/* CENTER COLUMN - Summary & Regime */}
-            <div className="space-y-4">
+            <div className="flex flex-col gap-4 h-full">
               <MarketSummaryCard
                 keyDrivers={latestReport.keyDrivers || []}
                 vixChangePct={latestReport.vixChangePct}
@@ -126,11 +140,12 @@ export default function SentinelDashboardClient({
               <RegimeComponentsCard
                 vix={latestReport.vix}
                 sectorRotation={latestReport.sectorRotation}
+                className="flex-1"
               />
             </div>
 
             {/* RIGHT COLUMN - Key Insights */}
-            <div className="space-y-4">
+            <div className="flex flex-col gap-4 h-full">
               {/* Top Insight */}
               <Card className="bg-linear-to-br from-indigo-500/10 to-purple-500/10 border-indigo-500/30">
                 <div className="p-4">
@@ -147,7 +162,7 @@ export default function SentinelDashboardClient({
               </Card>
 
               {/* Key Drivers */}
-              <Card className="bg-card border-border">
+              <Card className="bg-card border-border flex-1">
                 <div className="p-4">
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                     Key Drivers
@@ -170,20 +185,6 @@ export default function SentinelDashboardClient({
                   </ul>
                 </div>
               </Card>
-
-              {/* Macro Context */}
-              {latestReport.macroContext && (
-                <Card className="bg-card border-border">
-                  <div className="p-4">
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                      Macro Context
-                    </h3>
-                    <p className="text-sm text-foreground/80 leading-relaxed">
-                      {latestReport.macroContext}
-                    </p>
-                  </div>
-                </Card>
-              )}
             </div>
           </div>
 

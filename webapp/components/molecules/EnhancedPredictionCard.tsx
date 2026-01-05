@@ -1,12 +1,18 @@
 import Card from "@/components/atoms/Card";
 import type { EnhancedSignal, ModelQuality } from "@/types/quant";
+import { cn } from "@/lib/utils";
 
 type Props = {
   signal: EnhancedSignal;
   quality?: ModelQuality;
+  hover?: boolean;
 };
 
-export function EnhancedPredictionCard({ signal, quality }: Props) {
+export function EnhancedPredictionCard({
+  signal,
+  quality,
+  hover = true,
+}: Props) {
   const {
     ticker,
     current_price,
@@ -109,7 +115,9 @@ export function EnhancedPredictionCard({ signal, quality }: Props) {
 
   return (
     <Card
-      className={`p-3 sm:p-5 hover:bg-muted/20 transition-all ${cardBorderClass}`}
+      className={`p-3 sm:p-5 transition-all ${cardBorderClass} ${cn(
+        hover && "hover:bg-muted/20"
+      )}`}
     >
       {/* Model Quality Badge */}
       {quality && (
@@ -125,7 +133,7 @@ export function EnhancedPredictionCard({ signal, quality }: Props) {
       )}
 
       {/* Header with Quant Score */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-start justify-between mb-3 sm:mb-4 gap-2 sm:gap-0">
+      <div className="flex flex-col sm:flex-row items-start sm:items-start justify-between mb-3 sm:mb-4 gap-2 sm:gap-0 ">
         <div>
           <h3 className="text-lg sm:text-xl font-bold text-foreground">
             {ticker}

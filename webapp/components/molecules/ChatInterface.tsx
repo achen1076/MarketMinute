@@ -229,38 +229,51 @@ export default function ChatInterface({ userId }: ChatInterfaceProps) {
 
           <div className="space-y-3">
             {messages.map((message) => (
-              <div key={message.id} className="flex gap-2.5">
+              <div
+                key={message.id}
+                className={`flex gap-2.5 ${
+                  message.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                {/* Assistant avatar - left side */}
+                {message.role === "assistant" && (
+                  <div className="shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-semibold bg-emerald-600/80">
+                    M
+                  </div>
+                )}
+
+                {/* Message bubble */}
                 <div
-                  className={`shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-semibold ${
+                  className={`max-w-[80%] px-3 py-2 rounded-xl ${
                     message.role === "user"
-                      ? "bg-blue-600/80"
-                      : "bg-emerald-600/80"
+                      ? "bg-blue-600/80 text-white"
+                      : "bg-muted/60 border border-border text-foreground"
                   }`}
                 >
-                  {message.role === "user" ? "U" : "M"}
-                </div>
-                <div className="flex-1 min-w-0 pt-0.5">
-                  <div className="text-[10px] text-muted-foreground mb-0.5">
-                    {message.role === "user" ? "You" : "MarketMinute"}
-                  </div>
-                  <div className="text-[13px] text-foreground leading-relaxed whitespace-pre-wrap">
+                  <div className="text-[13px] leading-relaxed whitespace-pre-wrap">
                     {message.content}
                   </div>
                 </div>
+
+                {/* User avatar - right side */}
+                {message.role === "user" && (
+                  <div className="shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-semibold bg-blue-600/80">
+                    U
+                  </div>
+                )}
               </div>
             ))}
 
             {/* Streaming/Loading */}
             {loading && (
-              <div className="flex gap-2.5">
+              <div className="flex gap-2.5 justify-start">
                 <div className="shrink-0 w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-semibold bg-emerald-600/80">
                   M
                 </div>
-                <div className="flex-1 min-w-0 pt-0.5">
-                  <div className="text-[10px] text-muted-foreground mb-0.5">
-                    MarketMinute
-                  </div>
-                  <div className="text-[13px] text-foreground leading-relaxed whitespace-pre-wrap">
+
+                {/* Message bubble */}
+                <div className="max-w-[80%] px-3 py-2 rounded-xl bg-muted/60 border border-border text-foreground">
+                  <div className="text-[13px] leading-relaxed whitespace-pre-wrap">
                     {streamingContent || (
                       <span className="inline-flex items-center gap-1.5 text-muted-foreground">
                         <svg
