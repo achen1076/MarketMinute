@@ -4,7 +4,6 @@ import Link from "next/link";
 import Card from "@/components/atoms/Card";
 import { EnhancedPredictionCard } from "@/components/molecules/EnhancedPredictionCard";
 import type { EnhancedSignal } from "@/types/quant";
-import { QuantLabAvailableTickers } from "@/components/molecules/QuantLabAvailableTickers";
 
 export default function QuantLabInfo() {
   const features = [

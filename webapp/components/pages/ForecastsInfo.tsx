@@ -4,7 +4,6 @@ import Link from "next/link";
 import Card from "@/components/atoms/Card";
 import { ForecastCard } from "@/components/molecules/ForecastCard";
 import type { DistributionalForecast } from "@/types/quant";
-import { QuantLabAvailableTickers } from "@/components/molecules/QuantLabAvailableTickers";
 
 export default function ForecastsInfo() {
   const features = [
