@@ -67,7 +67,7 @@ export default function SentinelDashboardClient({
       .reduce((sum, r) => sum + (r.vix || 0), 0) / reports.length || 0;
 
   return (
-    <div className="min-h-screen p-6 space-y-6">
+    <div className="min-h-screen p-2 sm:p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
