@@ -72,12 +72,12 @@ export default function ChatInfo() {
       </div>
 
       {/* Background decorative element */}
-      <div className="absolute top-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-violet-500/5 rounded-full blur-3xl -z-10" />
+      <div className="absolute top-20 left-1/2 -translate-x-1/2 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl -z-10" />
 
       {/* Mini Chat Interface Preview */}
       <div className="relative mb-20">
         <div className="max-w-3xl mx-auto">
-          <Card className="overflow-hidden border-emerald-500/20 shadow-2xl">
+          <Card className="overflow-hidden border-blue-500/20 shadow-2xl">
             {/* Chat Header */}
             <div className="border-b border-border px-6 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -152,7 +152,7 @@ export default function ChatInfo() {
           return (
             <Card
               key={feature.title}
-              className="p-6 transform hover:scale-102 transition-all duration-300 hover:bg-violet-500/10 hover:border-violet-500"
+              className="p-6 transform hover:scale-102 transition-all duration-300 hover:bg-blue-500/10 hover:border-blue-500"
             >
               <div className="flex items-start gap-4">
                 <div>
@@ -170,7 +170,7 @@ export default function ChatInfo() {
       </div>
 
       {/* CTA */}
-      <Card className="p-10 text-center  border-violet-500/20">
+      <Card className="p-10 text-center  border-blue-500/20">
         <h2 className="text-2xl font-bold mb-3">
           Ready to chat about markets?
         </h2>
@@ -179,7 +179,7 @@ export default function ChatInfo() {
         </p>
         <Link
           href="/signin"
-          className="inline-flex items-center gap-2 px-8 py-4 bg-violet-500 hover:bg-violet-600 text-white font-semibold rounded-xl transition-colors"
+          className="inline-flex items-center gap-2 px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl transition-colors"
         >
           Sign In to Get Started
         </Link>

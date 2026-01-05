@@ -58,8 +58,8 @@ export default function SentinelInfo() {
       { name: "Technology", change: 1.24, color: "emerald" },
       { name: "Healthcare", change: 0.45, color: "emerald" },
       { name: "Financials", change: 0.12, color: "emerald" },
-      { name: "Consumer", change: -0.28, color: "rose" },
-      { name: "Energy", change: -1.15, color: "rose" },
+      { name: "Consumer", change: -0.28, color: "indigo" },
+      { name: "Energy", change: -1.15, color: "indigo" },
     ],
     scenarios: [
       "What if bond yields break above 4.75%?",
@@ -180,8 +180,8 @@ export default function SentinelInfo() {
                         Equities:
                       </span>
                       <span className="text-foreground">
-                        IWM rose about 1.06%, making small-cap stocks the day's
-                        top driver.
+                        IWM indigo about 1.06%, making small-cap stocks the
+                        day's top driver.
                       </span>
                     </div>
                     <div className="flex items-start gap-2">
@@ -255,8 +255,8 @@ export default function SentinelInfo() {
                     Top Insight
                   </h3>
                   <p className="text-sm text-foreground font-medium leading-relaxed">
-                    IWM rose about 1.06%, making small-cap stocks the day's top
-                    driver.
+                    IWM indigo about 1.06%, making small-cap stocks the day's
+                    top driver.
                   </p>
                 </div>
               </Card>
@@ -271,8 +271,8 @@ export default function SentinelInfo() {
                     <li className="flex items-start gap-2 text-sm">
                       <span className="text-indigo-400 mt-0.5">•</span>
                       <span className="text-foreground leading-tight">
-                        IWM rose about 1.06%, making small-cap stocks the day's
-                        top driver.
+                        IWM indigo about 1.06%, making small-cap stocks the
+                        day's top driver.
                       </span>
                     </li>
                     <li className="flex items-start gap-2 text-sm">
@@ -309,7 +309,7 @@ export default function SentinelInfo() {
           return (
             <Card
               key={feature.title}
-              className="p-6 transform hover:scale-102 transition-all duration-300 hover:bg-rose-500/10 hover:border-rose-500"
+              className="p-6 transform hover:scale-102 transition-all duration-300 hover:bg-indigo-500/10 hover:border-indigo-500"
             >
               <div className="flex items-start gap-4">
                 <div>
@@ -327,7 +327,7 @@ export default function SentinelInfo() {
       </div>
 
       {/* CTA */}
-      <Card className="p-10 text-center border-rose-500/20">
+      <Card className="p-10 text-center border-indigo-500/20">
         <h2 className="text-2xl font-bold mb-3">
           Ready to monitor the markets?
         </h2>
@@ -336,7 +336,7 @@ export default function SentinelInfo() {
         </p>
         <Link
           href="/signin"
-          className="inline-flex items-center gap-2 px-8 py-4 bg-rose-500 hover:bg-rose-600 text-white font-semibold rounded-xl transition-colors"
+          className="inline-flex items-center gap-2 px-8 py-4 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-xl transition-colors"
         >
           Sign In to Get Started
         </Link>
