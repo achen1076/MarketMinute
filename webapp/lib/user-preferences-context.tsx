@@ -30,6 +30,15 @@ const UserPreferencesContext = createContext<
   UserPreferencesContextType | undefined
 >(undefined);
 
+function hasSession(): boolean {
+  if (typeof document === "undefined") return false;
+  // Check for NextAuth session cookie
+  return (
+    document.cookie.includes("next-auth.session-token") ||
+    document.cookie.includes("__Secure-next-auth.session-token")
+  );
+}
+
 export function UserPreferencesProvider({ children }: { children: ReactNode }) {
   const [preferences, setPreferences] =
     useState<UserPreferences>(defaultPreferences);
@@ -41,20 +50,22 @@ export function UserPreferencesProvider({ children }: { children: ReactNode }) {
     fetchInitiated.current = true;
 
     const fetchPreferences = async () => {
-      try {
-        const res = await fetch("/api/user/preferences");
-        if (res.ok) {
-          const data = await res.json();
-          setPreferences({
-            tickerColoring: data.tickerColoring === "on",
-            alertPreference: data.alertPreference !== "off",
-          });
+      // Only fetch from API if user is logged in
+      if (hasSession()) {
+        try {
+          const res = await fetch("/api/user/preferences");
+          if (res.ok) {
+            const data = await res.json();
+            setPreferences({
+              tickerColoring: data.tickerColoring === "on",
+              alertPreference: data.alertPreference !== "off",
+            });
+          }
+        } catch {
+          // Use defaults if fetch fails
         }
-      } catch {
-        // Use defaults if fetch fails
-      } finally {
-        setIsLoading(false);
       }
+      setIsLoading(false);
     };
 
     fetchPreferences();
@@ -64,21 +75,27 @@ export function UserPreferencesProvider({ children }: { children: ReactNode }) {
     setPreferences((prev) => ({ ...prev, tickerColoring: enabled }));
     localStorage.setItem("tickerColoringEnabled", String(enabled));
 
-    fetch("/api/user/ticker-coloring", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tickerColoring: enabled ? "on" : "off" }),
-    }).catch(() => {});
+    // Only save to database if user is logged in
+    if (hasSession()) {
+      fetch("/api/user/ticker-coloring", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tickerColoring: enabled ? "on" : "off" }),
+      }).catch(() => {});
+    }
   };
 
   const setAlertPreference = (enabled: boolean) => {
     setPreferences((prev) => ({ ...prev, alertPreference: enabled }));
 
-    fetch("/api/user/alert-preference", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ alertPreference: enabled ? "on" : "off" }),
-    }).catch(() => {});
+    // Only save to database if user is logged in
+    if (hasSession()) {
+      fetch("/api/user/alert-preference", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ alertPreference: enabled ? "on" : "off" }),
+      }).catch(() => {});
+    }
   };
 
   return (

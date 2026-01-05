@@ -46,7 +46,7 @@ export default function QuantLabInfo() {
       prob1PctMove: 0.75,
       prob2PctMove: 0.58,
       signalDescription:
-        "Negative news significantly weakened bullish momentum",
+        "Negative news significantly weakened bullish momentum, high volatility",
       tradingInterpretation:
         "Major negative sentiment shift from breaking news",
       prob_up: 0.25,

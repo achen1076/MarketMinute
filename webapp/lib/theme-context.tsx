@@ -29,6 +29,15 @@ function getSystemTheme(): ResolvedTheme {
     : "light";
 }
 
+function hasSession(): boolean {
+  if (typeof document === "undefined") return false;
+  // Check for NextAuth session cookie
+  return (
+    document.cookie.includes("next-auth.session-token") ||
+    document.cookie.includes("__Secure-next-auth.session-token")
+  );
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("system");
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("dark");
@@ -36,17 +45,20 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [themeLoaded, setThemeLoaded] = useState(false);
 
   const fetchTheme = async () => {
-    try {
-      const res = await fetch("/api/user/theme");
-      if (res.ok) {
-        const data = await res.json();
-        if (data.theme && ["light", "dark", "system"].includes(data.theme)) {
-          setThemeState(data.theme);
-          return;
+    // Only fetch from API if user is logged in
+    if (hasSession()) {
+      try {
+        const res = await fetch("/api/user/theme");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.theme && ["light", "dark", "system"].includes(data.theme)) {
+            setThemeState(data.theme);
+            return;
+          }
         }
+      } catch {
+        // Fall through to localStorage
       }
-    } catch {
-      // Fall through to localStorage
     }
     // Fall back to localStorage if not logged in or fetch fails
     const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
@@ -94,15 +106,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setThemeState(newTheme);
     localStorage.setItem(THEME_STORAGE_KEY, newTheme);
 
-    // Also save to database for logged-in users (async, don't block)
-    fetch("/api/user/theme", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ theme: newTheme }),
-    }).catch((error) => {
-      // Silently fail if not logged in or error occurs
-      console.debug("Failed to save theme to database:", error);
-    });
+    // Only save to database if user is logged in
+    if (hasSession()) {
+      fetch("/api/user/theme", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ theme: newTheme }),
+      }).catch((error) => {
+        // Silently fail if error occurs
+        console.debug("Failed to save theme to database:", error);
+      });
+    }
   };
 
   // Block rendering until theme is loaded to prevent flash
