@@ -21,7 +21,7 @@ export function DashboardPreviewSection() {
 
         <div className="rounded-2xl bg-background border-2 border-border shadow-2xl overflow-hidden">
           <div className="flex flex-col lg:flex-row">
-            <div className="lg:w-[340px] border-r border-border">
+            <div className="lg:w-[400px] border-r border-border">
               <MockTickerListClient />
             </div>
 
