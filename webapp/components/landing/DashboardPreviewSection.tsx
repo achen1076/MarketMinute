@@ -3,7 +3,7 @@ import {
   MockMarketMinuteSummary,
   MockEventsTimeline,
   MockMovementAlertsBar,
-} from "@/components/mock";
+} from "@/components/landing";
 
 export function DashboardPreviewSection() {
   return (

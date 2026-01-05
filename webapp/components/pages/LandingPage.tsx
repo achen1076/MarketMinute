@@ -9,7 +9,7 @@ import {
   TestimonialsSection,
   FAQSection,
   FinalCTASection,
-} from "@/components/mock";
+} from "@/components/landing";
 
 export default function LandingPage() {
   return (

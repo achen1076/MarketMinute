@@ -10,22 +10,10 @@ import {
 } from "lucide-react";
 
 const MOCK_ALERTS = {
-  bigMovers: 7,
+  bigMovers: 4,
   nearHighs: 1,
   nearLows: 0,
   details: [
-    {
-      symbol: "BIDU",
-      type: "price_move",
-      message: "+15.03% today",
-      direction: "up" as const,
-    },
-    {
-      symbol: "BABA",
-      type: "price_move",
-      message: "+6.24% today",
-      direction: "up" as const,
-    },
     {
       symbol: "AMD",
       type: "price_move",
@@ -42,12 +30,6 @@ const MOCK_ALERTS = {
       symbol: "NOW",
       type: "price_move",
       message: "-3.75% today",
-      direction: "down" as const,
-    },
-    {
-      symbol: "CRWD",
-      type: "price_move",
-      message: "-3.24% today",
       direction: "down" as const,
     },
     {
