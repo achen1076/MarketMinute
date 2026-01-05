@@ -69,7 +69,7 @@ export default function SentinelInfo() {
   };
 
   return (
-    <div className="relative w-[70vw] mx-auto mt-16 pb-16 space-y-8">
+    <div className="relative lg:w-[70vw] w-[90vw] mx-auto mt-16 pb-16 space-y-8">
       {/* Hero Section */}
       <div className="relative z-10 text-center space-y-4 mb-20">
         <h1 className="text-4xl font-bold text-foreground">

@@ -251,7 +251,7 @@ export default function QuantLabInfo() {
       </div>
 
       {/* Features Grid */}
-      <div className="grid md:grid-cols-2 gap-6 w-[70vw] mx-auto">
+      <div className="grid md:grid-cols-2 gap-6 lg:w-[70vw] mx-auto">
         {features.map((feature) => {
           return (
             <Card
@@ -274,7 +274,7 @@ export default function QuantLabInfo() {
       </div>
 
       {/* Disclaimer */}
-      <div className="rounded-lg border-2 border-amber-500/30 bg-amber-500/5 p-6 w-[70vw] mx-auto">
+      <div className="rounded-lg border-2 border-amber-500/30 bg-amber-500/5 p-6 lg:w-[70vw] mx-auto">
         <div className="flex items-start gap-3">
           <div className="text-amber-500 text-2xl">⚠️</div>
           <div>
@@ -291,11 +291,11 @@ export default function QuantLabInfo() {
         </div>
       </div>
 
-      <div className="w-[70vw] mx-auto">
+      <div className="lg:w-[70vw] mx-auto">
         <QuantLabAvailableTickers />
       </div>
       {/* CTA */}
-      <Card className="p-6 md:p-10 text-center border-amber-500/20 w-[70vw] mx-auto">
+      <Card className="p-6 md:p-10 text-center border-amber-500/20 lg:w-[70vw] mx-auto">
         <h2 className="text-xl md:text-2xl font-bold mb-3">
           Ready to explore Quant Lab?
         </h2>

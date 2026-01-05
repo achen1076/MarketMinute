@@ -198,7 +198,7 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
-        <span className="text-muted-foreground text-sm ml-15">
+        <span className="text-muted-foreground text-sm lg:ml-15">
           * This is a mock dashboard preview, data and information are mocked
         </span>
       </section>
