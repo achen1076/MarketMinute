@@ -55,11 +55,40 @@ export function MarketTicker() {
     fetchTickers();
 
     const pollInterval = getPollingInterval();
-    const interval = setInterval(() => {
-      fetchTickers();
-    }, pollInterval);
+    let interval: NodeJS.Timeout | null = null;
 
-    return () => clearInterval(interval);
+    const startPolling = () => {
+      if (interval) return;
+      interval = setInterval(() => {
+        if (document.visibilityState === "visible") {
+          fetchTickers();
+        }
+      }, pollInterval);
+    };
+
+    const stopPolling = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchTickers();
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    startPolling();
+
+    return () => {
+      stopPolling();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [fetchTickers]);
 
   const animationDuration = isMobile ? 30 : 20;

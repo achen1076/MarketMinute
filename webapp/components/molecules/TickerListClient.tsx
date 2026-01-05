@@ -194,13 +194,45 @@ export function TickerListClient({
       return;
     }
 
-    const interval = setInterval(() => {
-      if (isMarketOpen() || isAfterHours() || isPreMarket()) {
-        handleRefresh();
-      }
-    }, CACHE_TTL_MS);
+    let interval: NodeJS.Timeout | null = null;
 
-    return () => clearInterval(interval);
+    const startPolling = () => {
+      if (interval) return;
+      interval = setInterval(() => {
+        if (
+          document.visibilityState === "visible" &&
+          (isMarketOpen() || isAfterHours() || isPreMarket())
+        ) {
+          handleRefresh();
+        }
+      }, CACHE_TTL_MS);
+    };
+
+    const stopPolling = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        if (isMarketOpen() || isAfterHours() || isPreMarket()) {
+          handleRefresh();
+          startPolling();
+        }
+      } else {
+        stopPolling();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    startPolling();
+
+    return () => {
+      stopPolling();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [watchlistId]);
 
   const handleFavoriteToggle = async (snapshot: EnrichedSnapshot) => {
