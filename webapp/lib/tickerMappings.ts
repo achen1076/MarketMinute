@@ -18,7 +18,7 @@ export const TICKER_TO_COMPANY: Record<string, string[]> = {
   CRM: ["Salesforce"],
   ADBE: ["Adobe"],
   NFLX: ["Netflix"],
-  AMD: ["AMD"],
+  AMD: ["Advanced Micro Devices"],
   INTC: ["Intel"],
   CSCO: ["Cisco"],
   QCOM: ["Qualcomm"],

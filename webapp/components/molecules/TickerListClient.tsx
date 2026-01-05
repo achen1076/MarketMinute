@@ -545,9 +545,13 @@ export function TickerListClient({
                           </span>
                         )}
                       </div>
-                      {TICKER_TO_COMPANY[s.symbol.toUpperCase()]?.[0] && (
+                      {TICKER_TO_COMPANY[s.symbol.toUpperCase()]?.[0] ? (
                         <div className="text-xs text-muted-foreground -mt-0.5 mb-1">
                           {TICKER_TO_COMPANY[s.symbol.toUpperCase()][0]}
+                        </div>
+                      ) : (
+                        <div className="text-xs text-muted-foreground -mt-0.5 mb-1">
+                          {s.symbol}
                         </div>
                       )}
                       <div
