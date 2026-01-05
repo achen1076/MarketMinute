@@ -39,27 +39,6 @@ const MOCK_EVENTS: MockEvent[] = [
     symbol: "AAPL",
   },
   {
-    type: "earnings",
-    title: "AMD Earnings Report",
-    description: "Est. EPS: $1.31 | Est. revenue: $9.63B",
-    date: "Feb 3",
-    symbol: "AMD",
-  },
-  {
-    type: "earnings",
-    title: "GOOGL Earnings Report",
-    description: "Est. EPS: $2.59 | Est. revenue: $111.24B",
-    date: "Feb 3",
-    symbol: "GOOGL",
-  },
-  {
-    type: "earnings",
-    title: "PYPL Earnings Report",
-    description: "Est. EPS: $1.29",
-    date: "Feb 3",
-    symbol: "PYPL",
-  },
-  {
     type: "macro",
     title: "Employment Situation",
     description: "Monthly employment report from Bureau of Labor Statistics",
