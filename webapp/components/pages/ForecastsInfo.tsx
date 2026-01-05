@@ -197,9 +197,9 @@ export default function ForecastsInfo() {
         </div>
       </div>
 
-      <div className="lg:w-[70vw] mx-auto">
+      {/* <div className="lg:w-[70vw] mx-auto">
         <QuantLabAvailableTickers />
-      </div>
+      </div> */}
 
       {/* CTA */}
       <Card className="p-6 md:p-10 text-center  border-teal-500/20 lg:w-[70vw] mx-auto">

@@ -291,9 +291,10 @@ export default function QuantLabInfo() {
         </div>
       </div>
 
-      <div className="lg:w-[70vw] mx-auto">
+      {/* <div className="lg:w-[70vw] mx-auto">
         <QuantLabAvailableTickers />
-      </div>
+      </div> */}
+
       {/* CTA */}
       <Card className="p-6 md:p-10 text-center border-amber-500/20 lg:w-[70vw] mx-auto">
         <h2 className="text-xl md:text-2xl font-bold mb-3">
