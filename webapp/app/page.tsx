@@ -102,7 +102,7 @@ export default async function HomePage() {
                 <MarketMinuteSummary watchlistId={activeWatchlistId} />
               )}
               {/* Sentinel Explain Today */}
-              {snapshots.length > 0 && <SentinelExplainToday />}
+              {/* {snapshots.length > 0 && <SentinelExplainToday />} */}
               {/* Upcoming Events */}
               {snapshots.length > 0 && <EventsTimeline symbols={symbols} />}
               {/* Movement Alerts */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   isMarketOpen,
   isPreMarket,
@@ -31,10 +31,7 @@ function getPollingInterval(): number {
 
 export function MarketTicker() {
   const [tickers, setTickers] = useState<TickerItem[]>([]);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const scrollPositionRef = useRef(0);
-  const animationFrameRef = useRef<number | null>(null);
-  const isAnimatingRef = useRef(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const { isMobile } = useWindowSize();
 
   const fetchTickers = useCallback(async () => {
@@ -44,12 +41,15 @@ export function MarketTicker() {
         const data = await res.json();
         if (data.tickers?.length > 0) {
           setTickers(data.tickers);
+          if (!isLoaded) {
+            setTimeout(() => setIsLoaded(true), 100);
+          }
         }
       }
     } catch (error) {
       console.error("Failed to fetch market tickers:", error);
     }
-  }, []);
+  }, [isLoaded]);
 
   useEffect(() => {
     fetchTickers();
@@ -62,61 +62,7 @@ export function MarketTicker() {
     return () => clearInterval(interval);
   }, [fetchTickers]);
 
-  const getRepeatCount = () => {
-    const estimatedTickerWidth = 150;
-    const screenWidth =
-      typeof window !== "undefined" ? window.innerWidth : 1920;
-    const tickersNeeded = Math.ceil(
-      (screenWidth * 2) / (tickers.length * estimatedTickerWidth)
-    );
-    return Math.max(2, tickersNeeded);
-  };
-
-  useEffect(() => {
-    const scrollContainer = scrollRef.current;
-    if (!scrollContainer || tickers.length === 0 || isAnimatingRef.current)
-      return;
-
-    isAnimatingRef.current = true;
-    const vwPerSecond = isMobile ? 25 : 7.5;
-    let lastTime = performance.now();
-
-    const animate = (currentTime: number) => {
-      const deltaTime = (currentTime - lastTime) / 1000;
-      lastTime = currentTime;
-
-      const pixelsPerSecond = (window.innerWidth * vwPerSecond) / 100;
-      const singleSetWidth = scrollContainer.scrollWidth / 2;
-
-      scrollPositionRef.current += pixelsPerSecond * deltaTime;
-
-      if (scrollPositionRef.current >= singleSetWidth) {
-        scrollPositionRef.current = 0;
-      }
-
-      scrollContainer.scrollLeft = scrollPositionRef.current;
-      animationFrameRef.current = requestAnimationFrame(animate);
-    };
-
-    animationFrameRef.current = requestAnimationFrame(animate);
-
-    const handleResize = () => {
-      scrollPositionRef.current = 0;
-      if (scrollContainer) {
-        scrollContainer.scrollLeft = 0;
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-      window.removeEventListener("resize", handleResize);
-      isAnimatingRef.current = false;
-    };
-  }, [tickers.length > 0]);
+  const animationDuration = isMobile ? 20 : 60;
 
   const renderTickerItem = (
     ticker: TickerItem,
@@ -149,39 +95,48 @@ export function MarketTicker() {
     </div>
   );
 
-  const repeatCount = getRepeatCount();
-
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 border-b bg-card border-border">
-      <div className="flex items-center justify-between px-4 py-2">
-        <div className="flex-1 overflow-hidden">
-          <div
-            ref={scrollRef}
-            className="flex items-center gap-6 overflow-x-auto scrollbar-hide whitespace-nowrap"
-          >
-            {tickers.length === 0 ? (
-              <div className="text-muted-foreground text-sm">
-                Loading market data...
-              </div>
-            ) : (
-              <>
-                {/* First set */}
-                {Array.from({ length: repeatCount }).map((_, setIdx) =>
-                  tickers.map((ticker, idx) =>
-                    renderTickerItem(ticker, idx, `-set${setIdx}`)
-                  )
-                )}
-                {/* Duplicate set for seamless loop */}
-                {Array.from({ length: repeatCount }).map((_, setIdx) =>
-                  tickers.map((ticker, idx) =>
-                    renderTickerItem(ticker, idx, `-dup${setIdx}`)
-                  )
-                )}
-              </>
-            )}
-          </div>
+    <div className="fixed top-0 left-0 right-0 z-50 border-b bg-card border-border overflow-hidden">
+      <div className="flex items-center px-4 py-2">
+        <div
+          className={`flex items-center gap-6 whitespace-nowrap transition-opacity duration-500 ${
+            isLoaded ? "opacity-100" : "opacity-0"
+          }`}
+          style={{
+            animation:
+              tickers.length > 0
+                ? `ticker-scroll ${animationDuration}s linear infinite`
+                : "none",
+          }}
+        >
+          {tickers.length === 0 ? (
+            <div className="text-muted-foreground text-sm">
+              Loading market data...
+            </div>
+          ) : (
+            <>
+              {/* First set */}
+              {tickers.map((ticker, idx) =>
+                renderTickerItem(ticker, idx, "-a")
+              )}
+              {/* Duplicate for seamless loop */}
+              {tickers.map((ticker, idx) =>
+                renderTickerItem(ticker, idx, "-b")
+              )}
+            </>
+          )}
         </div>
       </div>
+      <style jsx>{`
+        @keyframes ticker-scroll {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
+        }
+      `}</style>
     </div>
   );
 }
