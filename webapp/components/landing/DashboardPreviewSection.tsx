@@ -15,7 +15,7 @@ export function DashboardPreviewSection() {
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Track your favorite stocks, get AI-powered insights, and see market
-            movements, all in one place
+            movements, all in one place. Give it a try below!
           </p>
         </div>
 
