@@ -26,38 +26,26 @@ export function CoreFeaturesSection() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           <FeatureCard
-            icon={<Sparkles className="w-6 h-6 text-teal-400" />}
-            iconBg="bg-teal-500/10"
             title="AI-Powered Summaries"
             description="Get personalized daily briefs that explain why your stocks moved. Our AI reads news and distills it into clear, actionable insights, no jargon."
           />
           <FeatureCard
-            icon={<Clock className="w-6 h-6 text-indigo-400" />}
-            iconBg="bg-indigo-500/10"
             title="Real-Time Data"
             description="Live prices, volume, and market indicators updated every second. Stay current without constantly refreshing."
           />
           <FeatureCard
-            icon={<Target className="w-6 h-6 text-rose-400" />}
-            iconBg="bg-rose-500/10"
             title="Custom Watchlists"
             description="Create custom watchlists and star your most important holdings. Get deeper insights on what matters most to you."
           />
           <FeatureCard
-            icon={<BarChart3 className="w-6 h-6 text-amber-400" />}
-            iconBg="bg-amber-500/10"
             title="Quant Analytics"
             description="Access model powered analytics: technical indicators, volatility metrics, momentum scores, and pattern recognition, all in one place."
           />
           <FeatureCard
-            icon={<LineChart className="w-6 h-6 text-purple-400" />}
-            iconBg="bg-purple-500/10"
             title="Price Forecasts"
             description="Data-driven price forecasts based on decades of market history. See where your stocks might be headed with quantitative models."
           />
           <FeatureCard
-            icon={<Bell className="w-6 h-6 text-cyan-400" />}
-            iconBg="bg-cyan-500/10"
             title="Chat Agent"
             description="Custom chat agent for you and your watchlist. Get recommendations and insights based on your watchlist. Create and modify watchlists."
           />
@@ -65,14 +53,10 @@ export function CoreFeaturesSection() {
 
         <div className="grid md:grid-cols-2 gap-8 mt-8">
           <FeatureCard
-            icon={<Zap className="w-6 h-6 text-teal-400" />}
-            iconBg="bg-teal-500/10"
             title="Sentinel AI Intelligence"
             description="Your personal market analyst. Sentinel spots unusual patterns, tracks volatility shifts, flags opportunities, and explains market-wide trends affecting your holdings."
           />
           <FeatureCard
-            icon={<Calendar className="w-6 h-6 text-cyan-400" />}
-            iconBg="bg-cyan-500/10"
             title="Economic Calendar & Events"
             description="Track upcoming FOMC meetings, CPI reports, earnings dates, and other market-moving events. Never be caught off-guard by scheduled volatility."
           />

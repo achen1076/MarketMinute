@@ -200,7 +200,7 @@ export function EventsTimeline({ symbols }: Props) {
         setError(null);
       } catch (err) {
         console.error("Failed to fetch events:", err);
-        setError("Failed to load events");
+        setError("Failed to load events, refresh to try again");
       } finally {
         setLoading(false);
       }

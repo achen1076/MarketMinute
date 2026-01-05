@@ -329,7 +329,10 @@ export function TickerListClient({
     return filtered;
   }, [snapshots, searchQuery, sortMode]);
 
-  const formatTimestamp = (unixTimestamp: number | undefined) => {
+  const formatTimestamp = (
+    unixTimestamp: number | undefined,
+    includeSeconds: boolean
+  ) => {
     if (!unixTimestamp) return "";
 
     const ms =
@@ -337,19 +340,15 @@ export function TickerListClient({
     const date = new Date(ms);
     const now = new Date();
 
-    if (now.getDay() === date.getDay()) {
-      return date.toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-      });
-    } else {
-      return date.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-      });
-    }
+    const isToday = now.getDate() === date.getDate();
+
+    return date.toLocaleTimeString("en-US", {
+      month: isToday ? undefined : "short",
+      day: isToday ? undefined : "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      second: includeSeconds ? "2-digit" : undefined,
+    });
   };
 
   return (
@@ -588,7 +587,10 @@ export function TickerListClient({
                             )}
                             {s.extendedHoursTimestamp && (
                               <span className="text-[10px] text-muted-foreground">
-                                {formatTimestamp(s.extendedHoursTimestamp)}
+                                {formatTimestamp(
+                                  s.extendedHoursTimestamp,
+                                  false
+                                )}
                               </span>
                             )}
                           </div>
@@ -621,7 +623,7 @@ export function TickerListClient({
                       </div>
                     ) : (
                       <div className="text-[10px] text-muted-foreground mt-0.5">
-                        {s.timestamp ? formatTimestamp(s.timestamp) : ""}
+                        {s.timestamp ? formatTimestamp(s.timestamp, true) : ""}
                       </div>
                     )}
                   </div>

@@ -75,8 +75,7 @@ export function QuantLabMethodology() {
             {">"}5%) are shown, filtering out noise from the neutral-dominant
             predictions.
           </div>
-
-          {/* Model Quality Details */}
+          {/* Model Quality Details
           <details className="mt-4">
             <summary className="cursor-pointer text-muted-foreground hover:text-teal-400 transition-colors text-xs">
               Model Quality Metrics
@@ -119,8 +118,7 @@ export function QuantLabMethodology() {
                 Performance can change as market conditions evolve.
               </p>
             </div>
-          </details>
-
+          </details> */}
           {/* Technical Details Subsection */}
           {/* <details className="mt-4">
             <summary className="cursor-pointer text-muted-foreground hover:text-teal-400 transition-colors text-xs">

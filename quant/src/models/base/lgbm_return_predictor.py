@@ -116,20 +116,35 @@ class LGBMReturnPredictor:
         X_scaled = self.scaler.transform(X)
         return self.model.predict(X_scaled)
 
-    def predict(self, X):
+    def predict(self, X, threshold_scale=None):
         """
         Predict trading signals (-1, 0, +1) based on predicted returns.
 
-        Signal logic:
-        - If predicted_return > long_threshold: +1 (long)
-        - If predicted_return < short_threshold: -1 (short)
-        - Otherwise: 0 (neutral)
+        Uses adaptive threshold based on prediction distribution:
+        - Long if prediction > mean + scale*std (above average)
+        - Short if prediction < mean - scale*std (below average)  
+        - Only short if prediction is actually negative
+
+        This handles clustered predictions better than fixed thresholds.
         """
         pred_returns = self.predict_returns(X)
-
         signals = np.zeros(len(pred_returns))
-        signals[pred_returns > self.long_threshold] = 1
-        signals[pred_returns < self.short_threshold] = -1
+
+        # Use model's threshold_scale if not provided
+        if threshold_scale is None:
+            threshold_scale = getattr(self, 'threshold_scale', 0.5)
+
+        # Adaptive threshold based on prediction distribution
+        pred_mean = np.mean(pred_returns)
+        pred_std = np.std(pred_returns)
+
+        # Long: prediction significantly above average
+        long_thresh = pred_mean + threshold_scale * pred_std
+        signals[pred_returns > long_thresh] = 1
+
+        # Short: prediction significantly below average AND actually negative
+        short_thresh = pred_mean - threshold_scale * pred_std
+        signals[(pred_returns < short_thresh) & (pred_returns < 0)] = -1
 
         return signals.astype(int)
 

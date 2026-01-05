@@ -18,12 +18,9 @@ const TICKER_SYMBOLS = [
   { symbol: "COST", name: "Costco" },
   { symbol: "JPM", name: "JPMorgan" },
   { symbol: "AVGO", name: "Broadcom" },
-  { symbol: "BRK.B", name: "Berkshire Hathaway" },
-  { symbol: "TSMC", name: "TSMC" },
 ];
 
 export async function GET() {
-
   try {
     const symbols = TICKER_SYMBOLS.map((t) => t.symbol);
     const { snapshots, cacheStats } = await getCachedSnapshots(symbols);

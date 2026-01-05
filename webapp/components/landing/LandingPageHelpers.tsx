@@ -1,23 +1,14 @@
 import { CheckCircle2 } from "lucide-react";
 
 export function FeatureCard({
-  icon,
-  iconBg,
   title,
   description,
 }: {
-  icon: React.ReactNode;
-  iconBg: string;
   title: string;
   description: string;
 }) {
   return (
     <div className="p-6 rounded-2xl bg-muted/50 border border-border hover:border-teal-500/30 transition-colors">
-      <div
-        className={`w-12 h-12 rounded-xl ${iconBg} flex items-center justify-center mb-4`}
-      >
-        {icon}
-      </div>
       <h3 className="text-lg font-semibold text-foreground mb-2">{title}</h3>
       <p className="text-muted-foreground">{description}</p>
     </div>
