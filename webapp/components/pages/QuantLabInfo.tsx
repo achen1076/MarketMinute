@@ -232,14 +232,14 @@ export default function QuantLabInfo() {
 
           {/* Main showcase cards - elevated */}
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 px-0 md:px-4">
-            <div className="transform md:hover:scale-105 md:hover:-translate-y-2 transition-all duration-300 shadow-2xl hover:shadow-amber-500/20 lg:w-[430px]">
+            <div className="transform md:hover:scale-105 md:hover:-translate-y-2 transition-all duration-300 shadow-2xl hover:shadow-amber-500/20 xl:w-[430px]">
               <EnhancedPredictionCard
                 hover={false}
                 signal={mockSignals[0]}
                 quality={mockSignals[0].model_quality}
               />
             </div>
-            <div className="transform md:hover:scale-105 md:hover:-translate-y-2 transition-all duration-300 shadow-2xl hover:shadow-orange-500/20 lg:w-[430px]">
+            <div className="transform md:hover:scale-105 md:hover:-translate-y-2 transition-all duration-300 shadow-2xl hover:shadow-orange-500/20 xl:w-[430px]">
               <EnhancedPredictionCard
                 hover={false}
                 signal={mockSignals[1]}
