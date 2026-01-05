@@ -5,7 +5,7 @@ export type ModelQuality = {
   num_trades: number;
   max_drawdown: number;
   deployable: boolean;
-  quality_tier: "excellent" | "good" | "marginal" | "poor";
+  quality_tier: "excellent" | "good" | "marginal" | "neutral" | "poor";
 };
 
 export type Prediction = {

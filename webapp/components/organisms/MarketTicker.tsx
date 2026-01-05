@@ -62,7 +62,7 @@ export function MarketTicker() {
     return () => clearInterval(interval);
   }, [fetchTickers]);
 
-  const animationDuration = isMobile ? 20 : 60;
+  const animationDuration = isMobile ? 30 : 20;
 
   const renderTickerItem = (
     ticker: TickerItem,

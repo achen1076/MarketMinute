@@ -525,7 +525,7 @@ export function QuantLabAvailableTickers() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [qualityFilter, setQualityFilter] = useState<
-    "all" | "excellent" | "good" | "marginal" | "poor"
+    "all" | "excellent" | "good" | "marginal" | "neutral" | "poor"
   >("all");
   const [modelQuality, setModelQuality] = useState<
     Record<string, ModelQuality>
@@ -577,6 +577,12 @@ export function QuantLabAvailableTickers() {
           bg: "bg-amber-500/10",
           border: "border-amber-500/30",
           text: "text-amber-400",
+        };
+      case "neutral":
+        return {
+          bg: "bg-yellow-500/10",
+          border: "border-yellow-500/30",
+          text: "text-yellow-400",
         };
       case "poor":
         return {
@@ -654,6 +660,9 @@ export function QuantLabAvailableTickers() {
                   <span className="inline-flex items-center gap-1 text-amber-400">
                     Good
                   </span>
+                  <span className="inline-flex items-center gap-1 text-yellow-400">
+                    Fair
+                  </span>
                   <span className="inline-flex items-center gap-1 text-rose-400">
                     Low Quality
                   </span>
@@ -685,6 +694,7 @@ export function QuantLabAvailableTickers() {
                   <option value="excellent">Best</option>
                   <option value="good">Excellent</option>
                   <option value="marginal">Good</option>
+                  <option value="neutral">Fair</option>
                   <option value="poor">Low Quality</option>
                 </select>
               )}
@@ -727,6 +737,8 @@ export function QuantLabAvailableTickers() {
                               ? "✓"
                               : quality.quality_tier === "marginal"
                               ? ""
+                              : quality.quality_tier === "neutral"
+                              ? "○"
                               : "⚠"}
                           </span>
                         )}

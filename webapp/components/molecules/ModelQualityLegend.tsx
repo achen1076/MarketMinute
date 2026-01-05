@@ -16,12 +16,15 @@ export function ModelQualityLegend() {
         <span className="inline-flex items-center gap-1 text-amber-400">
           Good
         </span>
+        <span className="inline-flex items-center gap-1 text-yellow-400">
+          Fair
+        </span>
         <span className="inline-flex items-center gap-1 text-rose-400">
           Low Quality
         </span>
         <span className="text-muted-foreground italic ml-2">
-          Note: Quality ratings are updated each time models are retrained.
-          (20-30% excellent or better is normal)
+          Note: Quality ratings are updated each time models are retrained. Good
+          or better are winning models. (20-30% excellent or better is normal)
         </span>
       </div>
     </div>

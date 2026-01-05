@@ -82,6 +82,13 @@ export function EnhancedPredictionCard({
         icon: "",
         label: "Good",
       },
+      neutral: {
+        bg: "bg-yellow-500/20",
+        border: "border-yellow-500/30",
+        text: "text-yellow-400",
+        icon: "",
+        label: "Fair",
+      },
       poor: {
         bg: "bg-rose-500/20",
         border: "border-rose-500/30",
@@ -110,6 +117,8 @@ export function EnhancedPredictionCard({
       ? "border-blue-500/30 hover:border-blue-500/50"
       : quality.quality_tier === "marginal"
       ? "border-amber-500/30 hover:border-amber-500/50"
+      : quality.quality_tier === "neutral"
+      ? "border-yellow-500/30 hover:border-yellow-500/50"
       : "border-rose-500/30 hover:border-rose-500/50"
     : "hover:border-border";
 

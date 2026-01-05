@@ -6,6 +6,7 @@ export type QualityFilterValue =
   | "excellent"
   | "good"
   | "marginal"
+  | "neutral"
   | "poor";
 
 type Props = {
@@ -31,6 +32,7 @@ export function ModelQualityFilter({ value, onChange, filteredCount }: Props) {
           <option value="excellent">Best</option>
           <option value="good">Excellent</option>
           <option value="marginal">Good</option>
+          <option value="neutral">Fair</option>
           <option value="poor">Low Quality</option>
         </select>
         {value !== "all" && filteredCount !== undefined && (
