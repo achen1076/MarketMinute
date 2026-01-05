@@ -213,7 +213,7 @@ export default function QuantLabInfo() {
         {/* Stacked cards with 3D effect */}
         <div className="relative max-w-4xl mx-auto">
           {/* Background Card 1 - Top Left - Hidden on mobile */}
-          <div className="hidden lg:block absolute -top-8 -left-12 w-[380px] transform -rotate-6 scale-95 opacity-40 blur-[2px] z-0">
+          <div className="hidden lg:block absolute -top-8 -left-12 w-[430px] transform -rotate-6 scale-95 opacity-40 blur-[2px] z-0">
             <EnhancedPredictionCard
               hover={false}
               signal={mockSignals[2]}
@@ -222,7 +222,7 @@ export default function QuantLabInfo() {
           </div>
 
           {/* Background Card 2 - Top Right - Hidden on mobile */}
-          <div className="hidden lg:block absolute -top-8 -right-12 w-[380px] transform rotate-6 scale-95 opacity-40 blur-[2px] z-0">
+          <div className="hidden lg:block absolute -top-8 -right-12 w-[430px] transform rotate-6 scale-95 opacity-40 blur-[2px] z-0">
             <EnhancedPredictionCard
               hover={false}
               signal={mockSignals[3]}
@@ -232,14 +232,14 @@ export default function QuantLabInfo() {
 
           {/* Main showcase cards - elevated */}
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 px-0 md:px-4">
-            <div className="transform md:hover:scale-105 md:hover:-translate-y-2 transition-all duration-300 shadow-2xl hover:shadow-amber-500/20">
+            <div className="transform md:hover:scale-105 md:hover:-translate-y-2 transition-all duration-300 shadow-2xl hover:shadow-amber-500/20 w-[430px]">
               <EnhancedPredictionCard
                 hover={false}
                 signal={mockSignals[0]}
                 quality={mockSignals[0].model_quality}
               />
             </div>
-            <div className="transform md:hover:scale-105 md:hover:-translate-y-2 transition-all duration-300 shadow-2xl hover:shadow-orange-500/20">
+            <div className="transform md:hover:scale-105 md:hover:-translate-y-2 transition-all duration-300 shadow-2xl hover:shadow-orange-500/20 w-[430px]">
               <EnhancedPredictionCard
                 hover={false}
                 signal={mockSignals[1]}
