@@ -263,7 +263,7 @@ export function getTickerCacheTTL(defaultTTL: number = 5): number {
     const secondsUntilPremarket = Math.floor(
       (nextPremarket.getTime() - now.getTime()) / 1000
     );
-    return Math.min(secondsUntilPremarket - CACHE_CUSHION_SECONDS, 86400);
+    return Math.min(secondsUntilPremarket - CACHE_CUSHION_SECONDS, 604800);
   }
 
   return 300;
@@ -290,7 +290,7 @@ function isWeekendOvernight(): boolean {
 /**
  * Get cache TTL in seconds for historical chart data
  * During market hours: return default TTL (60 seconds for 1D, 300 for others)
- * Outside market hours: cache until next market open, max 24 hours
+ * Outside market hours: cache until next market open, max 1 week
  */
 export function getChartCacheTTL(defaultTTL: number): number {
   if (isMarketOpen()) {
@@ -304,13 +304,13 @@ export function getChartCacheTTL(defaultTTL: number): number {
   );
 
   const ttlWithCushion = secondsUntilOpen - CACHE_CUSHION_SECONDS;
-  return Math.max(defaultTTL, Math.min(ttlWithCushion, 86400));
+  return Math.max(defaultTTL, Math.min(ttlWithCushion, 604800));
 }
 
 /**
  * Get cache TTL in seconds for AI summary data
  * During main trading window (9:30 AM - 8 PM): 1 hour (3600s)
- * Pre-market, overnight, weekends: cache until next market open, max 24 hours
+ * Pre-market, overnight, weekends: cache until next market open, max 1 week
  */
 export function getSummaryCacheTTL(defaultTTL: number = 3600): number {
   if (isMainTradingWindow()) {
@@ -324,13 +324,13 @@ export function getSummaryCacheTTL(defaultTTL: number = 3600): number {
   );
 
   const ttlWithCushion = secondsUntilOpen - CACHE_CUSHION_SECONDS;
-  return Math.max(defaultTTL, Math.min(ttlWithCushion, 86400));
+  return Math.max(defaultTTL, Math.min(ttlWithCushion, 604800));
 }
 
 /**
  * Get cache TTL in seconds for AI explanation data
  * During main trading window (9:30 AM - 8 PM): 30 minutes (1800s)
- * Pre-market, overnight, weekends: cache until next market open, max 24 hours
+ * Pre-market, overnight, weekends: cache until next market open, max 1 week
  */
 export function getExplainCacheTTL(defaultTTL: number = 1800): number {
   if (isMainTradingWindow()) {
@@ -344,5 +344,5 @@ export function getExplainCacheTTL(defaultTTL: number = 1800): number {
   );
 
   const ttlWithCushion = secondsUntilOpen - CACHE_CUSHION_SECONDS;
-  return Math.max(defaultTTL, Math.min(ttlWithCushion, 86400));
+  return Math.max(defaultTTL, Math.min(ttlWithCushion, 604800));
 }

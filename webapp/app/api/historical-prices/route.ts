@@ -10,10 +10,10 @@ const CACHE_TTL: Record<TimeRange, number> = {
   "5D": 900,
   "1M": 3600,
   "3M": 3600,
-  "6M": 86400,
-  YTD: 86400,
-  "1Y": 86400,
-  "5Y": 86400,
+  "6M": 604800,
+  YTD: 604800,
+  "1Y": 604800,
+  "5Y": 604800,
 };
 
 export async function GET(request: NextRequest) {
