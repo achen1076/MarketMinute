@@ -98,9 +98,7 @@ export async function GET(request: NextRequest) {
         break;
     }
 
-    const res = await fetch(url, {
-      next: { revalidate: range === "1D" || range === "5D" ? 60 : 300 },
-    });
+    const res = await fetch(url, { cache: "no-store" });
 
     if (!res.ok) {
       console.error(`[FMP] Historical data error: ${res.status}`);

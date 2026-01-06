@@ -72,8 +72,8 @@ async function fetchTickerEvents(symbol: string): Promise<StockEvent[]> {
     dividendUrl.searchParams.set("apikey", apiKey);
 
     const [earnRes, divRes] = await Promise.all([
-      fetch(earningsUrl.toString(), { next: { revalidate: 60 * 60 } }),
-      fetch(dividendUrl.toString(), { next: { revalidate: 60 * 60 } }),
+      fetch(earningsUrl.toString(), { cache: "no-store" }),
+      fetch(dividendUrl.toString(), { cache: "no-store" }),
     ]);
 
     const isUpcomingInWindow = (date: string | null | undefined) => {
