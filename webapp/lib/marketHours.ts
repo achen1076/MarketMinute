@@ -123,6 +123,9 @@ export function getLastMarketOpenTime(): Date {
     now.toLocaleString("en-US", { timeZone: "America/New_York" })
   );
 
+  // Calculate offset: how many ms ahead is server time vs ET time representation
+  const offsetMs = now.getTime() - etTime.getTime();
+
   let lastOpen = new Date(etTime);
   lastOpen.setHours(9, 30, 0, 0);
 
@@ -144,7 +147,7 @@ export function getLastMarketOpenTime(): Date {
     lastOpen.setDate(lastOpen.getDate() - 2);
   }
 
-  return lastOpen;
+  return new Date(lastOpen.getTime() + offsetMs);
 }
 
 /**
@@ -157,8 +160,7 @@ export function getNextMarketOpen(): Date {
     now.toLocaleString("en-US", { timeZone: "America/New_York" })
   );
 
-  console.log("[getNextMarketOpen] now:", now.toISOString());
-  console.log("[getNextMarketOpen] etTime:", etTime.toISOString());
+  const offsetMs = now.getTime() - etTime.getTime();
 
   let nextOpen = new Date(etTime);
   nextOpen.setHours(9, 30, 0, 0);
@@ -174,7 +176,7 @@ export function getNextMarketOpen(): Date {
     nextOpen.setDate(nextOpen.getDate() + 1);
   }
 
-  return nextOpen;
+  return new Date(nextOpen.getTime() + offsetMs);
 }
 
 /**
@@ -200,20 +202,20 @@ export function getNextPreMarket(): Date {
     now.toLocaleString("en-US", { timeZone: "America/New_York" })
   );
 
+  const offsetMs = now.getTime() - etTime.getTime();
+
   let nextPreMarket = new Date(etTime);
   nextPreMarket.setHours(4, 0, 0, 0);
 
-  // If it's already past 4:00 AM today, move to next day
   if (etTime.getHours() >= 4) {
     nextPreMarket.setDate(nextPreMarket.getDate() + 1);
   }
 
-  // Skip weekends
   while (nextPreMarket.getDay() === 0 || nextPreMarket.getDay() === 6) {
     nextPreMarket.setDate(nextPreMarket.getDate() + 1);
   }
 
-  return nextPreMarket;
+  return new Date(nextPreMarket.getTime() + offsetMs);
 }
 
 /**
