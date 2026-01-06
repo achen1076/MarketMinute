@@ -901,4 +901,33 @@ export const TICKER_TO_COMPANY: Record<string, string[]> = {
   BG: ["Bunge"],
   PPC: ["Pilgrim's Pride"],
   CALM: ["Cal-Maine Foods"],
+
+  BBAI: ["BigBear.ai"],
+  BITF: ["Bitfarms"],
+  GWRE: ["Guidewire Software"],
+  IREN: ["Iris Energy"],
+  MNDY: ["monday.com"],
+  QBTS: ["D-Wave Quantum"],
+  RGTI: ["Rigetti Computing"],
+  SMR: ["NuScale Power"],
+  SOUN: ["SoundHound AI"],
+  VRT: ["Vertiv Holdings"],
+
+  ACGL: ["Arch Capital Group"],
+  CBOE: ["Cboe Global Markets"],
+  CBRE: ["CBRE Group"],
+  CSGP: ["CoStar Group"],
+  STAG: ["STAG Industrial"],
+
+  GMAB: ["Genmab"],
+  NVAX: ["Novavax"],
+  NVCR: ["NovoCure"],
+  RVTY: ["Revvity"],
+  VCYT: ["Veracyte"],
+
+  AMCR: ["Amcor"],
+  NDSN: ["Nordson Corporation"],
+
+  DUOL: ["Duolingo"],
+  TOST: ["Toast"],
 };

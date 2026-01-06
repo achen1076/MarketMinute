@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Card from "@/components/atoms/Card";
 import { ChevronDown, ChevronUp, Info, Search } from "lucide-react";
 import type { ModelQuality } from "@/types/quant";
+import { TICKER_TO_COMPANY } from "@/lib/tickerMappings";
 
 const AVAILABLE_TICKERS = [
   "NVDA",
@@ -721,11 +722,13 @@ export function QuantLabAvailableTickers() {
                         key={ticker}
                         className={`px-2 py-1.5 text-xs font-mono font-medium text-center rounded ${colors.bg} ${colors.text} border ${colors.border} hover:opacity-80 transition-colors relative group`}
                         title={
-                          quality
-                            ? `${quality.quality_tier} | Sharpe: ${
-                                quality.sharpe_ratio
-                              } | PF: ${quality.profit_factor ?? "∞"}`
-                            : "No quality data"
+                          quality && TICKER_TO_COMPANY[ticker]
+                            ? `${TICKER_TO_COMPANY[ticker][0]} |${quality.quality_tier}`
+                            : TICKER_TO_COMPANY[ticker]
+                            ? `${TICKER_TO_COMPANY[ticker][0]}`
+                            : quality
+                            ? quality.quality_tier
+                            : `${ticker}`
                         }
                       >
                         {ticker}
