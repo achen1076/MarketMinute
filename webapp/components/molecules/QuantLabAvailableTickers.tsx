@@ -723,11 +723,11 @@ export function QuantLabAvailableTickers() {
                         className={`px-2 py-1.5 text-xs font-mono font-medium text-center rounded ${colors.bg} ${colors.text} border ${colors.border} hover:opacity-80 transition-colors relative group`}
                         title={
                           quality && TICKER_TO_COMPANY[ticker]
-                            ? `${TICKER_TO_COMPANY[ticker][0]} |${quality.quality_tier}`
+                            ? `${TICKER_TO_COMPANY[ticker][0]} | Model Quality: ${quality.quality_tier}`
                             : TICKER_TO_COMPANY[ticker]
                             ? `${TICKER_TO_COMPANY[ticker][0]}`
                             : quality
-                            ? quality.quality_tier
+                            ? `Model Quality: ${quality.quality_tier}`
                             : `${ticker}`
                         }
                       >
