@@ -10,6 +10,7 @@ import { QuantLabMethodology } from "@/components/molecules/QuantLabMethodology"
 import { QuantLabLimitations } from "@/components/molecules/QuantLabLimitations";
 import { QuantLabAvailableTickers } from "@/components/molecules/QuantLabAvailableTickers";
 import { ModelQualityLegend } from "@/components/molecules/ModelQualityLegend";
+import { ModelData } from "@/components/molecules/ModelData";
 import {
   ModelQualityFilter,
   type QualityFilterValue,
@@ -187,7 +188,7 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               Model-generated trading signals with Quant Scores, regime
-              classification, and expected metrics
+              classification, and expected metrics.
             </p>
           </div>
 
@@ -243,6 +244,9 @@ export function QuantLabClient({ symbols, watchlistName }: Props) {
           </div>
         </div>
       )}
+
+      {/* Model Data */}
+      <ModelData />
 
       {/* Model Quality Legend */}
       {Object.keys(modelQuality).length > 0 && <ModelQualityLegend />}
