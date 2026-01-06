@@ -157,6 +157,9 @@ export function getNextMarketOpen(): Date {
     now.toLocaleString("en-US", { timeZone: "America/New_York" })
   );
 
+  console.log("[getNextMarketOpen] now:", now.toISOString());
+  console.log("[getNextMarketOpen] etTime:", etTime.toISOString());
+
   let nextOpen = new Date(etTime);
   nextOpen.setHours(9, 30, 0, 0);
 
