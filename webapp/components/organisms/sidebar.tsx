@@ -8,6 +8,7 @@ import SignOutButton from "../atoms/SignOutButton";
 import UserInfo from "../molecules/UserInfo";
 import useWindowSize from "@/hooks/useWindowSize";
 import { useMobileMenu } from "@/lib/mobile-menu-context";
+import Image from "next/image";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: "default" | "secondary";
@@ -41,10 +42,19 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {isMobile && (
         <header className="fixed top-[30px] left-0 z-40 flex h-14 w-full items-center justify-between px-4 bg-sidebar text-sidebar-foreground">
-          <Link href="/" className="text-lg font-bold" onClick={closeMenu}>
-            MarketMinute
-          </Link>
-
+          <div className="flex items-center">
+            <Link href="/">
+              <Image
+                src="/favicon.svg"
+                alt="MarketMinute"
+                width={32}
+                height={32}
+              />
+            </Link>
+            <Link href="/" className="text-xl font-bold -ms-0.5">
+              arketMinute
+            </Link>
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={toggleMenu}
@@ -98,9 +108,19 @@ const Sidebar: React.FC<SidebarProps> = ({
               user ? "" : "border-b-2 border-sidebar-border pb-4"
             )}
           >
-            <Link href="/" className="text-xl font-bold">
-              MarketMinute
-            </Link>
+            <div className="flex items-center">
+              <Link href="/">
+                <Image
+                  src="/favicon.svg"
+                  alt="MarketMinute"
+                  width={32}
+                  height={32}
+                />
+              </Link>
+              <Link href="/" className="text-xl font-bold -ms-0.5">
+                arketMinute
+              </Link>
+            </div>
           </div>
         )}
 
