@@ -56,14 +56,16 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
+  manifest: "/site.webmanifest",
 
   icons: {
     icon: [
-      { url: "/favicon-480x480.png", sizes: "480x480", type: "image/png" },
+      { url: "/favicon.ico", type: "image/x-icon" },
+
       { url: "/favicon-192x192.png", sizes: "192x192", type: "image/png" },
       { url: "/favicon-48x48.png", sizes: "48x48", type: "image/png" },
       { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon.ico", type: "image/x-icon" },
+      { url: "/favicon.svg", sizes: "any", type: "image/svg+xml" },
     ],
     apple: [
       { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
