@@ -150,23 +150,27 @@ export function EventsTimeline({ symbols }: Props) {
   const [events, setEvents] = useState<UpcomingEvents | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const fetchInitiated = useRef<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (symbols.length === 0) {
       setLoading(false);
+      setEvents(null);
       return;
     }
 
-    // Prevent duplicate fetch for same symbols
-    const symbolsKey = symbols.sort().join(",");
-    if (fetchInitiated.current === symbolsKey) return;
-    fetchInitiated.current = symbolsKey;
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
+    setLoading(true);
+    setEvents(null);
 
     async function fetchEvents() {
       try {
-        setLoading(true);
-
         // Check client cache first
         const cacheKey = symbols.sort().join(",");
         const now = Date.now();
@@ -178,14 +182,18 @@ export function EventsTimeline({ symbols }: Props) {
               (now - cached.timestamp) / 1000 / 60
             )}min)`
           );
-          setEvents(cached.data);
-          setError(null);
-          setLoading(false);
+          if (!abortController.signal.aborted) {
+            setEvents(cached.data);
+            setError(null);
+            setLoading(false);
+          }
           return;
         }
 
         // Fetch from server
-        const res = await fetch(`/api/events?symbols=${symbols.join(",")}`);
+        const res = await fetch(`/api/events?symbols=${symbols.join(",")}`, {
+          signal: abortController.signal,
+        });
 
         if (!res.ok) {
           throw new Error("Failed to fetch events");
@@ -196,17 +204,30 @@ export function EventsTimeline({ symbols }: Props) {
         // Update client cache
         clientCache.set(cacheKey, { data, timestamp: now });
 
-        setEvents(data);
-        setError(null);
+        // Only update state if this request wasn't aborted
+        if (!abortController.signal.aborted) {
+          setEvents(data);
+          setError(null);
+          setLoading(false);
+        }
       } catch (err) {
+        // Ignore abort errors - they're expected when switching watchlists
+        if (err instanceof Error && err.name === "AbortError") {
+          return;
+        }
         console.error("Failed to fetch events:", err);
-        setError("Failed to load events, refresh to try again");
-      } finally {
-        setLoading(false);
+        if (!abortController.signal.aborted) {
+          setError("Failed to load events, refresh to try again");
+          setLoading(false);
+        }
       }
     }
 
     fetchEvents();
+
+    return () => {
+      abortController.abort();
+    };
   }, [symbols]);
 
   if (symbols.length === 0) {

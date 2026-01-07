@@ -126,22 +126,7 @@ export function MarketMinuteSummary({ watchlistId }: Props) {
   const { preferences } = useUserPreferences();
   const tickerColoringEnabled = preferences.tickerColoring;
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const fetchInitiated = useRef<string | null>(null);
-
-  const fetchSummary = async (wlId: string) => {
-    try {
-      const res = await fetch(`/api/summary?watchlistId=${wlId}`);
-      if (!res.ok) throw new Error("Failed to fetch summary");
-      const data: SummaryData = await res.json();
-      setSummary(data);
-      setError(null);
-    } catch (err) {
-      console.error("Error fetching summary:", err);
-      setError("Unable to load summary");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!watchlistId) {
@@ -150,12 +135,53 @@ export function MarketMinuteSummary({ watchlistId }: Props) {
       return;
     }
 
-    // Prevent duplicate fetch for same watchlistId
-    if (fetchInitiated.current === watchlistId) return;
-    fetchInitiated.current = watchlistId;
+    // Abort any pending request for a different watchlist
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+    const currentWatchlistId = watchlistId;
 
     setLoading(true);
-    fetchSummary(watchlistId);
+    setSummary(null);
+
+    const fetchSummary = async () => {
+      try {
+        const res = await fetch(
+          `/api/summary?watchlistId=${currentWatchlistId}`,
+          {
+            signal: abortController.signal,
+          }
+        );
+        if (!res.ok) throw new Error("Failed to fetch summary");
+        const data: SummaryData = await res.json();
+
+        // Only update state if this request wasn't aborted
+        if (!abortController.signal.aborted) {
+          setSummary(data);
+          setError(null);
+          setLoading(false);
+        }
+      } catch (err) {
+        // Ignore abort errors - they're expected when switching watchlists
+        if (err instanceof Error && err.name === "AbortError") {
+          return;
+        }
+        console.error("Error fetching summary:", err);
+        if (!abortController.signal.aborted) {
+          setError("Unable to load summary");
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchSummary();
+
+    return () => {
+      abortController.abort();
+    };
   }, [watchlistId]);
 
   const handleTextToSpeech = async () => {
