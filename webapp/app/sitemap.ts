@@ -13,12 +13,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1.0,
     },
     {
-      url: `${baseUrl}/about`,
-      lastModified: lastMod,
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
       url: `${baseUrl}/forecasts`,
       lastModified: new Date(),
       changeFrequency: "weekly",
@@ -59,31 +53,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: lastMod,
       changeFrequency: "yearly",
       priority: 0.4,
-    },
-
-    {
-      url: `${baseUrl}/features`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/how-it-works`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/use-cases`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/why-marketminute`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
     },
   ];
 }

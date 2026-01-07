@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { TrendingUp, BarChart3, LineChart, PieChart } from "lucide-react";
+import { Brain, LineChart, Radio } from "lucide-react";
 import SignInForm from "./SignInForm";
 import { Metadata } from "next";
 import Link from "next/link";
@@ -45,27 +45,22 @@ export default async function SignInPage() {
         {/* Left side - Branding */}
         <div className="flex-1 text-center lg:text-left space-y-6">
           <div className="inline-flex items-center gap-3 text-teal-400 mb-4">
-            <TrendingUp className="w-10 h-10" />
-            <h1 className="text-4xl font-bold bg-linear-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
-              MarketMinute
-            </h1>
+            <h1 className="text-4xl font-bold text-teal-400">MarketMinute</h1>
           </div>
 
           <h2 className="text-4xl lg:text-5xl font-bold text-foreground leading-tight">
-            Your automated{" "}
-            <span className="bg-linear-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
-              minute view
-            </span>{" "}
-            of the markets
+            Your automated <span className="text-teal-400">minute view</span> of
+            the markets
           </h2>
 
           <p className="text-lg text-muted-foreground max-w-xl">
             Get quick insights, real-time alerts, and personalized market
-            summaries tailored to your watchlist—all in minutes.
+            summaries tailored to your watchlist, all in minutes. Saving you
+            priceless time.
           </p>
 
           {/* Feature highlights */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-1 gap-4 pt-6">
             <div className="flex items-start gap-3 text-left">
               <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400">
                 <LineChart className="w-5 h-5" />
@@ -75,34 +70,34 @@ export default async function SignInPage() {
                   Custom Watchlists
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  Track what matters
+                  Track what matters to you
                 </p>
               </div>
             </div>
 
             <div className="flex items-start gap-3 text-left">
               <div className="p-2 rounded-lg bg-purple-500/10 text-purple-400">
-                <PieChart className="w-5 h-5" />
+                <Brain className="w-5 h-5" />
               </div>
               <div>
                 <h3 className="font-semibold text-foreground text-sm">
-                  AI Summaries
+                  AI Summaries and Explainations
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  News based insights
+                  News and market based insights
                 </p>
               </div>
             </div>
             <div className="flex items-start gap-3 text-left">
               <div className="p-2 rounded-lg bg-teal-500/10 text-teal-400">
-                <BarChart3 className="w-5 h-5" />
+                <Radio className="w-5 h-5" />
               </div>
               <div>
                 <h3 className="font-semibold text-foreground text-sm">
-                  Quant Labs
+                  Signals & Forecasts
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  Model trained analytics
+                  Model trained analytics and signaling
                 </p>
               </div>
             </div>

@@ -2,14 +2,9 @@ User-agent: *
 # Allow all public pages
 Allow: /
 Allow: /signin$
-Allow: /about
 Allow: /support
 Allow: /terms
 Allow: /privacy
-Allow: /how-it-works
-Allow: /features
-Allow: /use-cases
-Allow: /why-marketminute
 Allow: /watchlist
 Allow: /quant
 Allow: /sentinel
