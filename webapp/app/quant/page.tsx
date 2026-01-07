@@ -5,7 +5,7 @@ import WatchlistSelector from "@/components/organisms/WatchlistSelector";
 import QuantLabInfo from "@/components/pages/QuantLabInfo";
 
 export const metadata = {
-  title: "MarketMinute - Quant Lab",
+  title: "MarketMinute | Quant Lab",
   description: "Quantitative model predictions and research tools",
 };
 

@@ -6,7 +6,7 @@ import { QuantLabAvailableTickers } from "@/components/molecules/QuantLabAvailab
 import ForecastsInfo from "@/components/pages/ForecastsInfo";
 
 export const metadata = {
-  title: "MarketMinute - Market Forecasts",
+  title: "MarketMinute | Market Forecasts",
   description:
     "Distributional forecasts showing expected price ranges and probabilities",
 };

@@ -6,7 +6,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "MarketMinute – AI-Powered Stock Market Insights & Smart Alerts",
+  title: "MarketMinute | Signin",
   description:
     "Sign in to MarketMinute to access AI-powered market insights, smart alerts, and personalized stock analysis. Get real-time market summaries tailored to your watchlist.",
   keywords: [
@@ -17,9 +17,7 @@ export const metadata: Metadata = {
     "portfolio tracking",
     "stock watchlist",
   ],
-  alternates: {
-    canonical: "https://marketminute.io/signin",
-  },
+
   openGraph: {
     title: "MarketMinute – AI-Powered Stock Market Insights",
     description:
