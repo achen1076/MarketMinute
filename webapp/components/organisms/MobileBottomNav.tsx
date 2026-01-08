@@ -11,6 +11,7 @@ import {
   LineChart,
   Shield,
   User,
+  Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMobileMenu } from "@/lib/mobile-menu-context";
@@ -40,12 +41,13 @@ export default function MobileBottomNav({ user }: Props) {
       navItems.push({ href: "/quant", icon: LineChart, label: "QuantLab" }),
       navItems.push({ href: "/sentinel", icon: Shield, label: "Sentinel" }),
       navItems.push({ href: "/chat", icon: MessageSquare, label: "Chat" }),
+      navItems.push({ href: "/stock", icon: Search, label: "Stock Search" }),
       navItems.push({ href: "/settings", icon: Settings, label: "Settings" });
   } else {
     navItems.push({ href: "/forecasts", icon: TrendingUp, label: "Forecasts" }),
       navItems.push({ href: "/quant", icon: LineChart, label: "QuantLab" }),
       navItems.push({ href: "/sentinel", icon: Shield, label: "Sentinel" }),
-      navItems.push({ href: "/chat", icon: MessageSquare, label: "Chat" }),
+      navItems.push({ href: "/stock", icon: Search, label: "Stock Search" }),
       navItems.push({ href: "/signin", icon: User, label: "Sign In" });
   }
 

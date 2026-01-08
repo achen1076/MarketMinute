@@ -152,6 +152,11 @@ const Sidebar: React.FC<SidebarProps> = ({
             MarketMinute Chat
           </NavLink>
           {user && (
+            <NavLink to="/stock" onClick={closeMenu}>
+              Stock Search
+            </NavLink>
+          )}
+          {user && (
             <NavLink to="/settings" onClick={closeMenu}>
               Settings
             </NavLink>

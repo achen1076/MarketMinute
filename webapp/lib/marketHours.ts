@@ -351,3 +351,18 @@ export function getExplainCacheTTL(defaultTTL: number = 1800): number {
   const ttlWithCushion = secondsUntilOpen - CACHE_CUSHION_SECONDS;
   return Math.max(defaultTTL, Math.min(ttlWithCushion, 604800));
 }
+
+export function getIndexCacheTTL(defaultTTL: number = 1): number {
+  if (isMarketOpen()) {
+    return 5;
+  }
+
+  const now = new Date();
+  const nextOpen = getNextMarketOpen();
+  const secondsUntilOpen = Math.floor(
+    (nextOpen.getTime() - now.getTime()) / 1000
+  );
+  const ttlWithCushion = secondsUntilOpen - CACHE_CUSHION_SECONDS;
+
+  return Math.max(defaultTTL, Math.min(ttlWithCushion, 604800));
+}
