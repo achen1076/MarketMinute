@@ -31,10 +31,10 @@ export default async function VerifyEmailPage() {
 
           <div className="mt-6 text-center space-y-2">
             <Link
-              href="/signin"
+              href="/"
               className="block text-sm text-primary hover:text-primary/80 transition-colors"
             >
-              ← Back to sign in
+              Click here if redirect doesnt work
             </Link>
           </div>
         </div>

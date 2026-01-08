@@ -130,10 +130,10 @@ export default function VerifyEmailForm() {
           request a new one.
         </div>
         <Link
-          href="/signin"
+          href="/"
           className="block text-center text-primary hover:text-primary/80 transition-colors"
         >
-          Go to sign in →
+          Go to home →
         </Link>
       </div>
     );
