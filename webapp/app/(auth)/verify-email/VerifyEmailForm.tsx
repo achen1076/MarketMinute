@@ -58,11 +58,10 @@ export default function VerifyEmailForm() {
           type: "success",
           text: "Email verified successfully! Redirecting...",
         });
-        // Update session to reflect verified status without logging out
         await updateSession();
-        // Redirect to dashboard after short delay
         setTimeout(() => {
           router.push("/");
+          router.refresh();
         }, 1500);
       } else {
         setMessage({
