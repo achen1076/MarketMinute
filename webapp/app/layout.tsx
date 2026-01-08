@@ -14,6 +14,7 @@ import { prisma } from "@/lib/prisma";
 import { ThemeProvider } from "@/lib/theme-context";
 import { UserPreferencesProvider } from "@/lib/user-preferences-context";
 import { MobileMenuProvider } from "@/lib/mobile-menu-context";
+import { SessionProvider } from "@/components/providers/SessionProvider";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -190,37 +191,39 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-background text-foreground">
-        <ThemeProvider isLoggedIn={!!session}>
-          <UserPreferencesProvider isLoggedIn={!!session}>
-            <MobileMenuProvider>
-              <ScrollToTop />
-              {/* Sidebar handles its own responsive behavior */}
-              <Sidebar user={session?.user} />
+        <SessionProvider>
+          <ThemeProvider isLoggedIn={!!session}>
+            <UserPreferencesProvider isLoggedIn={!!session}>
+              <MobileMenuProvider>
+                <ScrollToTop />
+                {/* Sidebar handles its own responsive behavior */}
+                <Sidebar user={session?.user} />
 
-              {/* Market ticker - fixed at very top */}
-              <MarketTicker />
+                {/* Market ticker - fixed at very top */}
+                <MarketTicker />
 
-              {/* Main content area */}
-              <div className="min-h-screen md:ml-64">
-                <main className="mx-auto max-w-[2400px] px-4 py-6 pt-[105px] md:pt-14 md:px-8 pb-20 md:pb-6">
-                  {/* Email Verification Banner */}
-                  {needsVerification && (
-                    <div className="mb-6">
-                      <EmailVerificationBanner userEmail={userEmail} />
-                    </div>
-                  )}
-                  {children}
-                </main>
-              </div>
+                {/* Main content area */}
+                <div className="min-h-screen md:ml-64">
+                  <main className="mx-auto max-w-[2400px] px-4 py-6 pt-[105px] md:pt-14 md:px-8 pb-20 md:pb-6">
+                    {/* Email Verification Banner */}
+                    {needsVerification && (
+                      <div className="mb-6">
+                        <EmailVerificationBanner userEmail={userEmail} />
+                      </div>
+                    )}
+                    {children}
+                  </main>
+                </div>
 
-              {/* Mobile Bottom Navigation */}
-              <MobileBottomNav user={session?.user} />
+                {/* Mobile Bottom Navigation */}
+                <MobileBottomNav user={session?.user} />
 
-              <Analytics />
-              <SpeedInsights />
-            </MobileMenuProvider>
-          </UserPreferencesProvider>
-        </ThemeProvider>
+                <Analytics />
+                <SpeedInsights />
+              </MobileMenuProvider>
+            </UserPreferencesProvider>
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   );
