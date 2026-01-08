@@ -191,7 +191,7 @@ export default async function RootLayout({
       </head>
       <body className="min-h-screen bg-background text-foreground">
         <ThemeProvider isLoggedIn={!!session}>
-          <UserPreferencesProvider>
+          <UserPreferencesProvider isLoggedIn={!!session}>
             <MobileMenuProvider>
               <ScrollToTop />
               {/* Sidebar handles its own responsive behavior */}

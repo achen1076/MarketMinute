@@ -18,6 +18,7 @@ interface UserPreferencesContextType {
   preferences: UserPreferences;
   setTickerColoring: (enabled: boolean) => void;
   setAlertPreference: (enabled: boolean) => void;
+  refreshPreferences: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -30,16 +31,15 @@ const UserPreferencesContext = createContext<
   UserPreferencesContextType | undefined
 >(undefined);
 
-function hasSession(): boolean {
-  if (typeof document === "undefined") return false;
-  // Check for NextAuth session cookie
-  return (
-    document.cookie.includes("next-auth.session-token") ||
-    document.cookie.includes("__Secure-next-auth.session-token")
-  );
+interface UserPreferencesProviderProps {
+  children: ReactNode;
+  isLoggedIn?: boolean;
 }
 
-export function UserPreferencesProvider({ children }: { children: ReactNode }) {
+export function UserPreferencesProvider({
+  children,
+  isLoggedIn = false,
+}: UserPreferencesProviderProps) {
   const [preferences, setPreferences] =
     useState<UserPreferences>(defaultPreferences);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,7 +51,7 @@ export function UserPreferencesProvider({ children }: { children: ReactNode }) {
 
     const fetchPreferences = async () => {
       // Only fetch from API if user is logged in
-      if (hasSession()) {
+      if (isLoggedIn) {
         try {
           const res = await fetch("/api/user/preferences");
           if (res.ok) {
@@ -71,12 +71,50 @@ export function UserPreferencesProvider({ children }: { children: ReactNode }) {
     fetchPreferences();
   }, []);
 
+  // Re-fetch preferences when user logs in
+  useEffect(() => {
+    if (isLoggedIn && !fetchInitiated.current) {
+      const fetchPrefs = async () => {
+        try {
+          const res = await fetch("/api/user/preferences");
+          if (res.ok) {
+            const data = await res.json();
+            setPreferences({
+              tickerColoring: data.tickerColoring === "on",
+              alertPreference: data.alertPreference !== "off",
+            });
+          }
+        } catch {
+          // Silently fail
+        }
+      };
+      fetchPrefs();
+    }
+  }, [isLoggedIn]);
+
+  const refreshPreferences = async () => {
+    if (!isLoggedIn) return;
+
+    try {
+      const res = await fetch("/api/user/preferences");
+      if (res.ok) {
+        const data = await res.json();
+        setPreferences({
+          tickerColoring: data.tickerColoring === "on",
+          alertPreference: data.alertPreference !== "off",
+        });
+      }
+    } catch {
+      // Silent fail
+    }
+  };
+
   const setTickerColoring = (enabled: boolean) => {
     setPreferences((prev) => ({ ...prev, tickerColoring: enabled }));
     localStorage.setItem("tickerColoringEnabled", String(enabled));
 
     // Only save to database if user is logged in
-    if (hasSession()) {
+    if (isLoggedIn) {
       fetch("/api/user/ticker-coloring", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -89,7 +127,7 @@ export function UserPreferencesProvider({ children }: { children: ReactNode }) {
     setPreferences((prev) => ({ ...prev, alertPreference: enabled }));
 
     // Only save to database if user is logged in
-    if (hasSession()) {
+    if (isLoggedIn) {
       fetch("/api/user/alert-preference", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -100,7 +138,13 @@ export function UserPreferencesProvider({ children }: { children: ReactNode }) {
 
   return (
     <UserPreferencesContext.Provider
-      value={{ preferences, setTickerColoring, setAlertPreference, isLoading }}
+      value={{
+        preferences,
+        setTickerColoring,
+        setAlertPreference,
+        refreshPreferences,
+        isLoading,
+      }}
     >
       {children}
     </UserPreferencesContext.Provider>

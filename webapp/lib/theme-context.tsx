@@ -76,6 +76,13 @@ export function ThemeProvider({
     fetchTheme().finally(() => setThemeLoaded(true));
   }, []);
 
+  // Re-fetch theme when user logs in
+  useEffect(() => {
+    if (mounted && isLoggedIn) {
+      fetchTheme();
+    }
+  }, [isLoggedIn, mounted]);
+
   useEffect(() => {
     if (!mounted) return;
 
