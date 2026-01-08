@@ -127,7 +127,6 @@ function detectShift(
     shiftType = "bullish_to_bearish";
   }
 
-  // Neutral to Extreme: neutral -> very_positive/very_negative
   if (
     prevCategory === "neutral" &&
     (currCategory === "very_positive" || currCategory === "very_negative")
@@ -233,30 +232,54 @@ export async function checkAndCreateSentimentAlerts(
   const { title, message } = generateAlertContent(shift);
   const severity = getShiftSeverity(shift);
 
-  // Create a TickerAlert for this symbol (expires after 24 hours)
-  const expiresAt = new Date();
-  expiresAt.setHours(expiresAt.getHours() + 24);
+  // Use transaction to atomically check and create to prevent race conditions
+  const created = await prisma.$transaction(async (tx) => {
+    // Check if an alert already exists for this symbol/type within 24 hours
+    const oneDayAgo = new Date();
+    oneDayAgo.setHours(oneDayAgo.getHours() - 24);
 
-  await prisma.tickerAlert.create({
-    data: {
-      symbol: symbol.toUpperCase(),
-      type: "sentiment_shift",
-      title,
-      message,
-      severity,
-      expiresAt,
-      metadata: {
-        previousSentiment: shift.previousSentiment,
-        currentSentiment: shift.currentSentiment,
-        previousCategory: shift.previousCategory,
-        currentCategory: shift.currentCategory,
-        shiftType: shift.shiftType,
+    const existingAlert = await tx.tickerAlert.findFirst({
+      where: {
+        symbol: symbol.toUpperCase(),
+        type: "sentiment_shift",
+        createdAt: { gte: oneDayAgo },
       },
-    },
+    });
+
+    if (existingAlert) {
+      console.log(
+        `[SentimentAlerts] Alert already exists for ${symbol}, skipping`
+      );
+      return false;
+    }
+
+    // Create a TickerAlert for this symbol (expires after 24 hours)
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 24);
+
+    await tx.tickerAlert.create({
+      data: {
+        symbol: symbol.toUpperCase(),
+        type: "sentiment_shift",
+        title,
+        message,
+        severity,
+        expiresAt,
+        metadata: {
+          previousSentiment: shift.previousSentiment,
+          currentSentiment: shift.currentSentiment,
+          previousCategory: shift.previousCategory,
+          currentCategory: shift.currentCategory,
+          shiftType: shift.shiftType,
+        },
+      },
+    });
+
+    console.log(`[SentimentAlerts] Created ticker alert for ${symbol}`);
+    return true;
   });
 
-  console.log(`[SentimentAlerts] Created ticker alert for ${symbol}`);
-  return true;
+  return created;
 }
 
 /**

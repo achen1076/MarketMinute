@@ -8,6 +8,7 @@ import { MarketTicker } from "@/components/organisms/MarketTicker";
 import { ScrollToTop } from "@/components/organisms/ScrollToTop";
 import { auth } from "@/auth";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import EmailVerificationBanner from "@/components/organisms/EmailVerificationBanner";
 import { prisma } from "@/lib/prisma";
 import { ThemeProvider } from "@/lib/theme-context";
@@ -216,6 +217,7 @@ export default async function RootLayout({
               <MobileBottomNav user={session?.user} />
 
               <Analytics />
+              <SpeedInsights />
             </MobileMenuProvider>
           </UserPreferencesProvider>
         </ThemeProvider>
