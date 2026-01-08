@@ -557,7 +557,7 @@ export default function WatchlistsClient({
             />
             <p className="mt-2 text-xs text-muted-foreground">
               💡 Tip: Smaller watchlists (10-20 stocks) produce more accurate
-              and focused summaries.
+              and focused results.
             </p>
           </div>
           <div className="flex justify-end">

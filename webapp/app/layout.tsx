@@ -190,7 +190,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-background text-foreground">
-        <ThemeProvider>
+        <ThemeProvider isLoggedIn={!!session}>
           <UserPreferencesProvider>
             <MobileMenuProvider>
               <ScrollToTop />

@@ -29,16 +29,15 @@ function getSystemTheme(): ResolvedTheme {
     : "light";
 }
 
-function hasSession(): boolean {
-  if (typeof document === "undefined") return false;
-  // Check for NextAuth session cookie
-  return (
-    document.cookie.includes("next-auth.session-token") ||
-    document.cookie.includes("__Secure-next-auth.session-token")
-  );
+interface ThemeProviderProps {
+  children: ReactNode;
+  isLoggedIn?: boolean;
 }
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
+export function ThemeProvider({
+  children,
+  isLoggedIn = false,
+}: ThemeProviderProps) {
   const [theme, setThemeState] = useState<Theme>("system");
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("dark");
   const [mounted, setMounted] = useState(false);
@@ -46,7 +45,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const fetchTheme = async () => {
     // Only fetch from API if user is logged in
-    if (hasSession()) {
+    if (isLoggedIn) {
       try {
         const res = await fetch("/api/user/theme");
         if (res.ok) {
@@ -107,7 +106,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(THEME_STORAGE_KEY, newTheme);
 
     // Only save to database if user is logged in
-    if (hasSession()) {
+    if (isLoggedIn) {
       fetch("/api/user/theme", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
