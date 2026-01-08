@@ -3,7 +3,7 @@ import ChatInterface from "@/components/molecules/ChatInterface";
 import ChatInfo from "@/components/pages/ChatInfo";
 
 export const metadata = {
-  title: "MarketMinute | Chat",
+  title: "Chat",
   description:
     "Talk to MarketMinute's AI assistant for personalized market insights and stock analysis. Customized to your watchlists.",
 };

@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://marketminute.io"),
   title: {
     default: "MarketMinute – AI-Powered Market Insights",
-    template: "%s | MarketMinute",
+    template: "MarketMinute | %s",
   },
   description:
     "MarketMinute delivers AI-powered market explanations, quant predictions and forcasts, and daily summaries to help you understand every stock move in seconds.",

@@ -5,7 +5,7 @@ import SentinelDashboardClient from "./SentinelDashboardClient";
 import SentinelInfo from "@/components/pages/SentinelInfo";
 
 export const metadata: Metadata = {
-  title: "MarketMinute | Sentinel Dashboard",
+  title: "Sentinel Dashboard",
   description:
     "MarketMinute's Sentinel Dashboard provides real-time market anomaly detection and AI-powered insights for traders and investors.",
   alternates: {

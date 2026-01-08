@@ -225,7 +225,6 @@ async function fetchMacroEvents(): Promise<MacroEvent[]> {
     })),
   ];
 
-  // Filter to events within next 2 months
   return config
     .filter((e) => e.date >= todayStr && e.date <= twoMonthsStr)
     .sort((a, b) => a.date.localeCompare(b.date));

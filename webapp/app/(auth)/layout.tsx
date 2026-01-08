@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 export const metadata = {
-  title: "Sign In - MarketMinute",
+  title: "Sign In",
   description: "Sign in to access your personalized market dashboard",
 };
 
