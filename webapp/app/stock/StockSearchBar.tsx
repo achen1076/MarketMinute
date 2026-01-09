@@ -77,7 +77,13 @@ export default function StockSearchBar() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (query.trim()) {
+    if (!query.trim()) return;
+
+    // If there are search results, select the top one
+    if (results.length > 0) {
+      handleSelect(results[0].symbol);
+    } else {
+      // Otherwise search for what user typed
       setShowResults(false);
       router.push(`/stock/${query.trim().toUpperCase()}`);
     }

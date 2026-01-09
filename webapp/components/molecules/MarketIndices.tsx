@@ -149,7 +149,7 @@ export function MarketIndices({
             {marketStatus}
           </span>
         </div>
-        <div className="lg:flex lg:items-center lg:justify-between sm:space-y-4">
+        <div className="space-y-4">
           {loading ? (
             <>
               {[1, 2, 3].map((i) => (
@@ -169,7 +169,7 @@ export function MarketIndices({
                 <button
                   key={index.symbol}
                   onClick={() => handleSelect(index.symbol)}
-                  className="lg:w-1/3 w-full text-left p-2 rounded-lg hover:bg-muted/50 transition-colors group"
+                  className="w-full text-left p-2 rounded-lg hover:bg-muted/50 transition-colors group"
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs text-muted-foreground">

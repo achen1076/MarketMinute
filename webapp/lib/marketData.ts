@@ -149,6 +149,7 @@ export async function getSnapshotsForSymbols(
             const key = quote.symbol.toUpperCase();
             return {
               symbol: key,
+              name: quote.name || undefined,
               price: Number(quote.price) || 0,
               changePct: Number(quote.changePercentage) || 0,
               high52w: quote.yearHigh ? Number(quote.yearHigh) : undefined,

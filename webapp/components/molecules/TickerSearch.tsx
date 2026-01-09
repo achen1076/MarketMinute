@@ -191,7 +191,7 @@ export default function TickerSearch({
               <div className="max-h-60 overflow-y-auto">
                 {isAtLimit && (
                   <div className="px-4 py-2 text-xs text-amber-400 bg-amber-500/10 border-b border-border">
-                    Limit of {maxSymbols} symbols reached
+                    Limit of 20 symbols reached. Upgrade for unlimited tickers.
                   </div>
                 )}
                 {filteredTickers.map((ticker) => (

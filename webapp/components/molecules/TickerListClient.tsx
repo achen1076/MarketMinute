@@ -8,7 +8,6 @@ import { CACHE_TTL_MS } from "@/lib/constants";
 import ReactMarkdown from "react-markdown";
 import { isMarketOpen, isAfterHours, isPreMarket } from "@/lib/marketHours";
 import { TickerChart } from "@/components/molecules/TickerChart";
-import { TICKER_TO_COMPANY } from "@/lib/tickerMappings";
 
 interface TickerAlert {
   id: string;
@@ -576,15 +575,9 @@ export function TickerListClient({
                           </span>
                         )}
                       </div>
-                      {TICKER_TO_COMPANY[s.symbol.toUpperCase()]?.[0] ? (
-                        <div className="text-xs text-muted-foreground -mt-0.5 mb-1">
-                          {TICKER_TO_COMPANY[s.symbol.toUpperCase()][0]}
-                        </div>
-                      ) : (
-                        <div className="text-xs text-muted-foreground -mt-0.5 mb-1">
-                          {s.symbol}
-                        </div>
-                      )}
+                      <div className="text-xs text-muted-foreground -mt-0.5 mb-1">
+                        {s.name || s.symbol}
+                      </div>
                       <div
                         className={`text-md text-foreground/90 transition-all ${
                           isFlashing

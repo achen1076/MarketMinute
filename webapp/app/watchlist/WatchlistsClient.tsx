@@ -24,19 +24,11 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { QuantLabAvailableTickers } from "@/components/molecules/QuantLabAvailableTickers";
-
-type WatchlistItem = {
-  id: string;
-  symbol: string;
-  notes?: string | null;
-};
-
-type Watchlist = {
-  id: string;
-  name: string;
-  items: WatchlistItem[];
-  isFavorite: boolean;
-};
+import {
+  addSymbolsToWatchlist,
+  Watchlist,
+  WatchlistItem,
+} from "@/lib/watchlist";
 
 type Props = {
   initialWatchlists: Watchlist[];
@@ -323,32 +315,22 @@ export default function WatchlistsClient({
 
       // 3. Add new symbols
       if (editSymbols.length > 0) {
-        const res = await fetch("/api/watchlist/items", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            watchlistId,
-            symbols: editSymbols,
-          }),
-        });
+        const result = await addSymbolsToWatchlist(watchlistId, editSymbols);
 
-        if (!res.ok) {
-          const errorData = await res.json();
-          if (res.status === 403) {
-            setEditError(
-              errorData.error ||
-                "Watchlist item limit reached. Upgrade for unlimited tickers."
-            );
-          } else {
-            console.error("Failed to add symbols");
-          }
+        if (!result.success) {
+          setEditError(result.error || "Failed to add symbols");
           return;
         }
 
-        const updated = (await res.json()) as Watchlist;
-        setWatchlists((prev) =>
-          prev.map((w) => (w.id === watchlistId ? updated : w))
-        );
+        if (result.watchlist) {
+          setWatchlists((prev) =>
+            prev.map((w) =>
+              w.id === watchlistId
+                ? { ...result.watchlist!, isFavorite: w.isFavorite }
+                : w
+            )
+          );
+        }
       }
 
       setEditingWatchlistId(null);
@@ -418,38 +400,24 @@ export default function WatchlistsClient({
 
     setLoading(true);
     setEditError(null);
-    try {
-      const res = await fetch("/api/watchlist/items", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          watchlistId,
-          symbols: editSymbols,
-        }),
-      });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        if (res.status === 403) {
-          setEditError(
-            errorData.error ||
-              "Watchlist item limit reached. Upgrade for unlimited tickers."
-          );
-        } else {
-          console.error("Failed to add symbols");
-        }
-        return;
-      }
+    const result = await addSymbolsToWatchlist(watchlistId, editSymbols);
 
-      const updated = (await res.json()) as Watchlist;
+    if (result.success && result.watchlist) {
       setWatchlists((prev) =>
-        prev.map((w) => (w.id === watchlistId ? updated : w))
+        prev.map((w) =>
+          w.id === watchlistId
+            ? { ...result.watchlist!, isFavorite: w.isFavorite }
+            : w
+        )
       );
       setEditSymbols([]);
       setEditingWatchlistId(null);
-    } finally {
-      setLoading(false);
+    } else {
+      setEditError(result.error || "Failed to add symbols");
     }
+
+    setLoading(false);
   };
 
   const handleRemoveItem = async (watchlistId: string, itemId: string) => {
@@ -617,7 +585,7 @@ export default function WatchlistsClient({
                           setEditName(w.name);
                         }}
                         disabled={loading}
-                        className="rounded-md bg-emerald-900/30 px-2 py-1 text-xs font-medium text-emerald-400 transition-colors hover:bg-emerald-900/50 hover:text-emerald-300 hover:cursor-pointer disabled:opacity-50"
+                        className="rounded-md border border-emerald-400 px-2 py-1 text-xs font-medium text-emerald-400 transition-colors hover:bg-emerald-400/10 hover:text-emerald-300 hover:cursor-pointer disabled:opacity-50"
                       >
                         Edit
                       </button>
@@ -625,7 +593,7 @@ export default function WatchlistsClient({
                     <button
                       onClick={() => openDeleteDialog(w.id, w.name)}
                       disabled={loading}
-                      className="rounded-md bg-red-900/30 px-2 py-1 text-xs font-medium text-red-400 transition-colors hover:bg-red-900/50 hover:text-red-300 disabled:opacity-50 hover:cursor-pointer"
+                      className="rounded-md border border-red-400 px-2 py-1 text-xs font-medium text-red-400 transition-colors hover:bg-red-400/10 hover:text-red-300 disabled:opacity-50 hover:cursor-pointer"
                     >
                       Delete
                     </button>

@@ -4,12 +4,14 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Card from "@/components/atoms/Card";
 import { TickerChart } from "@/components/molecules/TickerChart";
-import { TICKER_TO_COMPANY } from "@/lib/tickerMappings";
+import { MarketIndices } from "@/components/molecules/MarketIndices";
 import { CACHE_TTL_MS } from "@/lib/constants";
 import { isMarketOpen, isAfterHours, isPreMarket } from "@/lib/marketHours";
-import { Lightbulb, X, Search, RefreshCw } from "lucide-react";
+import { Lightbulb, X, Search, RefreshCw, Plus } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import type { TickerSnapshot } from "@/lib/marketData";
+import { AddToWatchlistModal } from "@/components/molecules/AddToWatchlistModal";
+import { StockNews } from "@/components/molecules/StockNews";
 
 type Props = {
   ticker: string;
@@ -34,7 +36,11 @@ export default function StockDetailClient({ ticker, displayName }: Props) {
     retryAfter: number;
   } | null>(null);
 
-  const companyName = displayName || TICKER_TO_COMPANY[ticker]?.[0] || ticker;
+  // Watchlist modal state
+  const [showWatchlistModal, setShowWatchlistModal] = useState(false);
+
+  // Prefer snapshot name (from FMP API), fallback to displayName prop, then ticker
+  const companyName = snapshot?.name || displayName || ticker;
   const isIndex = ticker.startsWith("^");
 
   const fetchSnapshot = useCallback(
@@ -197,6 +203,13 @@ export default function StockDetailClient({ ticker, displayName }: Props) {
     return num.toLocaleString();
   };
 
+  const formatPrice = (num: number) => {
+    return num.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
@@ -210,30 +223,19 @@ export default function StockDetailClient({ ticker, displayName }: Props) {
 
   if (error) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 -mt-20">
         <Card className="p-8 text-center max-w-md w-full">
-          <div className="text-5xl mb-4">📉</div>
           <h2 className="text-xl font-bold text-foreground mb-2">{error}</h2>
           <p className="text-muted-foreground mb-6">
             We couldn&apos;t find data for &quot;{ticker}&quot;. Please check
             the ticker symbol and try again.
           </p>
-          <div className="flex gap-3 justify-center">
-            <button
-              onClick={() => router.push("/stock")}
-              className="px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg text-foreground transition-colors flex items-center gap-2"
-            >
-              <Search className="w-4 h-4" />
-              Search Again
-            </button>
-            <button
-              onClick={() => fetchSnapshot()}
-              className="px-4 py-2 bg-primary hover:bg-primary/90 rounded-lg text-primary-foreground transition-colors flex items-center gap-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Retry
-            </button>
-          </div>
+          <button
+            onClick={() => router.push("/stock")}
+            className="px-4 py-2 bg-primary hover:bg-primary/90 rounded-lg text-primary-foreground transition-colors"
+          >
+            Back to Search
+          </button>
         </Card>
       </div>
     );
@@ -261,7 +263,24 @@ export default function StockDetailClient({ ticker, displayName }: Props) {
             </div>
             <p className="text-muted-foreground">{companyName}</p>
           </div>
+          {/* Add to Watchlist Button - Hide for indices */}
+          {!isIndex && (
+            <button
+              onClick={() => setShowWatchlistModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg text-foreground transition-colors text-sm font-medium"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Add to Watchlist</span>
+            </button>
+          )}
         </div>
+
+        {/* Add to Watchlist Modal */}
+        <AddToWatchlistModal
+          symbol={ticker}
+          isOpen={showWatchlistModal}
+          onClose={() => setShowWatchlistModal(false)}
+        />
 
         {/* Rate Limit Warning */}
         {rateLimitError && (
@@ -283,7 +302,7 @@ export default function StockDetailClient({ ticker, displayName }: Props) {
               <div className="flex items-baseline gap-4 mb-2">
                 <span className="text-4xl font-bold text-foreground">
                   {isIndex ? "" : "$"}
-                  {snapshot.price.toFixed(2)}
+                  {formatPrice(snapshot.price)}
                 </span>
                 <span
                   className={`text-xl font-semibold ${
@@ -331,7 +350,7 @@ export default function StockDetailClient({ ticker, displayName }: Props) {
                         :
                       </span>
                       <span className="text-lg font-semibold text-foreground">
-                        ${snapshot.extendedHoursPrice.toFixed(2)}
+                        ${formatPrice(snapshot.extendedHoursPrice)}
                       </span>
                       {snapshot.extendedHoursChangePct !== undefined && (
                         <span
@@ -430,10 +449,16 @@ export default function StockDetailClient({ ticker, displayName }: Props) {
                 )}
               </Card>
             )}
+
+            {/* Recent News - Hidden for indices */}
+            {!isIndex && <StockNews ticker={ticker} />}
           </div>
 
           {/* Right Column - Sidebar Stats */}
           <div className="space-y-6">
+            {/* Market Indices */}
+            <MarketIndices variant="sidebar" />
+
             {/* Key Stats */}
             <Card className="p-6">
               <h3 className="text-lg font-semibold text-foreground mb-4">
@@ -477,7 +502,7 @@ export default function StockDetailClient({ ticker, displayName }: Props) {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Open</span>
                     <span className="font-medium text-foreground">
-                      ${snapshot.open.toFixed(2)}
+                      ${formatPrice(snapshot.open)}
                     </span>
                   </div>
                 )}
@@ -485,7 +510,7 @@ export default function StockDetailClient({ ticker, displayName }: Props) {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Prev Close</span>
                     <span className="font-medium text-foreground">
-                      ${snapshot.previousClose.toFixed(2)}
+                      ${formatPrice(snapshot.previousClose)}
                     </span>
                   </div>
                 )}
@@ -493,7 +518,7 @@ export default function StockDetailClient({ ticker, displayName }: Props) {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Day Low</span>
                     <span className="font-medium text-foreground">
-                      ${snapshot.dayLow.toFixed(2)}
+                      ${formatPrice(snapshot.dayLow)}
                     </span>
                   </div>
                 )}
@@ -501,7 +526,7 @@ export default function StockDetailClient({ ticker, displayName }: Props) {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Day High</span>
                     <span className="font-medium text-foreground">
-                      ${snapshot.dayHigh.toFixed(2)}
+                      ${formatPrice(snapshot.dayHigh)}
                     </span>
                   </div>
                 )}
@@ -520,7 +545,7 @@ export default function StockDetailClient({ ticker, displayName }: Props) {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">52W Low</span>
                       <span className="font-medium text-foreground">
-                        ${snapshot.low52w.toFixed(2)}
+                        ${formatPrice(snapshot.low52w)}
                       </span>
                     </div>
                   )}
@@ -528,7 +553,7 @@ export default function StockDetailClient({ ticker, displayName }: Props) {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">52W High</span>
                       <span className="font-medium text-foreground">
-                        ${snapshot.high52w.toFixed(2)}
+                        ${formatPrice(snapshot.high52w)}
                       </span>
                     </div>
                   )}
@@ -555,8 +580,8 @@ export default function StockDetailClient({ ticker, displayName }: Props) {
                           </div>
                         </div>
                         <div className="flex justify-between mt-1 text-xs text-muted-foreground">
-                          <span>${snapshot.low52w.toFixed(2)}</span>
-                          <span>${snapshot.high52w.toFixed(2)}</span>
+                          <span>${formatPrice(snapshot.low52w)}</span>
+                          <span>${formatPrice(snapshot.high52w)}</span>
                         </div>
                       </div>
                     )}
@@ -581,7 +606,7 @@ export default function StockDetailClient({ ticker, displayName }: Props) {
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Bid</span>
                           <span className="font-medium text-emerald-400">
-                            ${snapshot.extendedHoursBid.toFixed(2)} x{" "}
+                            ${formatPrice(snapshot.extendedHoursBid)} x{" "}
                             {snapshot.extendedHoursBidSize.toLocaleString()}
                           </span>
                         </div>
@@ -591,7 +616,7 @@ export default function StockDetailClient({ ticker, displayName }: Props) {
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Ask</span>
                           <span className="font-medium text-rose-400">
-                            ${snapshot.extendedHoursAsk.toFixed(2)} x{" "}
+                            ${formatPrice(snapshot.extendedHoursAsk)} x{" "}
                             {snapshot.extendedHoursAskSize.toLocaleString()}
                           </span>
                         </div>
