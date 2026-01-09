@@ -53,9 +53,13 @@ export async function getCachedSnapshots(symbols: string[]): Promise<{
   const cached: TickerSnapshot[] = [];
   const toFetch: string[] = [];
 
+  // Helper to determine cache key prefix (index: for indices, ticker: for stocks)
+  const getCacheKey = (symbol: string) =>
+    symbol.startsWith("^") ? `index:${symbol}` : `ticker:${symbol}`;
+
   if (redis) {
     try {
-      const cacheKeys = symbols.map((s) => `ticker:${s}`);
+      const cacheKeys = symbols.map(getCacheKey);
       const cachedResults = await redis.mget<TickerSnapshot[]>(...cacheKeys);
 
       for (let i = 0; i < symbols.length; i++) {
@@ -94,7 +98,7 @@ export async function getCachedSnapshots(symbols: string[]): Promise<{
       try {
         const pipeline = redis.pipeline();
         for (const snapshot of fresh) {
-          const cacheKey = `ticker:${snapshot.symbol}`;
+          const cacheKey = getCacheKey(snapshot.symbol);
           pipeline.setex(cacheKey, cacheTTL, snapshot);
         }
         await pipeline.exec();

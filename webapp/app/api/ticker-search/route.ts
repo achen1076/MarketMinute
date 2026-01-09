@@ -36,7 +36,7 @@ export async function GET(req: Request) {
     const quotes = (data.quotes || [])
       .filter(
         (q: any) =>
-          q.quoteType === "EQUITY" &&
+          (q.quoteType === "EQUITY" || q.quoteType === "ETF") &&
           q.exchange &&
           !q.symbol.includes(".") &&
           q.symbol

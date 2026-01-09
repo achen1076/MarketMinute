@@ -134,11 +134,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           <NavLink to="/" onClick={closeMenu}>
             Home
           </NavLink>
-          {user && (
-            <NavLink to="/watchlist" onClick={closeMenu}>
-              Watchlists
-            </NavLink>
-          )}
+
           <NavLink to="/forecasts" onClick={closeMenu}>
             Market Forecasts
           </NavLink>
@@ -152,10 +148,19 @@ const Sidebar: React.FC<SidebarProps> = ({
             MarketMinute Chat
           </NavLink>
           {user && (
-            <NavLink to="/settings" onClick={closeMenu}>
-              Settings
-            </NavLink>
+            <>
+              <NavLink to="/stock" onClick={closeMenu}>
+                Stock Search
+              </NavLink>
+              <NavLink to="/watchlist" onClick={closeMenu}>
+                Watchlists
+              </NavLink>
+              <NavLink to="/settings" onClick={closeMenu}>
+                Settings
+              </NavLink>
+            </>
           )}
+
           {user &&
             process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(",").includes(
               user.email || ""

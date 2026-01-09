@@ -3,8 +3,10 @@ import { isAfterHours, isPreMarket, shouldShowAfterHours } from "./marketHours";
 
 export type TickerSnapshot = {
   symbol: string;
+  name?: string;
   price: number;
   changePct: number;
+  change?: number;
   high52w?: number;
   low52w?: number;
   earningsDate?: string;
@@ -147,6 +149,7 @@ export async function getSnapshotsForSymbols(
             const key = quote.symbol.toUpperCase();
             return {
               symbol: key,
+              name: quote.name || undefined,
               price: Number(quote.price) || 0,
               changePct: Number(quote.changePercentage) || 0,
               high52w: quote.yearHigh ? Number(quote.yearHigh) : undefined,
@@ -203,11 +206,21 @@ export async function getSnapshotsForSymbols(
             const quote = data[0];
             results.push({
               symbol: indexSymbol.toUpperCase(),
+              name: quote.name || undefined,
               price: Number(quote.price) || 0,
               changePct:
                 Number(quote.changesPercentage || quote.changePercentage) || 0,
+              change: quote.change ? Number(quote.change) : undefined,
               high52w: quote.yearHigh ? Number(quote.yearHigh) : undefined,
               low52w: quote.yearLow ? Number(quote.yearLow) : undefined,
+              volume: quote.volume ? Number(quote.volume) : undefined,
+              open: quote.open ? Number(quote.open) : undefined,
+              previousClose: quote.previousClose
+                ? Number(quote.previousClose)
+                : undefined,
+              dayLow: quote.dayLow ? Number(quote.dayLow) : undefined,
+              dayHigh: quote.dayHigh ? Number(quote.dayHigh) : undefined,
+              timestamp: quote.timestamp ? Number(quote.timestamp) : undefined,
             });
             console.log(
               `[FMP] Successfully fetched ${indexSymbol}: $${quote.price} (${
