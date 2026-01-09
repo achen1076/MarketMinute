@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { ExternalLink, ArrowRight } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { ArrowRight } from "lucide-react";
 import Card from "@/components/atoms/Card";
 
 type NewsItem = {
@@ -26,11 +26,7 @@ export function StockNews({ ticker }: Props) {
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<NewsCategory>("all");
 
-  useEffect(() => {
-    fetchNews();
-  }, [ticker]);
-
-  const fetchNews = async () => {
+  const fetchNews = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`/api/stock/${ticker}/news`);
@@ -43,7 +39,11 @@ export function StockNews({ ticker }: Props) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [ticker]);
+
+  useEffect(() => {
+    fetchNews();
+  }, [fetchNews]);
 
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);

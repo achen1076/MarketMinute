@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { redis } from "@/lib/redis";
 import { isMarketOpen } from "@/lib/marketHours";
+import { createHash } from "crypto";
 
 type FMPNewsItem = {
   symbol: string | null;
@@ -25,9 +26,9 @@ type FormattedNewsItem = {
 };
 
 // Cache TTLs in seconds
-const MARKET_OPEN_CACHE_TTL = 300; // 5 minutes
-const MARKET_CLOSED_CACHE_TTL = 3600; // 1 hour
-const WEEKEND_CACHE_TTL = 14400; // 4 hours on weekends
+const MARKET_OPEN_CACHE_TTL = 300;
+const MARKET_CLOSED_CACHE_TTL = 3600;
+const WEEKEND_CACHE_TTL = 14400;
 const CACHE_KEY = "market:news:general";
 
 let memoryCache: { data: FormattedNewsItem[]; timestamp: number } | null = null;
@@ -35,26 +36,7 @@ let memoryCache: { data: FormattedNewsItem[]; timestamp: number } | null = null;
 function isWeekend(): boolean {
   const now = new Date();
   const day = now.getDay();
-  return day === 0 || day === 6; // Sunday = 0, Saturday = 6
-}
-
-function formatDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function getDateRange(): { from: string; to: string } {
-  const now = new Date();
-  const to = formatDate(now);
-
-  // Get news from the last 2 days (covers weekend gaps)
-  const fromDate = new Date(now);
-  fromDate.setDate(fromDate.getDate() - 2);
-  const from = formatDate(fromDate);
-
-  return { from, to };
+  return day === 0 || day === 6;
 }
 
 function getCacheTTL(): number {
@@ -87,6 +69,7 @@ export async function GET(request: Request) {
 
   let allNews: FormattedNewsItem[] | null = null;
 
+  // Check Redis cache
   if (redis) {
     try {
       allNews = await redis.get<FormattedNewsItem[]>(CACHE_KEY);
@@ -135,15 +118,13 @@ export async function GET(request: Request) {
   }
 
   try {
-    const { from, to } = getDateRange();
     const url = new URL(
       "https://financialmodelingprep.com/stable/news/general-latest"
     );
-    url.searchParams.set("from", from);
-    url.searchParams.set("to", to);
+    url.searchParams.set("limit", "100");
     url.searchParams.set("apikey", apiKey);
 
-    console.log(`[MarketNews] Fetching news from ${from} to ${to}`);
+    console.log(`[MarketNews] Fetching latest 100 news articles`);
 
     const res = await fetch(url.toString(), { cache: "no-store" });
 
@@ -166,8 +147,11 @@ export async function GET(request: Request) {
 
     const formattedNews: FormattedNewsItem[] = data
       .filter((item) => item.title && item.url)
-      .map((item, index) => ({
-        id: `fmp-${index}-${Date.now()}`,
+      .map((item) => ({
+        id: `fmp-${createHash("sha256")
+          .update(item.url)
+          .digest("hex")
+          .slice(0, 12)}`,
         title: item.title,
         summary: item.text || "",
         publisher: item.publisher || item.site || "Unknown",
@@ -180,7 +164,7 @@ export async function GET(request: Request) {
       try {
         await redis.setex(CACHE_KEY, cacheTTL, formattedNews);
         console.log(
-          `[MarketNews/Redis] Cached ${formattedNews.length} items for ${cacheTTL}s (weekend: ${weekend})`
+          `[MarketNews/Redis] Cached ${formattedNews.length} items for ${cacheTTL}s`
         );
       } catch (error) {
         console.error("[MarketNews] Redis write error:", error);
@@ -188,7 +172,7 @@ export async function GET(request: Request) {
     } else {
       memoryCache = { data: formattedNews, timestamp: Date.now() };
       console.log(
-        `[MarketNews/Memory] Cached ${formattedNews.length} items for ${cacheTTL}s (weekend: ${weekend})`
+        `[MarketNews/Memory] Cached ${formattedNews.length} items for ${cacheTTL}s`
       );
     }
 
