@@ -36,18 +36,18 @@ export default function MobileBottomNav({ user }: Props) {
   const navItems: NavItem[] = [{ href: "/", icon: Home, label: "Home" }];
 
   if (user) {
-    navItems.push({ href: "/watchlist", icon: List, label: "Watchlists" });
     navItems.push({ href: "/forecasts", icon: TrendingUp, label: "Forecasts" }),
       navItems.push({ href: "/quant", icon: LineChart, label: "QuantLab" }),
       navItems.push({ href: "/sentinel", icon: Shield, label: "Sentinel" }),
       navItems.push({ href: "/chat", icon: MessageSquare, label: "Chat" }),
-      navItems.push({ href: "/stock", icon: Search, label: "Stock Search" }),
+      navItems.push({ href: "/stock", icon: Search, label: "Search" }),
+      navItems.push({ href: "/watchlist", icon: List, label: "Watchlists" }),
       navItems.push({ href: "/settings", icon: Settings, label: "Settings" });
   } else {
     navItems.push({ href: "/forecasts", icon: TrendingUp, label: "Forecasts" }),
       navItems.push({ href: "/quant", icon: LineChart, label: "QuantLab" }),
       navItems.push({ href: "/sentinel", icon: Shield, label: "Sentinel" }),
-      navItems.push({ href: "/stock", icon: Search, label: "Stock Search" }),
+      navItems.push({ href: "/stock", icon: Search, label: "Search" }),
       navItems.push({ href: "/signin", icon: User, label: "Sign In" });
   }
 

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Card from "@/components/atoms/Card";
 import { Search, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 type SearchResult = {
   symbol: string;
@@ -92,9 +93,11 @@ export default function StockSearchBar() {
   return (
     <div className="w-full">
       <div className="space-y-2 mb-4">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
-          Stock Search
-        </h1>
+        <Link href="/stock">
+          <div className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
+            Stock Search
+          </div>
+        </Link>
         <p className="text-sm text-muted-foreground">
           Search any stock for real-time data and AI insights
         </p>
