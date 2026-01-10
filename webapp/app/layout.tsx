@@ -132,29 +132,6 @@ export default async function RootLayout({
     }
   }
 
-  const websiteSchema = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: "MarketMinute",
-    url: "https://marketminute.io",
-    potentialAction: {
-      "@type": "SearchAction",
-      target: "https://marketminute.io/search?q={search_term_string}",
-      "query-input": "required name=search_term_string",
-    },
-  };
-
-  const appSchema = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "MarketMinute",
-    url: "https://marketminute.io",
-    applicationCategory: "FinanceApplication",
-    description:
-      "AI-powered market insights, stock explanations, smart alerts, and daily summaries.",
-    operatingSystem: "Web",
-  };
-
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
@@ -162,33 +139,33 @@ export default async function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              (function() {
-                try {
-                  var theme = localStorage.getItem('marketminute-theme');
-                  if (theme === 'light') {
-                    document.documentElement.classList.remove('dark');
-                    document.documentElement.classList.add('light');
-                  } else if (theme === 'system') {
-                    var isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                    document.documentElement.classList.remove('light', 'dark');
-                    document.documentElement.classList.add(isDark ? 'dark' : 'light');
-                  }
-                } catch (e) {}
-              })();
-            `,
+                  (function () {
+                    try {
+                      var theme = localStorage.getItem('marketminute-theme');
+                      var root = document.documentElement;
+
+                      if (theme === 'light') {
+                        root.classList.remove('dark');
+                        root.classList.add('light');
+                        return;
+                      }
+
+                      if (theme === 'dark') {
+                        root.classList.remove('light');
+                        root.classList.add('dark');
+                        return;
+                      }
+
+                      // default: system  
+                      var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                      root.classList.remove('light', 'dark');
+                      root.classList.add(isDark ? 'dark' : 'light');
+                    } catch (e) {}
+                  })();
+                `,
           }}
         />
-        {/* Website schema (helps sitelinks and brand understanding) */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
-        />
-
-        {/* Application schema (treats MarketMinute as a software product) */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(appSchema) }}
-        />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
       <body className="min-h-screen bg-background text-foreground">
         <SessionProvider>
