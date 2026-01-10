@@ -5,11 +5,6 @@ export function HeroSection() {
   return (
     <section className="flex-1 flex items-center justify-center px-4 py-20">
       <div className="max-w-5xl mx-auto text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-sm mb-8">
-          <Zap className="w-4 h-4" />
-          AI-Powered Market Intelligence
-        </div>
-
         <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
           Your Markets,{" "}
           <span className="bg-linear-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
