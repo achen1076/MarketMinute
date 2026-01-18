@@ -230,12 +230,12 @@ export default function StockDetailClient({ ticker, displayName }: Props) {
             We couldn&apos;t find data for &quot;{ticker}&quot;. Please check
             the ticker symbol and try again.
           </p>
-          <button
-            onClick={() => router.push("/stock")}
+            <button
+              onClick={() => router.push("/stock")}
             className="px-4 py-2 bg-primary hover:bg-primary/90 rounded-lg text-primary-foreground transition-colors"
-          >
+            >
             Back to Search
-          </button>
+            </button>
         </Card>
       </div>
     );
@@ -296,334 +296,334 @@ export default function StockDetailClient({ ticker, displayName }: Props) {
         {/* Main Content - 2 Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Price & Chart (2/3 width) */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Price Card */}
-            <Card className="p-6">
-              <div className="flex items-baseline gap-4 mb-2">
-                <span className="text-4xl font-bold text-foreground">
-                  {isIndex ? "" : "$"}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Price Card */}
+                <Card className="p-6">
+                  <div className="flex items-baseline gap-4 mb-2">
+                    <span className="text-4xl font-bold text-foreground">
+                      {isIndex ? "" : "$"}
                   {formatPrice(snapshot.price)}
-                </span>
-                <span
-                  className={`text-xl font-semibold ${
-                    isPositive ? "text-emerald-400" : "text-rose-400"
-                  }`}
-                >
-                  {isPositive ? "+" : ""}
-                  {snapshot.changePct.toFixed(2)}%
-                </span>
-              </div>
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    </span>
+                    <span
+                      className={`text-xl font-semibold ${
+                        isPositive ? "text-emerald-400" : "text-rose-400"
+                      }`}
+                    >
+                      {isPositive ? "+" : ""}
+                      {snapshot.changePct.toFixed(2)}%
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <span>{formatTimestamp(snapshot.timestamp, true)}</span>
-                {isIndex && (
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      isMarketOpen()
-                        ? "bg-emerald-500/20 text-emerald-400"
-                        : isPreMarket()
-                        ? "bg-violet-500/20 text-violet-400"
-                        : isAfterHours()
-                        ? "bg-violet-500/20 text-violet-400"
-                        : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {isMarketOpen()
-                      ? "Market Open"
-                      : isPreMarket()
-                      ? "Pre-Market"
-                      : isAfterHours()
-                      ? "After Hours"
-                      : "Market Closed"}
-                  </span>
-                )}
-              </div>
+                    {isIndex && (
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          isMarketOpen()
+                            ? "bg-emerald-500/20 text-emerald-400"
+                            : isPreMarket()
+                            ? "bg-violet-500/20 text-violet-400"
+                            : isAfterHours()
+                            ? "bg-violet-500/20 text-violet-400"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {isMarketOpen()
+                          ? "Market Open"
+                          : isPreMarket()
+                          ? "Pre-Market"
+                          : isAfterHours()
+                          ? "After Hours"
+                          : "Market Closed"}
+                      </span>
+                    )}
+                  </div>
 
-              {/* Extended Hours Info */}
-              {snapshot.extendedHoursSession &&
-                snapshot.extendedHoursPrice !== undefined && (
-                  <div className="mt-4 pt-4 border-t border-border">
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                      <span className="text-sm text-violet-400">
-                        {snapshot.extendedHoursSession === "premarket"
-                          ? "Pre-market"
-                          : "After-hours"}
-                        :
-                      </span>
-                      <span className="text-lg font-semibold text-foreground">
+                  {/* Extended Hours Info */}
+                  {snapshot.extendedHoursSession &&
+                    snapshot.extendedHoursPrice !== undefined && (
+                      <div className="mt-4 pt-4 border-t border-border">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                          <span className="text-sm text-violet-400">
+                            {snapshot.extendedHoursSession === "premarket"
+                              ? "Pre-market"
+                              : "After-hours"}
+                            :
+                          </span>
+                          <span className="text-lg font-semibold text-foreground">
                         ${formatPrice(snapshot.extendedHoursPrice)}
-                      </span>
-                      {snapshot.extendedHoursChangePct !== undefined && (
-                        <span
-                          className={`text-sm font-medium ${
-                            snapshot.extendedHoursChangePct >= 0
-                              ? "text-emerald-400"
-                              : "text-rose-400"
-                          }`}
-                        >
-                          {snapshot.extendedHoursChangePct >= 0 ? "+" : ""}
-                          {snapshot.extendedHoursChangePct.toFixed(2)}%
-                        </span>
-                      )}
-                      {snapshot.extendedHoursTimestamp && (
-                        <span className="text-sm text-muted-foreground">
+                          </span>
+                          {snapshot.extendedHoursChangePct !== undefined && (
+                            <span
+                              className={`text-sm font-medium ${
+                                snapshot.extendedHoursChangePct >= 0
+                                  ? "text-emerald-400"
+                                  : "text-rose-400"
+                              }`}
+                            >
+                              {snapshot.extendedHoursChangePct >= 0 ? "+" : ""}
+                              {snapshot.extendedHoursChangePct.toFixed(2)}%
+                            </span>
+                          )}
+                          {snapshot.extendedHoursTimestamp && (
+                            <span className="text-sm text-muted-foreground">
                           {formatTimestamp(
                             snapshot.extendedHoursTimestamp,
                             false
+                              )}
+                            </span>
                           )}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-            </Card>
+                        </div>
+                      </div>
+                    )}
+                </Card>
 
-            {/* Chart Card */}
-            <Card className="p-6">
-              <TickerChart
-                symbol={ticker}
-                currentPrice={snapshot.price}
-                changePct={snapshot.changePct}
-                previousClose={snapshot.previousClose}
-              />
-            </Card>
+                {/* Chart Card */}
+                <Card className="p-6">
+                  <TickerChart
+                    symbol={ticker}
+                    currentPrice={snapshot.price}
+                    changePct={snapshot.changePct}
+                    previousClose={snapshot.previousClose}
+                  />
+                </Card>
 
-            {/* Explain Button & Panel - Hidden for indices */}
-            {!isIndex && (
-              <Card className="p-6">
-                <button
-                  onClick={handleExplain}
-                  disabled={loadingExplanation}
+                {/* Explain Button & Panel - Hidden for indices */}
+                {!isIndex && (
+                  <Card className="p-6">
+                    <button
+                      onClick={handleExplain}
+                      disabled={loadingExplanation}
                   className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-muted hover:bg-muted/80 rounded-lg text-foreground transition-colors font-medium disabled:opacity-50"
-                >
-                  {loadingExplanation ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                      <span>Analyzing...</span>
-                    </>
-                  ) : explanation ? (
-                    <>
-                      <span>Close</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Why is {ticker} moving?</span>
-                    </>
-                  )}
-                </button>
-
-                {explanation && (
-                  <div className="mt-6 rounded-xl bg-muted/50 p-6 prose prose-sm dark:prose-invert max-w-none">
-                    <ReactMarkdown
-                      components={{
-                        p: ({ children }) => (
-                          <p className="mb-4 last:mb-0 text-foreground/90 leading-relaxed">
-                            {children}
-                          </p>
-                        ),
-                        strong: ({ children }) => (
-                          <strong className="font-semibold text-foreground">
-                            {children}
-                          </strong>
-                        ),
-                        ul: ({ children }) => (
-                          <ul className="space-y-3 list-none">{children}</ul>
-                        ),
-                        li: ({ children }) => (
-                          <li className="pl-0">{children}</li>
-                        ),
-                      }}
                     >
-                      {explanation}
-                    </ReactMarkdown>
-                    {explanationMeta?.age && (
-                      <div className="mt-4 pt-4 border-t border-border text-xs text-muted-foreground flex items-center justify-between">
-                        <span>{explanationMeta.age}</span>
-                        {explanationMeta.refreshing && (
-                          <span className="text-amber-400">
-                            Refreshing in background...
-                          </span>
+                      {loadingExplanation ? (
+                        <>
+                      <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                          <span>Analyzing...</span>
+                        </>
+                      ) : explanation ? (
+                        <>
+                      <span>Close</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Why is {ticker} moving?</span>
+                        </>
+                      )}
+                    </button>
+
+                    {explanation && (
+                      <div className="mt-6 rounded-xl bg-muted/50 p-6 prose prose-sm dark:prose-invert max-w-none">
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => (
+                              <p className="mb-4 last:mb-0 text-foreground/90 leading-relaxed">
+                                {children}
+                              </p>
+                            ),
+                            strong: ({ children }) => (
+                              <strong className="font-semibold text-foreground">
+                                {children}
+                              </strong>
+                            ),
+                            ul: ({ children }) => (
+                          <ul className="space-y-3 list-none">{children}</ul>
+                            ),
+                            li: ({ children }) => (
+                              <li className="pl-0">{children}</li>
+                            ),
+                          }}
+                        >
+                          {explanation}
+                        </ReactMarkdown>
+                        {explanationMeta?.age && (
+                          <div className="mt-4 pt-4 border-t border-border text-xs text-muted-foreground flex items-center justify-between">
+                            <span>{explanationMeta.age}</span>
+                            {explanationMeta.refreshing && (
+                              <span className="text-amber-400">
+                                Refreshing in background...
+                              </span>
+                            )}
+                          </div>
                         )}
                       </div>
                     )}
-                  </div>
+                  </Card>
                 )}
-              </Card>
-            )}
 
             {/* Recent News - Hidden for indices */}
             {!isIndex && <StockNews ticker={ticker} />}
-          </div>
+              </div>
 
           {/* Right Column - Sidebar Stats */}
-          <div className="space-y-6">
-            {/* Market Indices */}
-            <MarketIndices variant="sidebar" />
+              <div className="space-y-6">
+                {/* Market Indices */}
+                <MarketIndices variant="sidebar" />
 
-            {/* Key Stats */}
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold text-foreground mb-4">
-                Key Statistics
-              </h3>
-              <div className="space-y-4">
-                {snapshot.marketCap !== undefined && snapshot.marketCap > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Market Cap</span>
-                    <span className="font-medium text-foreground">
-                      {formatLargeNumber(snapshot.marketCap)}
-                    </span>
-                  </div>
-                )}
-                {snapshot.volume !== undefined && snapshot.volume > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Volume</span>
-                    <span className="font-medium text-foreground">
-                      {formatVolume(snapshot.volume)}
-                    </span>
-                  </div>
-                )}
-                {snapshot.avgVolume !== undefined && snapshot.avgVolume > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Avg Volume</span>
-                    <span className="font-medium text-foreground">
-                      {formatVolume(snapshot.avgVolume)}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </Card>
-
-            {/* Price Range */}
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold text-foreground mb-4">
-                Price Range
-              </h3>
-              <div className="space-y-4">
-                {snapshot.open !== undefined && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Open</span>
-                    <span className="font-medium text-foreground">
-                      ${formatPrice(snapshot.open)}
-                    </span>
-                  </div>
-                )}
-                {snapshot.previousClose !== undefined && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Prev Close</span>
-                    <span className="font-medium text-foreground">
-                      ${formatPrice(snapshot.previousClose)}
-                    </span>
-                  </div>
-                )}
-                {snapshot.dayLow !== undefined && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Day Low</span>
-                    <span className="font-medium text-foreground">
-                      ${formatPrice(snapshot.dayLow)}
-                    </span>
-                  </div>
-                )}
-                {snapshot.dayHigh !== undefined && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Day High</span>
-                    <span className="font-medium text-foreground">
-                      ${formatPrice(snapshot.dayHigh)}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </Card>
-
-            {/* 52 Week Range */}
-            {(snapshot.high52w !== undefined ||
-              snapshot.low52w !== undefined) && (
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">
-                  52 Week Range
-                </h3>
-                <div className="space-y-4">
-                  {snapshot.low52w !== undefined && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">52W Low</span>
-                      <span className="font-medium text-foreground">
-                        ${formatPrice(snapshot.low52w)}
-                      </span>
-                    </div>
-                  )}
-                  {snapshot.high52w !== undefined && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">52W High</span>
-                      <span className="font-medium text-foreground">
-                        ${formatPrice(snapshot.high52w)}
-                      </span>
-                    </div>
-                  )}
-                  {/* 52 Week Range Bar */}
-                  {snapshot.low52w !== undefined &&
-                    snapshot.high52w !== undefined && (
-                      <div className="mt-2">
-                        <div className="h-2 bg-muted rounded-full">
-                          <div
-                            className="h-full bg-linear-to-r from-rose-500 via-amber-500 to-emerald-500 rounded-full relative"
-                            style={{ width: "100%" }}
-                          >
-                            <div
-                              className="absolute top-full -translate-y-1/4 w-4 h-4 bg-foreground rounded-full border-2 border-background shadow-lg"
-                              style={{
-                                left: `${
-                                  ((snapshot.price - snapshot.low52w) /
-                                    (snapshot.high52w - snapshot.low52w)) *
-                                  100
-                                }%`,
-                                transform: "translate(-50%, -50%)",
-                              }}
-                            />
-                          </div>
-                        </div>
-                        <div className="flex justify-between mt-1 text-xs text-muted-foreground">
-                          <span>${formatPrice(snapshot.low52w)}</span>
-                          <span>${formatPrice(snapshot.high52w)}</span>
-                        </div>
-                      </div>
-                    )}
-                </div>
-              </Card>
-            )}
-
-            {/* Extended Hours Quote */}
-            {snapshot.extendedHoursSession &&
-              (snapshot.extendedHoursBid !== undefined ||
-                snapshot.extendedHoursAsk !== undefined) && (
+                {/* Key Stats */}
                 <Card className="p-6">
                   <h3 className="text-lg font-semibold text-foreground mb-4">
-                    {snapshot.extendedHoursSession === "premarket"
-                      ? "Pre-market"
-                      : "After-hours"}{" "}
-                    Quote
+                    Key Statistics
                   </h3>
                   <div className="space-y-4">
-                    {snapshot.extendedHoursBid !== undefined &&
-                      snapshot.extendedHoursBidSize !== undefined && (
+                {snapshot.marketCap !== undefined && snapshot.marketCap > 0 && (
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Bid</span>
-                          <span className="font-medium text-emerald-400">
-                            ${formatPrice(snapshot.extendedHoursBid)} x{" "}
-                            {snapshot.extendedHoursBidSize.toLocaleString()}
+                    <span className="text-muted-foreground">Market Cap</span>
+                          <span className="font-medium text-foreground">
+                            {formatLargeNumber(snapshot.marketCap)}
                           </span>
                         </div>
                       )}
-                    {snapshot.extendedHoursAsk !== undefined &&
-                      snapshot.extendedHoursAskSize !== undefined && (
+                    {snapshot.volume !== undefined && snapshot.volume > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Volume</span>
+                        <span className="font-medium text-foreground">
+                          {formatVolume(snapshot.volume)}
+                        </span>
+                      </div>
+                    )}
+                {snapshot.avgVolume !== undefined && snapshot.avgVolume > 0 && (
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Ask</span>
-                          <span className="font-medium text-rose-400">
-                            ${formatPrice(snapshot.extendedHoursAsk)} x{" "}
-                            {snapshot.extendedHoursAskSize.toLocaleString()}
+                    <span className="text-muted-foreground">Avg Volume</span>
+                          <span className="font-medium text-foreground">
+                            {formatVolume(snapshot.avgVolume)}
                           </span>
                         </div>
                       )}
                   </div>
                 </Card>
-              )}
+
+                {/* Price Range */}
+                <Card className="p-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-4">
+                    Price Range
+                  </h3>
+                  <div className="space-y-4">
+                    {snapshot.open !== undefined && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Open</span>
+                        <span className="font-medium text-foreground">
+                      ${formatPrice(snapshot.open)}
+                        </span>
+                      </div>
+                    )}
+                    {snapshot.previousClose !== undefined && (
+                      <div className="flex justify-between">
+                    <span className="text-muted-foreground">Prev Close</span>
+                        <span className="font-medium text-foreground">
+                      ${formatPrice(snapshot.previousClose)}
+                        </span>
+                      </div>
+                    )}
+                    {snapshot.dayLow !== undefined && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Day Low</span>
+                        <span className="font-medium text-foreground">
+                      ${formatPrice(snapshot.dayLow)}
+                        </span>
+                      </div>
+                    )}
+                    {snapshot.dayHigh !== undefined && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Day High</span>
+                        <span className="font-medium text-foreground">
+                      ${formatPrice(snapshot.dayHigh)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+
+                {/* 52 Week Range */}
+                {(snapshot.high52w !== undefined ||
+                  snapshot.low52w !== undefined) && (
+                  <Card className="p-6">
+                    <h3 className="text-lg font-semibold text-foreground mb-4">
+                      52 Week Range
+                    </h3>
+                    <div className="space-y-4">
+                      {snapshot.low52w !== undefined && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">52W Low</span>
+                          <span className="font-medium text-foreground">
+                        ${formatPrice(snapshot.low52w)}
+                          </span>
+                        </div>
+                      )}
+                      {snapshot.high52w !== undefined && (
+                        <div className="flex justify-between">
+                      <span className="text-muted-foreground">52W High</span>
+                          <span className="font-medium text-foreground">
+                        ${formatPrice(snapshot.high52w)}
+                          </span>
+                        </div>
+                      )}
+                      {/* 52 Week Range Bar */}
+                      {snapshot.low52w !== undefined &&
+                        snapshot.high52w !== undefined && (
+                          <div className="mt-2">
+                        <div className="h-2 bg-muted rounded-full">
+                              <div
+                            className="h-full bg-linear-to-r from-rose-500 via-amber-500 to-emerald-500 rounded-full relative"
+                                style={{ width: "100%" }}
+                              >
+                                <div
+                              className="absolute top-full -translate-y-1/4 w-4 h-4 bg-foreground rounded-full border-2 border-background shadow-lg"
+                                  style={{
+                                    left: `${
+                                      ((snapshot.price - snapshot.low52w) /
+                                        (snapshot.high52w - snapshot.low52w)) *
+                                      100
+                                    }%`,
+                                    transform: "translate(-50%, -50%)",
+                                  }}
+                                />
+                              </div>
+                            </div>
+                            <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+                          <span>${formatPrice(snapshot.low52w)}</span>
+                          <span>${formatPrice(snapshot.high52w)}</span>
+                            </div>
+                          </div>
+                        )}
+                    </div>
+                  </Card>
+                )}
+
+                {/* Extended Hours Quote */}
+                {snapshot.extendedHoursSession &&
+                  (snapshot.extendedHoursBid !== undefined ||
+                    snapshot.extendedHoursAsk !== undefined) && (
+                    <Card className="p-6">
+                      <h3 className="text-lg font-semibold text-foreground mb-4">
+                        {snapshot.extendedHoursSession === "premarket"
+                          ? "Pre-market"
+                          : "After-hours"}{" "}
+                        Quote
+                      </h3>
+                      <div className="space-y-4">
+                        {snapshot.extendedHoursBid !== undefined &&
+                          snapshot.extendedHoursBidSize !== undefined && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Bid</span>
+                              <span className="font-medium text-emerald-400">
+                            ${formatPrice(snapshot.extendedHoursBid)} x{" "}
+                                {snapshot.extendedHoursBidSize.toLocaleString()}
+                              </span>
+                            </div>
+                          )}
+                        {snapshot.extendedHoursAsk !== undefined &&
+                          snapshot.extendedHoursAskSize !== undefined && (
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">Ask</span>
+                              <span className="font-medium text-rose-400">
+                            ${formatPrice(snapshot.extendedHoursAsk)} x{" "}
+                                {snapshot.extendedHoursAskSize.toLocaleString()}
+                              </span>
+                            </div>
+                          )}
+                      </div>
+                    </Card>
+                  )}
           </div>
         </div>
       </div>

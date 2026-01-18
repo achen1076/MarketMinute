@@ -8,8 +8,8 @@ export function ModelData() {
           <span className="font-medium">Lookahead Window:</span> 10 trading days
         </span>
         <span className="text-muted-foreground">
-          <span className="font-medium">Models Last Retrained:</span> January 5,
-          2026 (weekly retrain)
+          <span className="font-medium">Models Last Retrained:</span> January
+          18, 2026 (weekly retrain)
         </span>
       </div>
     </div>

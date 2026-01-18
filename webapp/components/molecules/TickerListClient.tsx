@@ -575,9 +575,9 @@ export function TickerListClient({
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-muted-foreground -mt-0.5 mb-1">
+                        <div className="text-xs text-muted-foreground -mt-0.5 mb-1">
                         {s.name || s.symbol}
-                      </div>
+                        </div>
                       <div
                         className={`text-md text-foreground/90 transition-all ${
                           isFlashing

@@ -24,6 +24,11 @@ export default function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Skip CSRF check for auth endpoints (they handle their own security)
+  if (request.nextUrl.pathname.startsWith("/api/auth/")) {
+    return NextResponse.next();
+  }
+
   // CSRF Protection: Verify origin header matches host
   const origin = request.headers.get("origin");
   const host = request.headers.get("host");
