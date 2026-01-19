@@ -8,7 +8,7 @@ import SignOutButton from "../atoms/SignOutButton";
 import UserInfo from "../molecule/UserInfo";
 import useWindowSize from "@/hooks/useWindowSize";
 import { useMobileMenu } from "@/lib/mobile-menu-context";
-import { Zap } from "lucide-react";
+import Image from "next/image";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: "default" | "secondary";
@@ -42,12 +42,17 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {isMobile && (
         <header className="fixed top-0 left-0 z-40 flex h-14 w-full items-center justify-between px-4 bg-sidebar text-sidebar-foreground border-b border-sidebar-border">
-          <div className="flex items-center gap-2">
-            <Link href="/" className="flex items-center gap-2">
-              <Zap className="w-6 h-6 text-amber-400" />
-              <span className="font-bold text-foreground">
-                Mintalyze <span className="text-amber-400">Business</span>
-              </span>
+          <div className="flex items-center">
+            <Link href="/">
+              <Image
+                src="/favicon.svg"
+                alt="Mintalyze"
+                width={32}
+                height={32}
+              />
+            </Link>
+            <Link href="/" className="text-xl font-bold -ms-0.5">
+              intalyze
             </Link>
           </div>
           <div className="flex items-center gap-2">
@@ -103,11 +108,25 @@ const Sidebar: React.FC<SidebarProps> = ({
               user ? "" : "border-b-2 border-sidebar-border pb-4"
             )}
           >
-            <div className="flex items-center gap-2">
-              <Zap className="w-6 h-6 text-amber-400" />
-              <span className="font-bold text-foreground">
-                Mintalyze <span className="text-amber-400">Business</span>
-              </span>
+            <div
+              className={cn(
+                "mb-4 px-4",
+                user ? "" : "border-b-2 border-sidebar-border pb-4"
+              )}
+            >
+              <div className="flex items-center">
+                <Link href="/">
+                  <Image
+                    src="/favicon.svg"
+                    alt="Mintalyze"
+                    width={32}
+                    height={32}
+                  />
+                </Link>
+                <Link href="/" className="text-xl font-bold -ms-0.5">
+                  intalyze
+                </Link>
+              </div>
             </div>
           </div>
         )}
