@@ -105,15 +105,10 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div
             className={cn(
               "mb-4 px-4 pt-4",
-              user ? "" : "border-b-2 border-sidebar-border pb-4"
+              user ? "" : "border-b-2 border-sidebar-border"
             )}
           >
-            <div
-              className={cn(
-                "mb-4 px-4",
-                user ? "" : "border-b-2 border-sidebar-border pb-4"
-              )}
-            >
+            <div className={cn("mb-4 px-4")}>
               <div className="flex items-center">
                 <Link href="/">
                   <Image
@@ -138,12 +133,17 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         <nav className="mt-2 flex flex-1 flex-col gap-4 px-3 text-md">
+          <NavLink to="/" onClick={closeMenu}>
+            Home
+          </NavLink>
           <NavLink to="/analyze" onClick={closeMenu}>
             Analyze
           </NavLink>
-          <NavLink to="/library" onClick={closeMenu}>
-            Card Library
-          </NavLink>
+          {user && (
+            <NavLink to="/library" onClick={closeMenu}>
+              Card Library
+            </NavLink>
+          )}
         </nav>
 
         <div className="border-t border-sidebar-border px-3 py-3">
