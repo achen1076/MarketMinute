@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Allow: /analyze
+
+Disallow: /api/
+
+Sitemap: https://business.mintalyze.com/sitemap.xml

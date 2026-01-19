@@ -4,9 +4,9 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "Read MarketMinute's Privacy Policy. Learn how we collect, use, and protect your personal information on our AI-powered market insights platform.",
+    "Read Mintalyze's Privacy Policy. Learn how we collect, use, and protect your personal information on our AI-powered market insights platform.",
   alternates: {
-    canonical: "https://marketminute.io/privacy",
+    canonical: "https://mintalyze.com/privacy",
   },
 };
 
@@ -25,10 +25,10 @@ export default function PrivacyPage() {
           Last Updated: December 10th, 2025
         </p>
         <p className="mt-4 text-foreground/80">
-          Welcome to MarketMinute ("Company," "we," "our," or "us"). This
-          Privacy Policy explains how we collect, use, disclose, and safeguard
-          your information when you use the MarketMinute website, application,
-          and services (collectively, the "Service").
+          Welcome to Mintalyze ("Company," "we," "our," or "us"). This Privacy
+          Policy explains how we collect, use, disclose, and safeguard your
+          information when you use the Mintalyze website, application, and
+          services (collectively, the "Service").
         </p>
         <p className="mt-2 text-foreground/80">
           By accessing or using the Service, you agree to the practices
@@ -296,7 +296,7 @@ export default function PrivacyPage() {
             8. Children's Privacy
           </h2>
           <p className="text-foreground/80 mb-2">
-            MarketMinute is not intended for individuals under 18.
+            Mintalyze is not intended for individuals under 18.
           </p>
           <p className="text-foreground/80">
             We do not knowingly collect data from children.
@@ -309,7 +309,7 @@ export default function PrivacyPage() {
             9. Third-Party Links
           </h2>
           <p className="text-foreground/80 mb-2">
-            MarketMinute may contain links to third-party websites.
+            Mintalyze may contain links to third-party websites.
           </p>
           <p className="text-foreground/80">
             We are not responsible for their privacy practices or content.
@@ -342,7 +342,7 @@ export default function PrivacyPage() {
             For questions about this Privacy Policy, contact:
           </p>
           <p className="text-foreground/80">
-            <strong>MarketMinute Support</strong>
+            <strong>Mintalyze Support</strong>
             <br />
             Email:{" "}
             <a

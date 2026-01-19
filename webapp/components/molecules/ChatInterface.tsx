@@ -162,7 +162,7 @@ export default function ChatInterface({ userId }: ChatInterfaceProps) {
             </div>
             <div>
               <h1 className="text-sm font-medium text-foreground">
-                MarketMinute Agent
+                Mintalyze Agent
               </h1>
               <p className="text-[10px] text-muted-foreground">
                 Real-time market intelligence
@@ -199,7 +199,7 @@ export default function ChatInterface({ userId }: ChatInterfaceProps) {
                 </svg>
               </div>
               <h2 className="text-base font-medium text-foreground mb-1">
-                Ask about the market or your MarketMinute watchlists
+                Ask about the market or your Mintalyze watchlists
               </h2>
               <p className="text-xs text-muted-foreground mb-4">
                 Prices, signals, news, and more
@@ -213,7 +213,7 @@ export default function ChatInterface({ userId }: ChatInterfaceProps) {
                   "News on my tech watchlist",
                   "Create me a watchlist with AAPL, MSFT, and TSLA",
                   "Add TSLA to my tech watchlist",
-                  "Tell me about MarketMinute",
+                  "Tell me about Mintalyze",
                 ].map((suggestion) => (
                   <button
                     key={suggestion}

@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     try {
       await sendEmail({
         to: email,
-        subject: "Verify your MarketMinute email",
+        subject: "Verify your Mintalyze email",
         html: getEmailVerificationHTML(verifyUrl, email),
       });
       console.log(`[Resend Verification] Email sent to: ${email}`);

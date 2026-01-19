@@ -112,7 +112,7 @@ export async function GET(req: Request) {
   if (watchlistData.items.length === 0) {
     return NextResponse.json({
       headline: "No symbols in this watchlist yet.",
-      body: "Add some tickers to start getting a daily MarketMinute.",
+      body: "Add some tickers to start getting a daily Mintalyze.",
       stats: {
         listName: watchlistData.name,
         totalSymbols: 0,

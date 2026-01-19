@@ -117,7 +117,7 @@ function highlightTickers(
   return parts;
 }
 
-export function MarketMinuteSummary({ watchlistId }: Props) {
+export function MintalyzeSummary({ watchlistId }: Props) {
   const [summary, setSummary] = useState<SummaryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -256,7 +256,7 @@ export function MarketMinuteSummary({ watchlistId }: Props) {
           <div className="flex flex-col items-center space-y-3">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-700 border-t-emerald-500"></div>
             <p className="text-sm text-muted-foreground">
-              Generating your MarketMinute...
+              Generating your Mintalyze...
             </p>
           </div>
         </div>
@@ -299,7 +299,7 @@ export function MarketMinuteSummary({ watchlistId }: Props) {
           {summary.headline}
         </h2>
         <div className="flex flex-col items-end">
-          <span className="text-xs text-muted-foreground">MarketMinute</span>
+          <span className="text-xs text-muted-foreground">Mintalyze</span>
           <span className="text-[10px] text-muted-foreground/70">
             {formatTimestamp(summary.generatedAt)}
           </span>

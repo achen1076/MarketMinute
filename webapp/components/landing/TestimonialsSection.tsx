@@ -47,10 +47,10 @@ export function TestimonialsSection() {
               </div>
             </div>
             <p className="text-muted-foreground italic">
-              &quot;As someone new to investing, MarketMinute explains
-              everything in plain English. No confusing jargon, just clear
-              explanations of why my stocks moved. It&apos;s like having a
-              personal analyst.&quot;
+              &quot;As someone new to investing, Mintalyze explains everything
+              in plain English. No confusing jargon, just clear explanations of
+              why my stocks moved. It&apos;s like having a personal
+              analyst.&quot;
             </p>
           </div>
 
@@ -61,7 +61,7 @@ export function TestimonialsSection() {
               </div>
             </div>
             <p className="text-muted-foreground italic">
-              &quot;I manage multiple portfolios and MarketMinute keeps me
+              &quot;I manage multiple portfolios and Mintalyze keeps me
               organized. The custom watchlists and real-time alerts ensure I
               never miss important movements. Worth every penny.&quot;
             </p>

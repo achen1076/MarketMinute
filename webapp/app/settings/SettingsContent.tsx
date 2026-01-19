@@ -500,7 +500,7 @@ export default function SettingsContent({
           <div className="bg-card border border-border rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4">Sign Out</h2>
             <p className="text-muted-foreground text-sm mb-4">
-              Sign out of your MarketMinute account
+              Sign out of your Mintalyze account
             </p>
             <SignOutButton variant="red" size="lg" />
           </div>
@@ -539,7 +539,7 @@ export default function SettingsContent({
           {/* <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4">Documentation</h2>
             <p className="text-slate-400 mb-4">
-              Learn more about MarketMinute features and how to use them.
+              Learn more about Mintalyze features and how to use them.
             </p>
             <a
               href="/about"
@@ -551,7 +551,7 @@ export default function SettingsContent({
 
           <div className="bg-card border border-border rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4">App Version</h2>
-            <p className="text-muted-foreground">MarketMinute v3.0</p>
+            <p className="text-muted-foreground">Mintalyze v3.0</p>
           </div>
         </div>
       )}

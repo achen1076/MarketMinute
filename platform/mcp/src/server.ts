@@ -6,7 +6,7 @@ import { registerAllTools } from "./tools";
 
 async function main() {
   const server = new McpServer({
-    name: "MarketMinute-Platform",
+    name: "Mintalyze-Platform",
     version: "1.0.0",
   });
 
@@ -16,7 +16,7 @@ async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
-  process.stderr.write("[mcp] MarketMinute Platform running (stdio)\n");
+  process.stderr.write("[mcp] Mintalyze Platform running (stdio)\n");
 }
 
 main().catch((err) => {

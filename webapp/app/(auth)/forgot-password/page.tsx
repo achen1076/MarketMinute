@@ -4,7 +4,7 @@ import ForgotPasswordForm from "./ForgotPasswordForm";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Forgot Password - MarketMinute",
+  title: "Forgot Password - Mintalyze",
   description: "Reset your password",
 };
 

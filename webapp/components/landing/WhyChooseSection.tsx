@@ -6,7 +6,7 @@ export function WhyChooseSection() {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-2xl md:text-4xl font-bold text-foreground mb-4">
-            Why Choose MarketMinute?
+            Why Choose Mintalyze?
           </h2>
         </div>
 

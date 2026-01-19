@@ -10,7 +10,7 @@ import {
 } from "./summaryCache";
 import { TICKER_TO_COMPANY } from "./tickerMappings";
 
-export type MarketMinuteSummary = {
+export type MintalyzeSummary = {
   headline: string;
   body: string;
   stats: {
@@ -74,11 +74,11 @@ export async function buildSummary(
   listName: string,
   snapshots: TickerSnapshot[],
   favoritedSymbols: string[] = []
-): Promise<MarketMinuteSummary> {
+): Promise<MintalyzeSummary> {
   if (snapshots.length === 0) {
     return {
       headline: "No symbols in this watchlist yet.",
-      body: "Add some tickers to start getting a daily MarketMinute.",
+      body: "Add some tickers to start getting a daily Mintalyze.",
       stats: {
         listName,
         totalSymbols: 0,
@@ -339,7 +339,7 @@ export async function buildSummary(
 
   let headline: string = "Market Summary";
 
-  const summary: MarketMinuteSummary = {
+  const summary: MintalyzeSummary = {
     headline,
     body:
       formattedBody ||

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Checkout Canceled - MarketMinute",
+  title: "Checkout Canceled - Mintalyze",
   description: "Subscription checkout was canceled",
 };
 

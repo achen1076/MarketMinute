@@ -5,7 +5,7 @@ import WatchlistsClient from "./WatchlistsClient";
 import { getTierConfig, SubscriptionTier } from "@/lib/subscription-tiers";
 
 export const metadata = {
-  title: "MarketMinute - Watchlists",
+  title: "Mintalyze - Watchlists",
   description: "Manage your watchlists and track your favorite stocks.",
 };
 

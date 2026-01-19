@@ -83,7 +83,7 @@ export function WatchlistTimeline({ watchlistId }: Props) {
       <EmptyState
         icon={Calendar}
         title="7-Day Timeline"
-        description="Daily summaries will appear here after you've used MarketMinute for a few days."
+        description="Daily summaries will appear here after you've used Mintalyze for a few days."
       />
     );
   }

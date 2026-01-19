@@ -16,7 +16,7 @@ import { getMacroEventsTool } from "./news/getMacroEvents";
 import { getSentimentTool } from "./analysis/getSentiment";
 import { getTickerAlertsTool } from "./analysis/getTickerAlerts";
 import { getExplanationTool } from "./analysis/getExplanation";
-import { aboutMarketMinuteTool } from "./info/aboutMarketMinute";
+import { aboutMintalyzeTool } from "./info/aboutMarketMinute";
 
 export const toolRegistry = {
   get_quote_snapshot: getQuoteSnapshotTool,
@@ -37,7 +37,7 @@ export const toolRegistry = {
   get_sentiment: getSentimentTool,
   get_ticker_alerts: getTickerAlertsTool,
   get_explanation: getExplanationTool,
-  about_marketminute: aboutMarketMinuteTool,
+  about_mintalyze: aboutMintalyzeTool,
 } as const;
 
 export type ToolName = keyof typeof toolRegistry;

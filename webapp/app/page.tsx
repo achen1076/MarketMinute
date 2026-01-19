@@ -6,7 +6,7 @@ import Card from "@/components/atoms/Card";
 import { Stack } from "@/components/atoms/Stack";
 import { Box } from "@/components/atoms/Box";
 import { TickerListClient } from "@/components/molecules/TickerListClient";
-import { MarketMinuteSummary } from "@/components/organisms/MarketMinuteSummary";
+import { MintalyzeSummary } from "@/components/organisms/MarketMinuteSummary";
 import { EventsTimeline } from "@/components/organisms/EventsTimeline";
 import { MovementAlertsBar } from "@/components/organisms/MovementAlertsBar";
 import SentinelExplainToday from "@/components/organisms/SentinelExplainToday";
@@ -16,7 +16,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "MarketMinute - Your AI-Powered Market Intelligence",
+  title: "Mintalyze - Your AI-Powered Market Intelligence",
   description:
     "Get real-time market insights, smart alerts, and AI-powered analysis for your portfolio. Track watchlists, understand why stocks move, and never miss important events.",
 };
@@ -99,7 +99,7 @@ export default async function HomePage() {
             {/* Main Content Area */}
             <Stack spacing="xl" className="flex-1 min-w-0">
               {activeWatchlistId && (
-                <MarketMinuteSummary watchlistId={activeWatchlistId} />
+                <MintalyzeSummary watchlistId={activeWatchlistId} />
               )}
               {/* Sentinel Explain Today */}
               {/* {snapshots.length > 0 && <SentinelExplainToday />} */}

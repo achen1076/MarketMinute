@@ -9,8 +9,8 @@ export function FinalCTASection() {
           Ready to Simplify Your Investing?
         </h2>
         <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-          Join thousands of investors who save hours every week with
-          MarketMinute. Start tracking your portfolio today, it&apos;s free!.
+          Join thousands of investors who save hours every week with Mintalyze.
+          Start tracking your portfolio today, it's free!.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">

@@ -22,4 +22,4 @@ Disallow: /forgot-password
 Disallow: /verify-email
 Disallow: /watchlist/
 
-Sitemap: https://marketminute.io/sitemap.xml
+Sitemap: https://mintalyze.com/sitemap.xml

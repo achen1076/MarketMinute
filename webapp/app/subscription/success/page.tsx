@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Subscription Successful - MarketMinute",
+  title: "Subscription Successful - Mintalyze",
   description: "Your subscription has been activated",
 };
 

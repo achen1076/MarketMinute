@@ -61,9 +61,7 @@ export default function ChatInfo() {
     <div className="relative lg:w-[70vw] w-[90vw] mx-auto mt-16 pb-16 space-y-8">
       {/* Hero Section */}
       <div className="relative z-10 text-center space-y-4 mb-20">
-        <h1 className="text-4xl font-bold text-foreground">
-          MarketMinute Chat
-        </h1>
+        <h1 className="text-4xl font-bold text-foreground">Mintalyze Chat</h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
           Your AI-powered market research assistant. Ask questions about stocks,
           get explanations for market movements, and learn about financial
@@ -86,7 +84,7 @@ export default function ChatInfo() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-foreground text-sm">
-                    MarketMinute Agent
+                    Mintalyze Agent
                   </h3>
                   <p className="text-xs text-muted-foreground">
                     Real-time market intelligence

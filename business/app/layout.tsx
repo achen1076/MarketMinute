@@ -1,6 +1,11 @@
 import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { auth } from "@/auth";
+import { SessionProvider } from "@/components/providers/SessionProvider";
+import { MobileMenuProvider } from "@/lib/mobile-menu-context";
+import Sidebar from "@/components/organism/Sidebar";
+import MobileBottomNav from "@/components/organism/MobileBottomNav";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -9,10 +14,10 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://business.marketminute.io"),
+  metadataBase: new URL("https://business.mintalyze.com"),
   title: {
-    default: "MarketMinute Business – PDF to Valuation Model in 60 Seconds",
-    template: "MarketMinute Business | %s",
+    default: "Mintalyze Business – PDF to Valuation Model in 60 Seconds",
+    template: "Mintalyze Business | %s",
   },
   description:
     "Turn 10-Ks, earnings transcripts, and financial PDFs into live, shareable valuation models. Built for analysts, investors, and finance professionals.",
@@ -28,33 +33,49 @@ export const metadata: Metadata = {
     "PDF to model",
     "live models",
   ],
-  authors: [{ name: "MarketMinute" }],
-  creator: "MarketMinute",
-  publisher: "MarketMinute",
+  authors: [{ name: "Mintalyze" }],
+  creator: "Mintalyze",
+  publisher: "Mintalyze",
   category: "Finance",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", type: "image/x-icon" },
+
+      { url: "/favicon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+      { url: "/favicon-48x48.png", sizes: "48x48", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon.svg", sizes: "any", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: [{ url: "/favicon.ico", type: "image/x-icon" }],
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://business.marketminute.io/",
-    siteName: "MarketMinute Business",
-    title: "MarketMinute Business – PDF to Valuation Model in 60 Seconds",
+    url: "https://business.mintalyze.com/",
+    siteName: "Mintalyze Business",
+    title: "Mintalyze Business – PDF to Valuation Model in 60 Seconds",
     description:
       "Turn 10-Ks, earnings transcripts, and financial PDFs into live, shareable valuation models.",
     images: [
       {
-        url: "https://business.marketminute.io/og-image.png",
+        url: "https://business.mintalyze.com/og-image.png",
         width: 1200,
         height: 630,
-        alt: "MarketMinute Business – AI-Powered Financial Modeling",
+        alt: "Mintalyze Business – AI-Powered Financial Modeling",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "MarketMinute Business – PDF to Valuation Model in 60 Seconds",
+    title: "Mintalyze Business – PDF to Valuation Model in 60 Seconds",
     description:
       "Turn 10-Ks and financial PDFs into live valuation models in seconds",
-    images: ["https://business.marketminute.io/og-image.png"],
+    images: ["https://business.mintalyze.com/og-image.png"],
   },
   robots: {
     index: true,
@@ -62,7 +83,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const session = await auth();
+
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
@@ -71,7 +98,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             __html: `
               (function () {
                 try {
-                  var theme = localStorage.getItem('marketminute-theme');
+                  var theme = localStorage.getItem('mintalyze-theme');
                   var root = document.documentElement;
                   if (theme === 'light') {
                     root.classList.remove('dark');
@@ -92,7 +119,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
       <body className="min-h-screen bg-background text-foreground antialiased">
-        {children}
+        <SessionProvider>
+          <MobileMenuProvider>
+            <Sidebar user={session?.user} />
+            <MobileBottomNav user={session?.user} />
+            <main className="md:ml-64 min-h-screen p-6 pb-20 md:pb-6 pt-16 md:pt-6">
+              {children}
+            </main>
+          </MobileMenuProvider>
+        </SessionProvider>
       </body>
     </html>
   );

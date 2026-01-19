@@ -1,7 +1,7 @@
 import {
   HeroSection,
   DashboardPreviewSection,
-  WhatIsMarketMinuteSection,
+  WhatIsMintalyzeSection,
   WhyChooseSection,
   CoreFeaturesSection,
   HowItWorksSection,
@@ -16,7 +16,7 @@ export default function LandingPage() {
     <div className="min-h-[calc(100vh-80px)] flex flex-col">
       <HeroSection />
       <DashboardPreviewSection />
-      <WhatIsMarketMinuteSection />
+      <WhatIsMintalyzeSection />
       <WhyChooseSection />
       <CoreFeaturesSection />
       <HowItWorksSection />

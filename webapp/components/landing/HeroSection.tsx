@@ -13,7 +13,7 @@ export function HeroSection() {
         </h1>
 
         <p className="text-lg md:text-xl text-muted-foreground mb-6 max-w-3xl mx-auto">
-          Stop spending hours reading financial news. MarketMinute uses AI to
+          Stop spending hours reading financial news. Mintalyze uses AI to
           analyze your portfolio and explain exactly why your stocks moved, in
           plain English, delivered in minutes. Perfect for new investors
           starting out or busy investors who want to make informed decisions.

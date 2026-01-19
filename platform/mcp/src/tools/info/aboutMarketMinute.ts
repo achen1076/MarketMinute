@@ -1,13 +1,13 @@
 import {
-  AboutMarketMinuteInputSchema,
-  AboutMarketMinuteOutputSchema,
-  AboutMarketMinuteToolSpec,
-  type AboutMarketMinuteInput,
-  type AboutMarketMinuteOutput,
+  AboutMintalyzeInputSchema,
+  AboutMintalyzeOutputSchema,
+  AboutMintalyzeToolSpec,
+  type AboutMintalyzeInput,
+  type AboutMintalyzeOutput,
 } from "@/shared/schemas/tools/aboutMarketMinute.schema";
 
 const PLATFORM_INFO = {
-  overview: `MarketMinute is a financial intelligence platform that combines real-time market data, AI-powered insights, and quantitative trading signals. Get instant market summaries, track custom watchlists, and leverage machine learning models for trading signals—all in one unified dashboard. The platform serves both active traders and long-term investors with concise insights across stocks, ETFs, and broader market trends.`,
+  overview: `Mintalyze is a financial intelligence platform that combines real-time market data, AI-powered insights, and quantitative trading signals. Get instant market summaries, track custom watchlists, and leverage machine learning models for trading signals—all in one unified dashboard. The platform serves both active traders and long-term investors with concise insights across stocks, ETFs, and broader market trends.`,
 
   features: [
     {
@@ -52,7 +52,7 @@ const PLATFORM_INFO = {
     },
   ],
 
-  quantlab: `QuantLab is MarketMinute's machine learning trading signal system that generates BUY, SELL, or NEUTRAL recommendations for stocks.
+  quantlab: `QuantLab is Mintalyze's machine learning trading signal system that generates BUY, SELL, or NEUTRAL recommendations for stocks.
 
 How it works:
 - Models analyze 30 years of historical price data and technical indicators
@@ -78,7 +78,7 @@ What it does:
 
 You get daily market briefings and can generate on-demand analysis anytime. Historical reports are saved so you can review past market events.`,
 
-  pricing: `MarketMinute offers flexible pricing tiers:
+  pricing: `Mintalyze offers flexible pricing tiers:
 
 Free Tier:
 - Up to 3 QuantLab signals
@@ -93,15 +93,14 @@ Basic ($9.99/month):
 All tiers include AI Chat Agent, real-time market data, Sentinel analysis, news with sentiment scoring, and smart alerts.`,
 };
 
-export async function handleAboutMarketMinute(
+export async function handleAboutMintalyze(
   rawInput: unknown
-): Promise<AboutMarketMinuteOutput> {
-  const input: AboutMarketMinuteInput =
-    AboutMarketMinuteInputSchema.parse(rawInput);
+): Promise<AboutMintalyzeOutput> {
+  const input: AboutMintalyzeInput = AboutMintalyzeInputSchema.parse(rawInput);
 
   const topic = input.topic || "all";
 
-  const output: AboutMarketMinuteOutput = {};
+  const output: AboutMintalyzeOutput = {};
 
   if (topic === "all" || topic === "overview") {
     output.overview = PLATFORM_INFO.overview;
@@ -119,11 +118,11 @@ export async function handleAboutMarketMinute(
     output.pricing = PLATFORM_INFO.pricing;
   }
 
-  AboutMarketMinuteOutputSchema.parse(output);
+  AboutMintalyzeOutputSchema.parse(output);
   return output;
 }
 
-export const aboutMarketMinuteTool = {
-  ...AboutMarketMinuteToolSpec,
-  handler: handleAboutMarketMinute,
+export const aboutMintalyzeTool = {
+  ...AboutMintalyzeToolSpec,
+  handler: handleAboutMintalyze,
 } as const;

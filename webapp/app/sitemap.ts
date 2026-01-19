@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://marketminute.io";
+  const baseUrl = "https://mintalyze.com";
 
   const lastMod = new Date().toISOString();
 

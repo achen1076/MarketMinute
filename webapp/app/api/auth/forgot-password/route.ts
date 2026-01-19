@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     try {
       await sendEmail({
         to: email,
-        subject: "Reset your MarketMinute password",
+        subject: "Reset your Mintalyze password",
         html: getPasswordResetEmailHTML(resetUrl, email),
       });
 

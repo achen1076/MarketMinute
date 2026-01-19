@@ -1,10 +1,10 @@
-# MarketMinute
+# Mintalyze
 
-https://marketminute.io/
+https://mintalyze.com/
 
 **Your automated minute view of the markets.**
 
-MarketMinute is a full-stack financial intelligence platform that combines real-time market data, AI-powered insights, and institutional-grade quantitative trading capabilities. Get instant market summaries, track custom watchlists, and leverage machine learning models for trading signals—all in one unified dashboard.
+Mintalyze is a full-stack financial intelligence platform that combines real-time market data, AI-powered insights, and institutional-grade quantitative trading capabilities. Get instant market summaries, track custom watchlists, and leverage machine learning models for trading signals—all in one unified dashboard.
 
 ---
 
@@ -13,14 +13,14 @@ MarketMinute is a full-stack financial intelligence platform that combines real-
 ### AI Chat Agent & MCP Tools (v2.3 - Dec 2025)
 
 - **🤖 AI Chat Interface** - Conversational agent for market queries at `/chat`
-- **🔧 Model Context Protocol (MCP)** - 20+ tools for AI agent to access MarketMinute data
+- **🔧 Model Context Protocol (MCP)** - 20+ tools for AI agent to access Mintalyze data
   - Market: `get_quote_snapshot`, `get_top_movers`, `get_market_summary`
   - User: `get_watchlists`, `get_alerts`, `create_watchlist`, `edit_watchlist`
   - QuantLab: `get_quant_signals`, `get_model_quality`, `get_top_signals`
   - Sentinel: `get_sentinel_report`, `get_insights`
   - News: `get_ticker_news`, `get_ticker_events`, `get_macro_events`
   - Analysis: `get_sentiment`, `get_ticker_alerts`, `get_explanation`
-  - Info: `about_marketminute`
+  - Info: `about_mintalyze`
 - **📊 Model Quality Tiers** - Quality classification for ML models
   - **Best** (🏆) - Excellent Sharpe ratio (>3) and Profit Factor (>2)
   - **Excellent** (✓) - Good metrics, recommended for trading
@@ -97,7 +97,7 @@ MarketMinute is a full-stack financial intelligence platform that combines real-
 
 ## 🎯 Overview
 
-MarketMinute consists of three integrated systems:
+Mintalyze consists of three integrated systems:
 
 **Web Application** - Modern Next.js dashboard for market monitoring and AI insights  
 **Quant Lab System** - ML-powered engine with movement predictions and forecasts  
@@ -319,7 +319,7 @@ Ticker: AAPL
 
 - **Atoms** - Badge, Box, Button, Card, Container, Dialog, EmptyState, Label, MiniSparkline, SectionHeader, SignOutButton, Stack, StatusBadge
 - **Molecules** - Accordion, AlertCard, EnhancedPredictionCard, ForecastCard, IconLabel, MarketSignalsCard, MarketSummaryCard, NavLink, QuantLabAvailableTickers, QuantLabLimitations, QuantLabMethodology, RegimeComponentsCard, TickerListClient, TickerSearch, TopSignalsView, UserInfo, VolatilityCard
-- **Organisms** - AdminSettings, DistributionalForecasts, EmailVerificationBanner, EventsTimeline, InsightCards, MarketForecastsClient, MarketMinuteSummary, MarketTicker, MovementAlertsBar, ProfessionalInsights, QuantLabClient, SentinelExplainToday, SentinelPreferences, SinceLastVisit, WatchlistSelector, WatchlistTimeline, WhatThisMeans, Sidebar
+- **Organisms** - AdminSettings, DistributionalForecasts, EmailVerificationBanner, EventsTimeline, InsightCards, MarketForecastsClient, MintalyzeSummary, MarketTicker, MovementAlertsBar, ProfessionalInsights, QuantLabClient, SentinelExplainToday, SentinelPreferences, SinceLastVisit, WatchlistSelector, WatchlistTimeline, WhatThisMeans, Sidebar
 
 ### Key Hooks
 

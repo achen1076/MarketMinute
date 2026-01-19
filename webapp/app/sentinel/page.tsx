@@ -7,9 +7,9 @@ import SentinelInfo from "@/components/pages/SentinelInfo";
 export const metadata: Metadata = {
   title: "Sentinel Dashboard",
   description:
-    "MarketMinute's Sentinel Dashboard provides real-time market anomaly detection and AI-powered insights for traders and investors.",
+    "Mintalyze's Sentinel Dashboard provides real-time market anomaly detection and AI-powered insights for traders and investors.",
   alternates: {
-    canonical: "https://marketminute.io/sentinel",
+    canonical: "https://mintalyze.com/sentinel",
   },
 };
 

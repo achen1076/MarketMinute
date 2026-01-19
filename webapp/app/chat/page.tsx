@@ -5,7 +5,7 @@ import ChatInfo from "@/components/pages/ChatInfo";
 export const metadata = {
   title: "Chat",
   description:
-    "Talk to MarketMinute's AI assistant for personalized market insights and stock analysis. Customized to your watchlists.",
+    "Talk to Mintalyze's AI assistant for personalized market insights and stock analysis. Customized to your watchlists.",
 };
 
 export default async function ChatPage() {

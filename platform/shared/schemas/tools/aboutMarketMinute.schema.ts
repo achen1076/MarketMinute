@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const AboutMarketMinuteInputSchema = z.object({
+export const AboutMintalyzeInputSchema = z.object({
   topic: z
     .enum(["overview", "features", "quantlab", "sentinel", "pricing", "all"])
     .optional()
@@ -8,11 +8,9 @@ export const AboutMarketMinuteInputSchema = z.object({
     .describe("Specific topic to get info about"),
 });
 
-export type AboutMarketMinuteInput = z.infer<
-  typeof AboutMarketMinuteInputSchema
->;
+export type AboutMintalyzeInput = z.infer<typeof AboutMintalyzeInputSchema>;
 
-export const AboutMarketMinuteOutputSchema = z.object({
+export const AboutMintalyzeOutputSchema = z.object({
   overview: z.string().optional(),
   features: z
     .array(
@@ -27,14 +25,12 @@ export const AboutMarketMinuteOutputSchema = z.object({
   pricing: z.string().optional(),
 });
 
-export type AboutMarketMinuteOutput = z.infer<
-  typeof AboutMarketMinuteOutputSchema
->;
+export type AboutMintalyzeOutput = z.infer<typeof AboutMintalyzeOutputSchema>;
 
-export const AboutMarketMinuteToolSpec = {
-  name: "about_marketminute",
+export const AboutMintalyzeToolSpec = {
+  name: "about_mintalyze",
   description:
-    "Get information about MarketMinute platform, its features, QuantLab ML predictions, Sentinel AI briefings, and pricing tiers.",
-  inputSchema: AboutMarketMinuteInputSchema,
-  outputSchema: AboutMarketMinuteOutputSchema,
+    "Get information about Mintalyze platform, its features, QuantLab ML predictions, Sentinel AI briefings, and pricing tiers.",
+  inputSchema: AboutMintalyzeInputSchema,
+  outputSchema: AboutMintalyzeOutputSchema,
 } as const;

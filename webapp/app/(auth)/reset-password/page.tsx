@@ -4,7 +4,7 @@ import ResetPasswordForm from "./ResetPasswordForm";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Reset Password - MarketMinute",
+  title: "Reset Password - Mintalyze",
   description: "Create a new password for your account",
 };
 

@@ -352,7 +352,7 @@ export default function BusinessLandingPage() {
             </div>
             <span className="hidden sm:block text-muted-foreground">→</span>
             <div className="flex items-center gap-2 text-foreground">
-              <span>MarketMinute Business</span>
+              <span>Mintalyze Business</span>
               <span className="font-bold text-amber-400">$29/mo</span>
             </div>
           </div>
@@ -405,24 +405,24 @@ export default function BusinessLandingPage() {
       <footer className="px-4 py-8 border-t border-border">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-foreground">MarketMinute</span>
+            <span className="font-semibold text-foreground">Mintalyze</span>
             <span>Business</span>
           </div>
           <div className="flex items-center gap-6">
             <Link
-              href="https://marketminute.io/terms"
+              href="https://mintalyze.com/terms"
               className="hover:text-foreground transition"
             >
               Terms
             </Link>
             <Link
-              href="https://marketminute.io/privacy"
+              href="https://mintalyze.com/privacy"
               className="hover:text-foreground transition"
             >
               Privacy
             </Link>
             <Link
-              href="https://marketminute.io/support"
+              href="https://mintalyze.com/support"
               className="hover:text-foreground transition"
             >
               Support

@@ -20,7 +20,7 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const THEME_STORAGE_KEY = "marketminute-theme";
+const THEME_STORAGE_KEY = "mintalyze-theme";
 
 function getSystemTheme(): ResolvedTheme {
   if (typeof window === "undefined") return "dark";

@@ -7,7 +7,7 @@ import { WatchlistTimeline } from "@/components/organisms/WatchlistTimeline";
 import WatchlistSelector from "@/components/organisms/WatchlistSelector";
 
 export const metadata = {
-  title: "MarketMinute - History",
+  title: "Mintalyze - History",
   description:
     "Track changes since your last visit and view your watchlist timeline.",
 };

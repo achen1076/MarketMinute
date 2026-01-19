@@ -142,34 +142,39 @@ export interface SecondOrderAttribution {
 
 /**
  * Narrative Output
- * The structured analyst-style explanation
+ * Institutional-grade analyst explanation
+ * Follows strict template with explicit trust layers
  */
 export interface NarrativeOutput {
-  // Summary Line (the hook)
-  headline: string;
-
-  // What Happened
-  whatHappened: string;
-
-  // Why It Happened
-  why: string;
-
-  // What Matters Next
-  whatMattersNext: string;
-
-  // Invalidation Thesis
-  invalidationThesis: string;
-
-  // Structured Data Points
-  keyMetrics: {
-    label: string;
-    value: string;
-    context?: string;
-  }[];
-
-  // Confidence & Caveats
+  // === HEADER ===
+  ticker: string;
+  classification: string; // "Noise", "Fundamental", etc.
+  move: string; // e.g., "+0.7% (vs ±1.6% options-implied, front expiry)"
+  relative: string; // e.g., "+0.6% vs XLK, within historical dispersion"
   confidence: "high" | "medium" | "low";
-  caveats: string[];
+  timeHorizon: string; // e.g., "1D reaction"
+
+  // === EXPLICIT EXPECTATION SOURCE ===
+  expectationSource: string; // e.g., "1D options implied move (85th pctile, front expiry)"
+
+  // === PRIMARY READ ===
+  // Core explanation with quant evidence reference
+  primaryRead: string;
+
+  // === CATALYST CHECK ===
+  // Explicit downgrade of weak catalysts
+  catalystCheck: string;
+
+  // === SECOND-ORDER EFFECTS ===
+  secondOrderEffects: string[];
+
+  // === INVALIDATION ===
+  // Hard rule that breaks the thesis
+  invalidation: string;
+
+  // === DECISION IMPLICATION ===
+  // What this means for portfolio action (without advice)
+  decisionImplication: string;
 
   // Generated Timestamp
   generatedAt: string;

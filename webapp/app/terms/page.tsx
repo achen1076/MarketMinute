@@ -4,9 +4,9 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Terms of Service",
   description:
-    "Read MarketMinute's Terms of Service. Learn about your rights, responsibilities, and how to use our AI-powered market insights platform.",
+    "Read Mintalyze's Terms of Service. Learn about your rights, responsibilities, and how to use our AI-powered market insights platform.",
   alternates: {
-    canonical: "https://marketminute.io/terms",
+    canonical: "https://mintalyze.com/terms",
   },
 };
 
@@ -24,8 +24,8 @@ export default function TermsPage() {
           Effective Date: December 10th, 2025
         </p>
         <p className="mt-2 text-foreground/80">
-          Welcome to MarketMinute ("Company," "we," "our," or "us"). These Terms
-          of Service ("Terms") govern your access to and use of the MarketMinute
+          Welcome to Mintalyze ("Company," "we," "our," or "us"). These Terms of
+          Service ("Terms") govern your access to and use of the Mintalyze
           website, platform, and related services (collectively, the "Service").
           By accessing or using the Service, you agree to be bound by these
           Terms.
@@ -43,7 +43,7 @@ export default function TermsPage() {
             1. Eligibility
           </h2>
           <p className="text-foreground/80">
-            You must be at least 18 years old to use MarketMinute. By using the
+            You must be at least 18 years old to use Mintalyze. By using the
             Service, you represent that you have the legal capacity to enter
             into a binding agreement.
           </p>
@@ -54,7 +54,7 @@ export default function TermsPage() {
           <h2 className="text-2xl font-bold mb-3 text-foreground">
             2. Description of Service
           </h2>
-          <p className="text-foreground/80 mb-3">MarketMinute provides:</p>
+          <p className="text-foreground/80 mb-3">Mintalyze provides:</p>
           <ul className="list-disc list-inside space-y-2 ml-4 text-foreground/80">
             <li>
               AI-powered summaries, explanations, and insights related to
@@ -66,9 +66,8 @@ export default function TermsPage() {
             <li>Educational and informational content</li>
           </ul>
           <p className="mt-4 font-semibold text-foreground">
-            MarketMinute does not provide financial, legal, or investment
-            advice. All information on the platform is for informational
-            purposes only.
+            Mintalyze does not provide financial, legal, or investment advice.
+            All information on the platform is for informational purposes only.
           </p>
         </section>
 
@@ -97,7 +96,7 @@ export default function TermsPage() {
             4. Subscription and Payments
           </h2>
           <p className="text-foreground/80 mb-3">
-            MarketMinute may offer free and paid tiers. By purchasing a
+            Mintalyze may offer free and paid tiers. By purchasing a
             subscription:
           </p>
           <ul className="list-disc list-inside space-y-2 ml-4 text-foreground/80">
@@ -185,8 +184,8 @@ export default function TermsPage() {
             8. Market Data & AI Outputs
           </h2>
           <p className="text-foreground/80 mb-3">
-            MarketMinute uses third-party data providers and AI models to
-            generate summaries and insights.
+            Mintalyze uses third-party data providers and AI models to generate
+            summaries and insights.
           </p>
           <p className="text-foreground/80 mb-2">
             You acknowledge and agree that:
@@ -199,12 +198,12 @@ export default function TermsPage() {
               information
             </li>
             <li>
-              MarketMinute is not liable for financial losses resulting from use
-              of the platform
+              Mintalyze is not liable for financial losses resulting from use of
+              the platform
             </li>
           </ul>
           <p className="mt-4 font-semibold text-foreground">
-            Again, MarketMinute is not investment advice.
+            Again, Mintalyze is not investment advice.
           </p>
         </section>
 
@@ -215,7 +214,7 @@ export default function TermsPage() {
           </h2>
           <p className="text-foreground/80 mb-3">
             All software, branding, logos, design assets, and content provided
-            through the Service are owned by MarketMinute or our licensors.
+            through the Service are owned by Mintalyze or our licensors.
           </p>
           <p className="text-foreground/80">
             You may not copy, distribute, sell, or recreate any part of the
@@ -285,8 +284,7 @@ export default function TermsPage() {
             13. Limitation of Liability
           </h2>
           <p className="text-foreground/80 mb-3">
-            To the fullest extent permitted by law, MarketMinute is not liable
-            for:
+            To the fullest extent permitted by law, Mintalyze is not liable for:
           </p>
           <ul className="list-disc list-inside space-y-2 ml-4 text-foreground/80">
             <li>Financial losses</li>

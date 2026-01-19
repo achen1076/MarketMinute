@@ -46,13 +46,13 @@ const Sidebar: React.FC<SidebarProps> = ({
             <Link href="/">
               <Image
                 src="/favicon.svg"
-                alt="MarketMinute"
+                alt="Mintalyze"
                 width={32}
                 height={32}
               />
             </Link>
             <Link href="/" className="text-xl font-bold -ms-0.5">
-              arketMinute
+              intalyze
             </Link>
           </div>
           <div className="flex items-center gap-2">
@@ -112,13 +112,13 @@ const Sidebar: React.FC<SidebarProps> = ({
               <Link href="/">
                 <Image
                   src="/favicon.svg"
-                  alt="MarketMinute"
+                  alt="Mintalyze"
                   width={32}
                   height={32}
                 />
               </Link>
               <Link href="/" className="text-xl font-bold -ms-0.5">
-                arketMinute
+                intalyze
               </Link>
             </div>
           </div>
@@ -145,7 +145,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             Sentinel Dashboard
           </NavLink>
           <NavLink to="/chat" onClick={closeMenu}>
-            MarketMinute Chat
+            Mintalyze Chat
           </NavLink>
           {user && (
             <>

@@ -7,9 +7,9 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Support & Feedback",
   description:
-    "Get help with MarketMinute. Contact our support team for assistance with your account, features, or to share feedback about our platform.",
+    "Get help with Mintalyze. Contact our support team for assistance with your account, features, or to share feedback about our platform.",
   alternates: {
-    canonical: "https://marketminute.io/support",
+    canonical: "https://mintalyze.com/support",
   },
 };
 

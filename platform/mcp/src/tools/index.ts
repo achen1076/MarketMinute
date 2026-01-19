@@ -31,7 +31,7 @@ import { getTickerAlertsTool } from "./analysis/getTickerAlerts";
 import { getExplanationTool } from "./analysis/getExplanation";
 
 // Info tools
-import { aboutMarketMinuteTool } from "./info/aboutMarketMinute";
+import { aboutMintalyzeTool } from "./info/aboutMarketMinute";
 
 /**
  * Automatically registers all tools with the MCP server instance.
@@ -64,7 +64,7 @@ export function registerAllTools(server: McpServer) {
     getTickerAlertsTool,
     getExplanationTool,
     // Info
-    aboutMarketMinuteTool,
+    aboutMintalyzeTool,
   ];
 
   for (const tool of tools) {

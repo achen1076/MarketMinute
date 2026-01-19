@@ -34,7 +34,7 @@ import { handleGetTickerAlerts } from "../../../mcp/src/tools/analysis/getTicker
 import { handleGetExplanation } from "../../../mcp/src/tools/analysis/getExplanation";
 
 // Info tools
-import { handleAboutMarketMinute } from "../../../mcp/src/tools/info/aboutMarketMinute";
+import { handleAboutMintalyze } from "../../../mcp/src/tools/info/aboutMarketMinute";
 
 // Schemas for OpenAI tool definitions
 import { GetQuoteSnapshotToolSpec } from "../../../shared/schemas/tools/getQuoteSnapshot.schema";
@@ -55,7 +55,7 @@ import { GetMacroEventsToolSpec } from "../../../shared/schemas/tools/getMacroEv
 import { GetSentimentToolSpec } from "../../../shared/schemas/tools/getSentiment.schema";
 import { GetTickerAlertsToolSpec } from "../../../shared/schemas/tools/getTickerAlerts.schema";
 import { ExplainTickerToolSpec } from "../../../shared/schemas/tools/explainTicker.schema";
-import { AboutMarketMinuteToolSpec } from "../../../shared/schemas/tools/aboutMarketMinute.schema";
+import { AboutMintalyzeToolSpec } from "../../../shared/schemas/tools/aboutMarketMinute.schema";
 
 export interface ToolDefinition {
   name: string;
@@ -181,10 +181,10 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
   },
   // Info
   {
-    name: AboutMarketMinuteToolSpec.name,
-    description: AboutMarketMinuteToolSpec.description,
-    inputSchema: AboutMarketMinuteToolSpec.inputSchema,
-    handler: handleAboutMarketMinute,
+    name: AboutMintalyzeToolSpec.name,
+    description: AboutMintalyzeToolSpec.description,
+    inputSchema: AboutMintalyzeToolSpec.inputSchema,
+    handler: handleAboutMintalyze,
   },
 ];
 

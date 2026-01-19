@@ -24,7 +24,7 @@ export class McpClientManager {
     });
 
     this.client = new Client(
-      { name: "MarketMinute-Orchestrator", version: "1.0.0" },
+      { name: "Mintalyze-Orchestrator", version: "1.0.0" },
       { capabilities: {} }
     );
 

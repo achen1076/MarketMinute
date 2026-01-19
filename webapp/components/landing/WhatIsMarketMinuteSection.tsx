@@ -1,13 +1,13 @@
-export function WhatIsMarketMinuteSection() {
+export function WhatIsMintalyzeSection() {
   return (
     <section className="px-4 py-16 border-t border-border">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-2xl md:text-4xl font-bold text-foreground mb-4">
-            What is MarketMinute?
+            What is Mintalyze?
           </h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            MarketMinute is your personal AI market analyst. We read hundreds of
+            Mintalyze is your personal AI market analyst. We read hundreds of
             news sources, analyze market data, and deliver personalized insights
             tailored specifically to the stocks you own—not generic market news
             you don&apos;t care about.

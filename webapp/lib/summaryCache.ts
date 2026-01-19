@@ -6,7 +6,7 @@ import {
   isMainTradingWindow,
 } from "@/lib/marketHours";
 
-type MarketMinuteSummary = {
+type MintalyzeSummary = {
   headline: string;
   body: string;
   stats: {
@@ -22,11 +22,10 @@ type MarketMinuteSummary = {
 };
 
 type SummaryCacheEntry = {
-  summary: MarketMinuteSummary;
+  summary: MintalyzeSummary;
   timestamp: number;
 };
 
-// In-memory fallback for when Redis is unavailable
 const summaryCache = new Map<string, SummaryCacheEntry>();
 
 function getCacheDuration(): { ms: number; seconds: number } {
@@ -49,7 +48,7 @@ function isCacheFromCurrentSession(timestamp: number): boolean {
 export async function getSummaryFromCache(
   listName: string,
   symbolsKey: string
-): Promise<MarketMinuteSummary | null> {
+): Promise<MintalyzeSummary | null> {
   const cacheKey = `summary:${listName}:${symbolsKey}`;
   const now = Date.now();
 
@@ -98,7 +97,7 @@ export async function getSummaryFromCache(
 export async function setSummaryInCache(
   listName: string,
   symbolsKey: string,
-  summary: MarketMinuteSummary
+  summary: MintalyzeSummary
 ): Promise<void> {
   const cacheKey = `summary:${listName}:${symbolsKey}`;
   const entry: SummaryCacheEntry = {

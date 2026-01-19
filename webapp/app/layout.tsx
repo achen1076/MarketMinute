@@ -23,13 +23,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://marketminute.io"),
+  metadataBase: new URL("https://mintalyze.com"),
   title: {
-    default: "MarketMinute – AI-Powered Market Insights",
-    template: "MarketMinute | %s",
+    default: "Mintalyze – AI-Powered Market Insights",
+    template: "Mintalyze | %s",
   },
   description:
-    "MarketMinute delivers AI-powered market explanations, quant predictions and forcasts, and daily summaries to help you understand every stock move in seconds.",
+    "Mintalyze delivers AI-powered market explanations, quant predictions and forcasts, and daily summaries to help you understand every stock move in seconds.",
   keywords: [
     "stock market",
     "AI market insights",
@@ -42,13 +42,13 @@ export const metadata: Metadata = {
     "financial data",
     "stock analysis",
     "market updates",
-    "marketminute",
-    "marketminute.io",
-    "marketminute io",
+    "mintalyze",
+    "mintalyze.com",
+    "mintalyze io",
   ],
-  authors: [{ name: "MarketMinute" }],
-  creator: "MarketMinute",
-  publisher: "MarketMinute",
+  authors: [{ name: "Mintalyze" }],
+  creator: "Mintalyze",
+  publisher: "Mintalyze",
   category: "Finance",
   formatDetection: {
     email: false,
@@ -75,26 +75,26 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://marketminute.io/",
-    siteName: "MarketMinute",
-    title: "MarketMinute – AI-Powered Market Insights",
+    url: "https://mintalyze.com/",
+    siteName: "Mintalyze",
+    title: "Mintalyze – AI-Powered Market Insights",
     description:
       "Get AI-powered market explanations, quant predictions and forecasts, and daily summaries tailored to your watchlist.",
     images: [
       {
-        url: "https://marketminute.io/og-image.png",
+        url: "https://mintalyze.com/og-image.png",
         width: 1200,
         height: 630,
-        alt: "MarketMinute – AI-Powered Market Insights",
+        alt: "Mintalyze – AI-Powered Market Insights",
       },
     ],
   },
 
   twitter: {
     card: "summary_large_image",
-    title: "MarketMinute – AI-Powered Market Insights",
+    title: "Mintalyze – AI-Powered Market Insights",
     description: "Understand every stock move with AI-powered insights",
-    images: ["https://marketminute.io/og-image.png"],
+    images: ["https://mintalyze.com/og-image.png"],
   },
 
   robots: {
@@ -141,7 +141,7 @@ export default async function RootLayout({
             __html: `
                   (function () {
                     try {
-                      var theme = localStorage.getItem('marketminute-theme');
+                      var theme = localStorage.getItem('mintalyze-theme');
                       var root = document.documentElement;
 
                       if (theme === 'light') {

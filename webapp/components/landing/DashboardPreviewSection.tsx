@@ -1,6 +1,6 @@
 import {
   MockTickerListClient,
-  MockMarketMinuteSummary,
+  MockMintalyzeSummary,
   MockEventsTimeline,
   MockMovementAlertsBar,
 } from "@/components/landing";
@@ -26,7 +26,7 @@ export function DashboardPreviewSection() {
             </div>
 
             <div className="flex-1 py-6 lg:px-6 space-y-6">
-              <MockMarketMinuteSummary />
+              <MockMintalyzeSummary />
               <MockEventsTimeline />
               <MockMovementAlertsBar />
             </div>

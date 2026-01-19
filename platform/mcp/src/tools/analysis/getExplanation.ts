@@ -62,7 +62,7 @@ export async function handleGetExplanation(
 
   if (explainResult && explainResult.explanation) {
     explanation = explainResult.explanation;
-    sources.push("MarketMinute AI Analysis");
+    sources.push("Mintalyze AI Analysis");
     if (explainResult.cached) {
       sources.push(`Cached (${explainResult.age})`);
     }

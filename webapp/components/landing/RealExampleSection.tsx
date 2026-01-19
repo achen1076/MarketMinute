@@ -9,7 +9,7 @@ export function RealExampleSection() {
             See It In Action
           </h2>
           <p className="text-lg text-muted-foreground">
-            Here&apos;s what a typical day looks like with MarketMinute
+            Here&apos;s what a typical day looks like with Mintalyze
           </p>
         </div>
 

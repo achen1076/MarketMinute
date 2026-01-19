@@ -103,7 +103,7 @@ export default function QuickStartWatchlist() {
       {/* Welcome Header */}
       <Card className="p-6 border-dashed border-2 border-muted-foreground/20">
         <div className="text-center space-y-3">
-          <h2 className="text-xl font-semibold">Welcome to MarketMinute!</h2>
+          <h2 className="text-xl font-semibold">Welcome to Mintalyze!</h2>
           <p className="text-muted-foreground max-w-md mx-auto">
             Get started by creating your first watchlist. Track stocks, get
             AI-powered insights, and never miss important market movements.

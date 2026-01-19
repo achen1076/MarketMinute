@@ -35,7 +35,7 @@ export async function sendEmail({ to, subject, html }: SendEmailParams) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        from: process.env.EMAIL_FROM || "MarketMinute <onboarding@resend.dev>",
+        from: process.env.EMAIL_FROM || "Mintalyze <onboarding@resend.dev>",
         to,
         subject,
         html,
@@ -74,7 +74,7 @@ export function getEmailVerificationHTML(verifyUrl: string, userEmail: string) {
           <!-- Header -->
           <tr>
             <td style="padding: 40px 40px 20px; text-align: center;">
-              <h1 style="margin: 0; color: #14b8a6; font-size: 28px; font-weight: bold;">MarketMinute</h1>
+              <h1 style="margin: 0; color: #14b8a6; font-size: 28px; font-weight: bold;">Mintalyze</h1>
             </td>
           </tr>
           
@@ -84,7 +84,7 @@ export function getEmailVerificationHTML(verifyUrl: string, userEmail: string) {
               <h2 style="margin: 0 0 20px; color: #f1f5f9; font-size: 24px; font-weight: 600;">Verify Your Email Address</h2>
               
               <p style="margin: 0 0 20px; color: #cbd5e1; font-size: 16px; line-height: 1.6;">
-                Welcome to MarketMinute! Please verify your email address <strong style="color: #f1f5f9;">${userEmail}</strong> to get started.
+                Welcome to Mintalyze! Please verify your email address <strong style="color: #f1f5f9;">${userEmail}</strong> to get started.
               </p>
               
               <p style="margin: 0 0 30px; color: #cbd5e1; font-size: 16px; line-height: 1.6;">
@@ -123,7 +123,7 @@ export function getEmailVerificationHTML(verifyUrl: string, userEmail: string) {
           <tr>
             <td style="padding: 20px 40px; background-color: #0f172a; text-align: center;">
               <p style="margin: 0; color: #64748b; font-size: 12px;">
-                © ${new Date().getFullYear()} MarketMinute. Built for people who actually watch the market.
+                © ${new Date().getFullYear()} Mintalyze. Built for people who actually watch the market.
               </p>
             </td>
           </tr>
@@ -153,7 +153,7 @@ export function getPasswordResetEmailHTML(resetUrl: string, userEmail: string) {
           <!-- Header -->
           <tr>
             <td style="padding: 40px 40px 20px; text-align: center;">
-              <h1 style="margin: 0; color: #14b8a6; font-size: 28px; font-weight: bold;">MarketMinute</h1>
+              <h1 style="margin: 0; color: #14b8a6; font-size: 28px; font-weight: bold;">Mintalyze</h1>
             </td>
           </tr>
           
@@ -202,7 +202,7 @@ export function getPasswordResetEmailHTML(resetUrl: string, userEmail: string) {
           <tr>
             <td style="padding: 20px 40px; background-color: #0f172a; text-align: center;">
               <p style="margin: 0; color: #64748b; font-size: 12px;">
-                © ${new Date().getFullYear()} MarketMinute. Built for people who actually watch the market.
+                © ${new Date().getFullYear()} Mintalyze. Built for people who actually watch the market.
               </p>
             </td>
           </tr>
@@ -232,7 +232,7 @@ export function getTestAlertEmailHTML(userEmail: string): string {
           <!-- Header -->
           <tr>
             <td style="padding: 40px 40px 20px; text-align: center;">
-              <h1 style="margin: 0; color: #14b8a6; font-size: 28px; font-weight: bold;">MarketMinute</h1>
+              <h1 style="margin: 0; color: #14b8a6; font-size: 28px; font-weight: bold;">Mintalyze</h1>
             </td>
           </tr>
           
@@ -265,7 +265,7 @@ export function getTestAlertEmailHTML(userEmail: string): string {
           <tr>
             <td style="padding: 20px 40px; background-color: #0f172a; text-align: center;">
               <p style="margin: 0; color: #64748b; font-size: 12px;">
-                © ${new Date().getFullYear()} MarketMinute. Built for people who actually watch the market.
+                © ${new Date().getFullYear()} Mintalyze. Built for people who actually watch the market.
               </p>
             </td>
           </tr>
@@ -299,7 +299,7 @@ export function getSupportEmailHTML(
           <!-- Header -->
           <tr>
             <td style="padding: 40px 40px 20px; text-align: center;">
-              <h1 style="margin: 0; color: #14b8a6; font-size: 28px; font-weight: bold;">MarketMinute Support</h1>
+              <h1 style="margin: 0; color: #14b8a6; font-size: 28px; font-weight: bold;">Mintalyze Support</h1>
             </td>
           </tr>
           
@@ -337,7 +337,7 @@ export function getSupportEmailHTML(
           <tr>
             <td style="padding: 20px 40px; background-color: #0f172a; text-align: center;">
               <p style="margin: 0; color: #64748b; font-size: 12px;">
-                © ${new Date().getFullYear()} MarketMinute Support System
+                © ${new Date().getFullYear()} Mintalyze Support System
               </p>
             </td>
           </tr>

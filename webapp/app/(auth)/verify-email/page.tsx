@@ -4,7 +4,7 @@ import VerifyEmailForm from "./VerifyEmailForm";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Verify Email - MarketMinute",
+  title: "Verify Email - Mintalyze",
   description: "Verify your email address",
 };
 

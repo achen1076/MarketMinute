@@ -69,7 +69,7 @@ const MOCK_SUMMARY = {
   generatedAt: "Jan 2, 8:00 PM",
 };
 
-export function MockMarketMinuteSummary() {
+export function MockMintalyzeSummary() {
   const renderHighlightedText = (
     segments: Array<{ text: string; color: string | null }>
   ) => {
@@ -99,7 +99,7 @@ export function MockMarketMinuteSummary() {
           {MOCK_SUMMARY.headline}
         </h2>
         <div className="flex flex-col items-end">
-          <span className="text-xs text-muted-foreground">MarketMinute</span>
+          <span className="text-xs text-muted-foreground">Mintalyze</span>
           <span className="text-[10px] text-muted-foreground/70">
             {MOCK_SUMMARY.generatedAt}
           </span>

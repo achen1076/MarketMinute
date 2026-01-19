@@ -6,7 +6,7 @@ export function HowItWorksSection() {
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-2xl md:text-4xl font-bold text-foreground mb-4">
-            How MarketMinute Works
+            How Mintalyze Works
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Get personalized market insights. No complexity, no information
@@ -60,7 +60,7 @@ export function HowItWorksSection() {
           />
           <StepCard
             number="5"
-            title="Talk With MarketMinute Agent"
+            title="Talk With Mintalyze Agent"
             description="Chat with our custom AI agent with 25+ custom tools. Trained to understand your watchlist and provide personalized insights."
             features={[
               "25+ custom tools",

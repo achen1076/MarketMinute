@@ -6,9 +6,9 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "MarketMinute | Signin",
+  title: "Mintalyze | Signin",
   description:
-    "Sign in to MarketMinute to access AI-powered market insights, smart alerts, and personalized stock analysis. Get real-time market summaries tailored to your watchlist.",
+    "Sign in to Mintalyze to access AI-powered market insights, smart alerts, and personalized stock analysis. Get real-time market summaries tailored to your watchlist.",
   keywords: [
     "stock market insights",
     "AI market analysis",
@@ -19,11 +19,11 @@ export const metadata: Metadata = {
   ],
 
   openGraph: {
-    title: "MarketMinute – AI-Powered Stock Market Insights",
+    title: "Mintalyze – AI-Powered Stock Market Insights",
     description:
       "Get AI-powered market insights, smart alerts, and daily summaries tailored to your watchlist.",
-    url: "https://marketminute.io/signin",
-    siteName: "MarketMinute",
+    url: "https://mintalyze.com/signin",
+    siteName: "Mintalyze",
     type: "website",
   },
 };
@@ -43,7 +43,7 @@ export default async function SignInPage() {
         {/* Left side - Branding */}
         <div className="flex-1 text-center lg:text-left space-y-6">
           <div className="inline-flex items-center gap-3 text-teal-400 mb-4">
-            <h1 className="text-4xl font-bold text-teal-400">MarketMinute</h1>
+            <h1 className="text-4xl font-bold text-teal-400">Mintalyze</h1>
           </div>
 
           <h2 className="text-4xl lg:text-5xl font-bold text-foreground leading-tight">

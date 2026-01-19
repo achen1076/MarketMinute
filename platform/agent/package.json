@@ -1,12 +1,12 @@
 {
-  "name": "@marketminute/agent",
+  "name": "@mintalyze/agent",
   "version": "1.0.0",
   "scripts": {
     "dev": "tsx src/server.ts",
     "start": "node dist/server.js",
     "build:lambda": "bash scripts/build-lambda.sh",
-    "docker:build": "docker build -t marketminute-agent .",
-    "docker:run": "docker run -p 9000:8080 marketminute-agent"
+    "docker:build": "docker build -t mintalyze-agent .",
+    "docker:run": "docker run -p 9000:8080 mintalyze-agent"
   },
   "dependencies": {
     "dotenv": "^16.6.1",
