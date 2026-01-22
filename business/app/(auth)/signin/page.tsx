@@ -7,17 +7,13 @@ export default function SignInPage() {
       <div className="w-full max-w-md p-8">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Zap className="w-10 h-10 text-amber-400" />
             <span className="text-2xl font-bold text-foreground">
-              Mintalyze <span className="text-amber-400">Business</span>
+              <span className="text-emerald-400">Mintalyze</span> Business
             </span>
           </div>
           <h1 className="text-xl font-semibold text-foreground mb-2">
             Sign in to continue
           </h1>
-          <p className="text-muted-foreground text-sm">
-            Access your EGE card library and analysis tools
-          </p>
         </div>
 
         <form

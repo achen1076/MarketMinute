@@ -2,12 +2,12 @@
 
 import React from "react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn } from "@shared/lib/utils";
 import NavLink from "../molecules/NavLink";
 import SignOutButton from "../atoms/SignOutButton";
 import UserInfo from "../molecules/UserInfo";
 import useWindowSize from "@/hooks/useWindowSize";
-import { useMobileMenu } from "@/lib/mobile-menu-context";
+import { useMobileMenu } from "@shared/lib/mobile-menu-context";
 import Image from "next/image";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {

@@ -11,9 +11,9 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import EmailVerificationBanner from "@/components/organisms/EmailVerificationBanner";
 import { prisma } from "@/lib/prisma";
-import { ThemeProvider } from "@/lib/theme-context";
-import { UserPreferencesProvider } from "@/lib/user-preferences-context";
-import { MobileMenuProvider } from "@/lib/mobile-menu-context";
+import { ThemeProvider } from "@shared/lib/theme-context";
+import { UserPreferencesProvider } from "@shared/lib/user-preferences-context";
+import { MobileMenuProvider } from "@shared/lib/mobile-menu-context";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 
 export const viewport: Viewport = {

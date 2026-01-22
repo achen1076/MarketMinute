@@ -20,7 +20,7 @@ export async function runSentinelAgent() {
     volatility,
   });
 
-  let drilldown = undefined;
+  let drilldown: ReturnType<typeof runMarketDrilldown> | undefined = undefined;
 
   if (
     anomalies.indexMove ||

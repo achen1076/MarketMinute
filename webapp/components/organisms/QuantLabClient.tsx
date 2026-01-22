@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import Card from "@/components/atoms/Card";
-import { calculateSignalMetrics } from "@/lib/quantSignals";
+import { calculateSignalMetrics } from "@shared/lib/quantSignals";
 import { EnhancedPredictionCard } from "@/components/molecules/EnhancedPredictionCard";
 import { TopSignalsView } from "@/components/molecules/TopSignalsView";
 import { QuantLabMethodology } from "@/components/molecules/QuantLabMethodology";

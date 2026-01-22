@@ -11,8 +11,8 @@ import {
   shouldFetchMacroEvents,
   type StockEvent,
   type MacroEvent,
-} from "@/lib/eventsDb";
-import { detectEventsFromNews } from "@/lib/eventDetector";
+} from "@shared/lib/eventsDb";
+import { detectEventsFromNews } from "@shared/lib/eventDetector";
 
 type UpcomingEventsResponse = {
   stockEvents: StockEvent[];

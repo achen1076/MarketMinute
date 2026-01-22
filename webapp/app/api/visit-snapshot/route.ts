@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { getCachedSnapshots } from "@/lib/tickerCache";
+import { getCachedSnapshots } from "@shared/lib/tickerCache";
 
 /**
  * Create a snapshot of current watchlist state

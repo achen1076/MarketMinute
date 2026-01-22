@@ -28,7 +28,7 @@ import {
   addSymbolsToWatchlist,
   Watchlist,
   WatchlistItem,
-} from "@/lib/watchlist";
+} from "@shared/lib/watchlist";
 
 type Props = {
   initialWatchlists: Watchlist[];

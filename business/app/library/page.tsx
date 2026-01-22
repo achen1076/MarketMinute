@@ -7,8 +7,9 @@ import {
   Loader2,
   Library as LibraryIcon,
 } from "lucide-react";
-import { AnalysisCard } from "@/components/AnalysisCard";
-import type { ExpectationGapAnalysis } from "@/lib/types";
+import { AnalysisCard } from "@shared/components/molecules/AnalysisCard";
+import { VersionNavigator } from "@shared/components/molecules/VersionNavigator";
+import type { ExpectationGapAnalysis } from "@shared/lib/types";
 
 interface StoredCard {
   id: string;
@@ -27,8 +28,13 @@ interface StoredCard {
   createdAt: string;
 }
 
-function groupCardsByDate(cards: StoredCard[]): Record<string, StoredCard[]> {
-  const groups: Record<string, StoredCard[]> = {};
+interface TickerGroup {
+  ticker: string;
+  versions: StoredCard[];
+}
+
+function groupCardsByDate(cards: StoredCard[]): Record<string, TickerGroup[]> {
+  const dateGroups: Record<string, Record<string, StoredCard[]>> = {};
 
   cards.forEach((card) => {
     const date = new Date(card.createdAt).toLocaleDateString("en-US", {
@@ -38,13 +44,27 @@ function groupCardsByDate(cards: StoredCard[]): Record<string, StoredCard[]> {
       day: "numeric",
     });
 
-    if (!groups[date]) {
-      groups[date] = [];
+    if (!dateGroups[date]) {
+      dateGroups[date] = {};
     }
-    groups[date].push(card);
+    if (!dateGroups[date][card.ticker]) {
+      dateGroups[date][card.ticker] = [];
+    }
+    dateGroups[date][card.ticker].push(card);
   });
 
-  return groups;
+  const result: Record<string, TickerGroup[]> = {};
+  Object.keys(dateGroups).forEach((date) => {
+    result[date] = Object.keys(dateGroups[date]).map((ticker) => ({
+      ticker,
+      versions: dateGroups[date][ticker].sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      ),
+    }));
+  });
+
+  return result;
 }
 
 function cardToAnalysis(card: StoredCard): ExpectationGapAnalysis {
@@ -81,6 +101,9 @@ export default function LibraryPage() {
   const [tickerFilter, setTickerFilter] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [versionIndices, setVersionIndices] = useState<Record<string, number>>(
+    {}
+  );
 
   const fetchCards = async () => {
     setLoading(true);
@@ -122,6 +145,20 @@ export default function LibraryPage() {
 
   const groupedCards = groupCardsByDate(cards);
   const dateKeys = Object.keys(groupedCards);
+
+  const handleVersionNavigate = (
+    dateKey: string,
+    ticker: string,
+    newIndex: number
+  ) => {
+    const key = `${dateKey}-${ticker}`;
+    setVersionIndices((prev) => ({ ...prev, [key]: newIndex }));
+  };
+
+  const getVersionIndex = (dateKey: string, ticker: string): number => {
+    const key = `${dateKey}-${ticker}`;
+    return versionIndices[key] ?? 0;
+  };
 
   return (
     <div className="space-y-6">
@@ -188,7 +225,7 @@ export default function LibraryPage() {
         <div className="flex items-end">
           <button
             type="submit"
-            className="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-white font-medium text-sm transition-colors"
+            className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white font-medium text-sm transition-colors"
           >
             Search
           </button>
@@ -213,20 +250,60 @@ export default function LibraryPage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-8 grid grid-cols-1 lg:grid-cols-2 gap-4">
           {dateKeys.map((dateKey) => (
             <div key={dateKey}>
               <h2 className="text-lg font-semibold text-foreground mb-4 sticky top-0 bg-background py-2">
                 {dateKey}
                 <span className="ml-2 text-sm text-muted-foreground font-normal">
-                  ({groupedCards[dateKey].length} card
-                  {groupedCards[dateKey].length !== 1 ? "s" : ""})
+                  (
+                  {groupedCards[dateKey].reduce(
+                    (sum, g) => sum + g.versions.length,
+                    0
+                  )}{" "}
+                  card
+                  {groupedCards[dateKey].reduce(
+                    (sum, g) => sum + g.versions.length,
+                    0
+                  ) !== 1
+                    ? "s"
+                    : ""}
+                  )
                 </span>
               </h2>
               <div className="space-y-4">
-                {groupedCards[dateKey].map((card) => (
-                  <AnalysisCard key={card.id} analysis={cardToAnalysis(card)} />
-                ))}
+                {groupedCards[dateKey].map((tickerGroup) => {
+                  const currentIndex = getVersionIndex(
+                    dateKey,
+                    tickerGroup.ticker
+                  );
+                  const currentCard = tickerGroup.versions[currentIndex];
+                  return (
+                    <div
+                      key={`${dateKey}-${tickerGroup.ticker}`}
+                      className="space-y-2"
+                    >
+                      <AnalysisCard analysis={cardToAnalysis(currentCard)} />
+                      {tickerGroup.versions.length > 1 && (
+                        <VersionNavigator
+                          ticker={tickerGroup.ticker}
+                          currentIndex={currentIndex}
+                          totalVersions={tickerGroup.versions.length}
+                          timestamps={tickerGroup.versions.map(
+                            (v) => v.createdAt
+                          )}
+                          onNavigate={(newIndex) =>
+                            handleVersionNavigate(
+                              dateKey,
+                              tickerGroup.ticker,
+                              newIndex
+                            )
+                          }
+                        />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ))}

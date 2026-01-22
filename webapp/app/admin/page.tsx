@@ -41,7 +41,7 @@ export default async function AdminPage() {
   });
 
   const activeWatchlist = user?.watchlists.find(
-    (w) => w.id === user?.activeWatchlistId
+    (w: { id: string }) => w.id === user?.activeWatchlistId
   );
 
   return (

@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { spawn } from "child_process";
 import { join } from "path";
-import { checkRateLimit, createRateLimitResponse } from "@/lib/rateLimit";
+import { checkRateLimit, createRateLimitResponse } from "@shared/lib/rateLimit";
 
 export async function POST(req: Request) {
   const session = await auth();

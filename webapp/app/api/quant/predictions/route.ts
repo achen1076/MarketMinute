@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { getUserTier } from "@/lib/usage-tracking";
-import { getTierConfig } from "@/lib/subscription-tiers";
+import { getUserTier } from "@shared/lib/usage-tracking";
+import { getTierConfig } from "@shared/lib/subscription-tiers";
 
 export async function GET() {
   const session = await auth();

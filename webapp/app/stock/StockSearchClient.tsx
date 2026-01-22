@@ -10,7 +10,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { isMarketOpen, isAfterHours, isPreMarket } from "@/lib/marketHours";
+import { isMarketOpen, isAfterHours, isPreMarket } from "@shared/lib/marketHours";
 
 type IndexData = {
   symbol: string;

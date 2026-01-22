@@ -7,7 +7,7 @@ import {
   RateLimitPresets,
   createRateLimitResponse,
   getRateLimitHeaders,
-} from "@/lib/rateLimit";
+} from "@shared/lib/rateLimit";
 
 export async function POST(req: Request) {
   try {

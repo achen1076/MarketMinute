@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { getTickerCacheTTL } from "@/lib/marketHours";
+import { getTickerCacheTTL } from "@shared/lib/marketHours";
 
 /**
  * Get the last 7 daily summaries for a watchlist

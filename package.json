@@ -1,0 +1,25 @@
+{
+  "name": "marketminute",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "business",
+    "webapp"
+  ],
+  "scripts": {
+    "dev:business": "npm run dev --workspace=business",
+    "dev:webapp": "npm run dev --workspace=webapp",
+    "build:business": "npm run build --workspace=business",
+    "build:webapp": "npm run build --workspace=webapp",
+    "build:all": "npm run build --workspaces",
+    "lint:all": "npm run lint --workspaces --if-present"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  },
+  "overrides": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  }
+}

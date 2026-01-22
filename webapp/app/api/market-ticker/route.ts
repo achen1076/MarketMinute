@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getCachedSnapshots } from "@/lib/tickerCache";
-import { getTickerCacheTTL } from "@/lib/marketHours";
+import { getCachedSnapshots } from "@shared/lib/tickerCache";
+import { getTickerCacheTTL } from "@shared/lib/marketHours";
 
 const TICKER_SYMBOLS = [
   { symbol: "^GSPC", name: "S&P 500" },

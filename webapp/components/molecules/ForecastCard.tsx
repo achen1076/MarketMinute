@@ -1,7 +1,7 @@
 import Card from "@/components/atoms/Card";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import type { DistributionalForecast } from "@/types/quant";
-import { cn } from "@/lib/utils";
+import { cn } from "@shared/lib/utils";
 
 export function ForecastCard({
   forecast,

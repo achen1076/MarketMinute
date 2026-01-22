@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { getCachedSnapshots } from "@/lib/tickerCache";
+import { getCachedSnapshots } from "@shared/lib/tickerCache";
 import DashboardClient from "./DashboardClient";
 import Card from "@/components/atoms/Card";
 import { Stack } from "@/components/atoms/Stack";

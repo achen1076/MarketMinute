@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { checkAndCreateSentimentAlerts } from "@/lib/sentimentAlerts";
+import { checkAndCreateSentimentAlerts } from "@shared/lib/sentimentAlerts";
 
 const ADMIN_EMAIL = "achen1076@gmail.com";
 
@@ -35,7 +35,9 @@ export async function POST(req: Request) {
       );
     }
 
-    const symbols = watchlist.items.map((item) => item.symbol);
+    const symbols = watchlist.items.map(
+      (item: { symbol: string }) => item.symbol
+    );
     console.log(
       `[TestSentimentAlerts] Testing ${symbols.length} symbols from watchlist "${watchlist.name}"`
     );

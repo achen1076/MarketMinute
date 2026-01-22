@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { join } from "path";
-import { checkRateLimit, createRateLimitResponse } from "@/lib/rateLimit";
+import { checkRateLimit, createRateLimitResponse } from "@shared/lib/rateLimit";
 
 const execAsync = promisify(exec);
 

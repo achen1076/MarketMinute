@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 export default function NotFound() {
   return (
     <div className="flex h-[80vh] flex-col items-center justify-center text-white">

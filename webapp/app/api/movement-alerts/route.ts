@@ -2,8 +2,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { getCachedSnapshots } from "@/lib/tickerCache";
-import { computeMovementAlerts } from "@/lib/movementAlerts";
+import { getCachedSnapshots } from "@shared/lib/tickerCache";
+import { computeMovementAlerts } from "@shared/lib/movementAlerts";
 
 /**
  * Get movement alerts summary for all symbols in the watchlist

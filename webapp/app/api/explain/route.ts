@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getAnalyzedNewsForSymbol, NewsItem } from "@/lib/news";
+import { getAnalyzedNewsForSymbol, NewsItem } from "@shared/lib/news";
 import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
 import {
@@ -10,17 +10,17 @@ import {
   isCacheStale,
   formatCacheAge,
   type ExplanationCacheEntry,
-} from "@/lib/explainCache";
-import { computeMovementAlerts, MovementAlert } from "@/lib/movementAlerts";
-import { getCachedSnapshots } from "@/lib/tickerCache";
+} from "@shared/lib/explainCache";
+import { computeMovementAlerts, MovementAlert } from "@shared/lib/movementAlerts";
+import { getCachedSnapshots } from "@shared/lib/tickerCache";
 import {
   checkRateLimit,
   RateLimitPresets,
   createRateLimitResponse,
   getRateLimitHeaders,
-} from "@/lib/rateLimit";
-import { isTradingActive } from "@/lib/marketHours";
-import { trackUsage } from "@/lib/usage-tracking";
+} from "@shared/lib/rateLimit";
+import { isTradingActive } from "@shared/lib/marketHours";
+import { trackUsage } from "@shared/lib/usage-tracking";
 import { prisma } from "@/lib/prisma";
 
 type ExplainPayload = {

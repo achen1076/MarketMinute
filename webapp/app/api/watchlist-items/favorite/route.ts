@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { invalidateWatchlistCaches } from "@/lib/request-cache";
+import { invalidateWatchlistCaches } from "@shared/lib/request-cache";
 
 /**
  * Toggle favorite status for a watchlist item

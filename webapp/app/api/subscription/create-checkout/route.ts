@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { createCheckoutSession } from "@/lib/stripe";
-import { SUBSCRIPTION_TIERS } from "@/lib/subscription-tiers";
+import { createCheckoutSession } from "@shared/lib/stripe";
+import { SUBSCRIPTION_TIERS } from "@shared/lib/subscription-tiers";
 import {
   checkRateLimit,
   RateLimitPresets,
   createRateLimitResponse,
-} from "@/lib/rateLimit";
+} from "@shared/lib/rateLimit";
 
 /**
  * Create a Stripe checkout session for subscription

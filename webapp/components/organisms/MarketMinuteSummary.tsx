@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useUserPreferences } from "@/lib/user-preferences-context";
+import { useUserPreferences } from "@shared/lib/user-preferences-context";
 import Card from "@/components/atoms/Card";
 import { Volume2, VolumeX, Loader2 } from "lucide-react";
-import { TICKER_TO_COMPANY } from "@/lib/tickerMappings";
+import { TICKER_TO_COMPANY } from "@shared/lib/tickerMappings";
 
 type TickerPerformance = {
   symbol: string;

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
-import { shouldSummarize, summarizeArticle } from "@/lib/articleSummarizer";
+import { shouldSummarize, summarizeArticle } from "@shared/lib/articleSummarizer";
 
 // Request validation schema
 const ProcessNewsSchema = z.object({

@@ -13,8 +13,8 @@ import {
   User,
   Search,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useMobileMenu } from "@/lib/mobile-menu-context";
+import { cn } from "@shared/lib/utils";
+import { useMobileMenu } from "@shared/lib/mobile-menu-context";
 
 type NavItem = {
   href: string;

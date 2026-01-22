@@ -6,7 +6,7 @@ import {
   RateLimitPresets,
   createRateLimitResponse,
   getRateLimitHeaders,
-} from "@/lib/rateLimit";
+} from "@shared/lib/rateLimit";
 
 /**
  * Sentinel Preview Endpoint

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { checkRateLimit, createRateLimitResponse } from "@/lib/rateLimit";
+import { checkRateLimit, createRateLimitResponse } from "@shared/lib/rateLimit";
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
   .split(",")

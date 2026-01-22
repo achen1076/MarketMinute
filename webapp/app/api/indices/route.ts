@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { redis } from "@/lib/redis";
-import { CACHE_TTL_SECONDS, CACHE_TTL_MS } from "@/lib/constants";
-import { getTickerCacheTTL } from "@/lib/marketHours";
+import { redis } from "@shared/lib/redis";
+import { CACHE_TTL_SECONDS, CACHE_TTL_MS } from "@shared/lib/constants";
+import { getTickerCacheTTL } from "@shared/lib/marketHours";
 
 const INDICES = ["^GSPC", "^DJI", "^IXIC"];
 

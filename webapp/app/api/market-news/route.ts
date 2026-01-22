@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { redis } from "@/lib/redis";
-import { isMarketOpen } from "@/lib/marketHours";
+import { redis } from "@shared/lib/redis";
+import { isMarketOpen } from "@shared/lib/marketHours";
 import { createHash } from "crypto";
 
 type FMPNewsItem = {

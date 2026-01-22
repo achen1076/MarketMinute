@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { stripe } from "@/lib/stripe";
+import { stripe } from "@shared/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import Stripe from "stripe";
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getUserUsageStats } from "@/lib/usage-tracking";
+import { getUserUsageStats } from "@shared/lib/usage-tracking";
 import { prisma } from "@/lib/prisma";
 
 /**

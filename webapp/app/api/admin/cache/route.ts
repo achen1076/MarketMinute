@@ -3,9 +3,9 @@ import { auth } from "@/auth";
 import {
   getExplanationCacheStats,
   clearExplanationCache,
-} from "@/lib/explainCache";
-import { getSummaryCacheStats, clearSummaryCache } from "@/lib/summaryCache";
-import { getEventsDbStats, clearEventsDb } from "@/lib/eventsDb";
+} from "@shared/lib/explainCache";
+import { getSummaryCacheStats, clearSummaryCache } from "@shared/lib/summaryCache";
+import { getEventsDbStats, clearEventsDb } from "@shared/lib/eventsDb";
 
 export async function POST(req: Request) {
   const session = await auth();

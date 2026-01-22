@@ -2,8 +2,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { getCachedSnapshots } from "@/lib/tickerCache";
-import { buildSummary } from "@/lib/summary";
+import { getCachedSnapshots } from "@shared/lib/tickerCache";
+import { buildSummary } from "@shared/lib/summary";
 
 /**
  * Generate daily summaries for all watchlists

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { checkUserAuthMethod } from "@/lib/auth-utils";
+import { checkUserAuthMethod } from "@shared/lib/auth-utils";
 import {
   checkRateLimit,
   RateLimitPresets,
   createRateLimitResponse,
-} from "@/lib/rateLimit";
+} from "@shared/lib/rateLimit";
 
 /**
  * Check which auth method a user has (google, credentials, or none)

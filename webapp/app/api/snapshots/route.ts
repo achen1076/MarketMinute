@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { getCachedSnapshots } from "@/lib/tickerCache";
+import { getCachedSnapshots } from "@shared/lib/tickerCache";
 import {
   checkRateLimit,
   RateLimitPresets,
   createRateLimitResponse,
-} from "@/lib/rateLimit";
-import { redis } from "@/lib/redis";
+} from "@shared/lib/rateLimit";
+import { redis } from "@shared/lib/redis";
 import {
   getCachedWatchlistSymbols,
   setCachedWatchlistSymbols,
-} from "@/lib/request-cache";
+} from "@shared/lib/request-cache";
 
 const WATCHLIST_CACHE_TTL = 31536000;
 

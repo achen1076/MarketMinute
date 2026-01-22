@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { createBillingPortalSession } from "@/lib/stripe";
+import { createBillingPortalSession } from "@shared/lib/stripe";
 import { prisma } from "@/lib/prisma";
 import {
   checkRateLimit,
   RateLimitPresets,
   createRateLimitResponse,
-} from "@/lib/rateLimit";
+} from "@shared/lib/rateLimit";
 
 /**
  * Create a Stripe billing portal session

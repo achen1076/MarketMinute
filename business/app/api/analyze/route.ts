@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { analyzeSymbol } from "@/lib/engine";
+import { analyzeSymbol } from "@shared/lib/engine";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

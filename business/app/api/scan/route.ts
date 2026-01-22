@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { analyzeWatchlist, scanForMoves } from "@/lib/engine";
+import { analyzeWatchlist, scanForMoves } from "@shared/lib/engine";
 
 /**
  * Scan symbols for significant moves

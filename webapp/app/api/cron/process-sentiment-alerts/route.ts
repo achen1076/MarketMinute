@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { processSentimentAlertsForSymbols } from "@/lib/sentimentAlerts";
+import { processSentimentAlertsForSymbols } from "@shared/lib/sentimentAlerts";
 import { prisma } from "@/lib/prisma";
 
 const LAMBDA_API_KEY = process.env.LAMBDA_API_KEY;

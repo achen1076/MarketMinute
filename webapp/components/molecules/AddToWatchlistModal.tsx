@@ -7,7 +7,7 @@ import {
   fetchWatchlists as fetchWatchlistsApi,
   addSymbolsToWatchlist,
   Watchlist,
-} from "@/lib/watchlist";
+} from "@shared/lib/watchlist";
 
 type Props = {
   symbol: string;

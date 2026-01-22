@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sendEmail, getSupportEmailHTML } from "@/lib/email";
+import { sendEmail, getSupportEmailHTML } from "@shared/lib/email";
 
 const SUPPORT_EMAIL = "marketminuteapp@gmail.com";
 

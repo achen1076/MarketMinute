@@ -11,8 +11,8 @@ import {
   Monitor,
 } from "lucide-react";
 import PricingCard from "./PricingCard";
-import { useTheme } from "@/lib/theme-context";
-import { useUserPreferences } from "@/lib/user-preferences-context";
+import { useTheme } from "@shared/lib/theme-context";
+import { useUserPreferences } from "@shared/lib/user-preferences-context";
 import SignOutButton from "@/components/atoms/SignOutButton";
 
 type Tab = "account" | "preferences" | "support";

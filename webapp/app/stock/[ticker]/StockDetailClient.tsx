@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import Card from "@/components/atoms/Card";
 import { TickerChart } from "@/components/molecules/TickerChart";
 import { MarketIndices } from "@/components/molecules/MarketIndices";
-import { CACHE_TTL_MS } from "@/lib/constants";
-import { isMarketOpen, isAfterHours, isPreMarket } from "@/lib/marketHours";
+import { CACHE_TTL_MS } from "@shared/lib/constants";
+import { isMarketOpen, isAfterHours, isPreMarket } from "@shared/lib/marketHours";
 import { Lightbulb, X, Search, RefreshCw, Plus } from "lucide-react";
 import ReactMarkdown from "react-markdown";
-import type { TickerSnapshot } from "@/lib/marketData";
+import type { TickerSnapshot } from "@shared/lib/marketData";
 import { AddToWatchlistModal } from "@/components/molecules/AddToWatchlistModal";
 import { StockNews } from "@/components/molecules/StockNews";
 

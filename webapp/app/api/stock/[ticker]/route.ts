@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getCachedSnapshots } from "@/lib/tickerCache";
+import { getCachedSnapshots } from "@shared/lib/tickerCache";
 import {
   checkRateLimit,
   RateLimitPresets,
   createRateLimitResponse,
   getRateLimitHeaders,
-} from "@/lib/rateLimit";
+} from "@shared/lib/rateLimit";
 
 export async function GET(
   request: Request,

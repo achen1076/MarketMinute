@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getCachedSnapshots } from "@/lib/tickerCache";
+import { getCachedSnapshots } from "@shared/lib/tickerCache";
 
 export async function GET(request: Request) {
   const session = await auth();

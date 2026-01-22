@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { redis } from "@/lib/redis";
+import { redis } from "@shared/lib/redis";
 
 /**
  * Clear ticker cache (admin only)

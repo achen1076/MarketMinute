@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getMacroNews } from "@/lib/macroNews";
+import { getMacroNews } from "@shared/lib/macroNews";
 
 /**
  * API endpoint to fetch macro economic news

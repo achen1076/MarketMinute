@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { getCachedSnapshots } from "@/lib/tickerCache";
-import { buildSummary } from "@/lib/summary";
+import { getCachedSnapshots } from "@shared/lib/tickerCache";
+import { buildSummary } from "@shared/lib/summary";
 import {
   checkRateLimit,
   RateLimitPresets,
   createRateLimitResponse,
   getRateLimitHeaders,
-} from "@/lib/rateLimit";
-import { trackUsage } from "@/lib/usage-tracking";
-import { redis } from "@/lib/redis";
-import { getCachedUser } from "@/lib/request-cache";
+} from "@shared/lib/rateLimit";
+import { trackUsage } from "@shared/lib/usage-tracking";
+import { redis } from "@shared/lib/redis";
+import { getCachedUser } from "@shared/lib/request-cache";
 
 const WATCHLIST_CACHE_TTL = 31536000; // 1 year (invalidated on mutation)
 

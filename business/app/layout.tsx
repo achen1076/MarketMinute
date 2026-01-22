@@ -2,10 +2,10 @@ import type { ReactNode } from "react";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { auth } from "@/auth";
-import { SessionProvider } from "@/components/providers/SessionProvider";
-import { MobileMenuProvider } from "@/lib/mobile-menu-context";
-import Sidebar from "@/components/organism/Sidebar";
-import MobileBottomNav from "@/components/organism/MobileBottomNav";
+import { SessionProvider } from "@shared/components/providers/SessionProvider";
+import { MobileMenuProvider } from "@shared/lib/mobile-menu-context";
+import Sidebar from "@shared/components/organisms/Sidebar";
+import MobileBottomNav from "@shared/components/organisms/MobileBottomNav";
 
 export const viewport: Viewport = {
   width: "device-width",

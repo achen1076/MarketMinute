@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import WatchlistsClient from "./WatchlistsClient";
-import { getTierConfig, SubscriptionTier } from "@/lib/subscription-tiers";
+import { getTierConfig, SubscriptionTier } from "@shared/lib/subscription-tiers";
 
 export const metadata = {
   title: "Mintalyze - Watchlists",

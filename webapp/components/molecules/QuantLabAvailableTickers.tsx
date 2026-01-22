@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Card from "@/components/atoms/Card";
 import { ChevronDown, ChevronUp, Info, Search } from "lucide-react";
 import type { ModelQuality } from "@/types/quant";
-import { TICKER_TO_COMPANY } from "@/lib/tickerMappings";
+import { TICKER_TO_COMPANY } from "@shared/lib/tickerMappings";
 
 const AVAILABLE_TICKERS = [
   "NVDA",

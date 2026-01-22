@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { shouldSummarize, summarizeArticle } from "@/lib/articleSummarizer";
+import { shouldSummarize, summarizeArticle } from "@shared/lib/articleSummarizer";
 
 /**
  * Batch news processing endpoint for Lambda

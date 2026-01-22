@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Lock, AlertCircle, CheckCircle } from "lucide-react";
-import { useTheme } from "@/lib/theme-context";
-import { useUserPreferences } from "@/lib/user-preferences-context";
+import { useTheme } from "@shared/lib/theme-context";
+import { useUserPreferences } from "@shared/lib/user-preferences-context";
 
 export default function SignInForm() {
   const router = useRouter();

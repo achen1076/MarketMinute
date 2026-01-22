@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Card from "@/components/atoms/Card";
-import { CACHE_TTL_MS } from "@/lib/constants";
-import { isMarketOpen, isAfterHours, isPreMarket } from "@/lib/marketHours";
+import { CACHE_TTL_MS } from "@shared/lib/constants";
+import { isMarketOpen, isAfterHours, isPreMarket } from "@shared/lib/marketHours";
 import { TrendingUp, TrendingDown } from "lucide-react";
 
 type IndexSnapshot = {

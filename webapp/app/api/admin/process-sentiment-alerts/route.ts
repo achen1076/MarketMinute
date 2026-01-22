@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { processSentimentAlertsForSymbols } from "@/lib/sentimentAlerts";
+import { processSentimentAlertsForSymbols } from "@shared/lib/sentimentAlerts";
 import { prisma } from "@/lib/prisma";
 
 const ADMIN_EMAIL = "achen1076@gmail.com";
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
       success: true,
       message: "Sentiment alert processing endpoint ready",
       uniqueSymbolCount: uniqueSymbols.length,
-      symbols: uniqueSymbols.map((s) => s.symbol),
+      symbols: uniqueSymbols.map((s: { symbol: string }) => s.symbol),
     });
   } catch (error) {
     console.error("[SentimentAlerts] Error:", error);

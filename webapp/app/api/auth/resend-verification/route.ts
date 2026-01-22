@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendEmail, getEmailVerificationHTML } from "@/lib/email";
+import { sendEmail, getEmailVerificationHTML } from "@shared/lib/email";
 import crypto from "crypto";
 import {
   checkRateLimit,
   RateLimitPresets,
   createRateLimitResponse,
-} from "@/lib/rateLimit";
+} from "@shared/lib/rateLimit";
 
 export async function POST(request: NextRequest) {
   try {

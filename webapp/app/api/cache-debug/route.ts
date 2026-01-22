@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCacheStats } from "@/lib/tickerCache";
+import { getCacheStats } from "@shared/lib/tickerCache";
 import { auth } from "@/auth";
 
 /**

@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import type { TickerSnapshot } from "@/lib/marketData";
+import type { TickerSnapshot } from "@shared/lib/marketData";
 import Card from "@/components/atoms/Card";
 import { Search, Star, Bell, ChevronDown, ChevronUp } from "lucide-react";
-import { CACHE_TTL_MS } from "@/lib/constants";
+import { CACHE_TTL_MS } from "@shared/lib/constants";
 import ReactMarkdown from "react-markdown";
-import { isMarketOpen, isAfterHours, isPreMarket } from "@/lib/marketHours";
+import { isMarketOpen, isAfterHours, isPreMarket } from "@shared/lib/marketHours";
 import { TickerChart } from "@/components/molecules/TickerChart";
 
 interface TickerAlert {

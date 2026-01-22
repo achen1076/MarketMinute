@@ -1,6 +1,6 @@
 import Card from "@/components/atoms/Card";
 import type { EnhancedSignal, ModelQuality } from "@/types/quant";
-import { cn } from "@/lib/utils";
+import { cn } from "@shared/lib/utils";
 
 type Props = {
   signal: EnhancedSignal;

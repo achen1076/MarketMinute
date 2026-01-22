@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { redis } from "@/lib/redis";
-import { getChartCacheTTL } from "@/lib/marketHours";
+import { redis } from "@shared/lib/redis";
+import { getChartCacheTTL } from "@shared/lib/marketHours";
 
 type TimeRange = "1D" | "5D" | "1M" | "3M" | "6M" | "YTD" | "1Y" | "5Y";
 

@@ -4,7 +4,7 @@ import {
   storeTickerNewsTraining,
   storeGeneralNewsTraining,
   getTrainingDataStats,
-} from "@/lib/trainingDataDb";
+} from "@shared/lib/trainingDataDb";
 
 /**
  * POST /api/training-data

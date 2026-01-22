@@ -6,7 +6,7 @@ import {
   isPreMarket,
   isAfterHours,
   isOvernightPeriod,
-} from "@/lib/marketHours";
+} from "@shared/lib/marketHours";
 import useWindowSize from "@/hooks/useWindowSize";
 
 type TickerItem = {
