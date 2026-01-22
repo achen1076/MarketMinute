@@ -147,11 +147,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           <NavLink to="/chat" onClick={closeMenu}>
             Mintalyze Chat
           </NavLink>
+          <NavLink to="/stock" onClick={closeMenu}>
+            Stock Search
+          </NavLink>
           {user && (
             <>
-              <NavLink to="/stock" onClick={closeMenu}>
-                Stock Search
-              </NavLink>
               <NavLink to="/watchlist" onClick={closeMenu}>
                 Watchlists
               </NavLink>

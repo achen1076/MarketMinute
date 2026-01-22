@@ -54,5 +54,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "yearly",
       priority: 0.4,
     },
+    {
+      url: `${baseUrl}/stocks`,
+      lastModified: lastMod,
+      changeFrequency: "weekly",
+      priority: 0.4,
+    },
   ];
 }

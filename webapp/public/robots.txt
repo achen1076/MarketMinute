@@ -10,6 +10,7 @@ Allow: /quant
 Allow: /sentinel
 Allow: /forecasts
 Allow: /chat
+Allow: /stock
 
 # Disallow all private, authenticated, and backend routes
 Disallow: /logout
