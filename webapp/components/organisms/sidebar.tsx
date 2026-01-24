@@ -18,12 +18,14 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     email?: string | null;
     image?: string | null;
   };
+  showMarketTicker?: boolean;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   variant = "default",
   className,
   user,
+  showMarketTicker = true,
   ...props
 }) => {
   const { isMenuOpen, toggleMenu, closeMenu } = useMobileMenu();
@@ -41,7 +43,11 @@ const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       {isMobile && (
-        <header className="fixed top-[30px] left-0 z-40 flex h-14 w-full items-center justify-between px-4 bg-sidebar text-sidebar-foreground">
+        <header
+          className={`fixed left-0 z-40 flex h-14 w-full items-center justify-between px-4 bg-sidebar text-sidebar-foreground ${
+            showMarketTicker ? "top-[30px]" : "top-0"
+          }`}
+        >
           <div className="flex items-center">
             <Link href="/">
               <Image
@@ -94,9 +100,13 @@ const Sidebar: React.FC<SidebarProps> = ({
           "fixed left-0 z-30 flex h-screen flex-col border-r border-sidebar-border transition-transform duration-300 bg-sidebar text-sidebar-foreground",
           isMobile
             ? isMenuOpen
-              ? "translate-x-0 w-64 pt-[97px]"
-              : "-translate-x-full w-64 pt-[97px]"
-            : "w-64 translate-x-0 pt-[49px]",
+              ? `translate-x-0 w-64 ${showMarketTicker ? "pt-[97px]" : "pt-14"}`
+              : `-translate-x-full w-64 ${
+                  showMarketTicker ? "pt-[97px]" : "pt-14"
+                }`
+            : `w-64 translate-x-0 ${
+                showMarketTicker ? "pt-[49px]" : "pt-[25px]"
+              }`,
           className
         )}
         {...props}
@@ -125,7 +135,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         {user && (
-          <div className="mb-4 border-b border-sidebar-border pb-4">
+          <div className="mb-4 border-y border-sidebar-border py-2">
             <UserInfo name={user.name} email={user.email} image={user.image} />
           </div>
         )}

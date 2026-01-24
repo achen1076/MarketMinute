@@ -15,6 +15,7 @@ export async function GET() {
         theme: true,
         alertPreference: true,
         tickerColoring: true,
+        showMarketTicker: true,
       },
     });
 
@@ -22,6 +23,7 @@ export async function GET() {
       theme: user?.theme || "system",
       alertPreference: user?.alertPreference || "on",
       tickerColoring: user?.tickerColoring || "on",
+      showMarketTicker: user?.showMarketTicker ?? true,
     });
   } catch (error) {
     console.error("[Preferences] Error fetching:", error);

@@ -90,10 +90,26 @@ export default function SettingsContent({
   const [alertLoading, setAlertLoading] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
   const [tickerColoringMessage, setTickerColoringMessage] = useState("");
+  const [showMarketTicker, setShowMarketTicker] = useState(true);
+  const [marketTickerLoading, setMarketTickerLoading] = useState(false);
+  const [marketTickerMessage, setMarketTickerMessage] = useState("");
 
   useEffect(() => {
     fetchSubscriptionStatus();
+    fetchMarketTickerPreference();
   }, []);
+
+  const fetchMarketTickerPreference = async () => {
+    try {
+      const res = await fetch("/api/user/preferences");
+      if (res.ok) {
+        const data = await res.json();
+        setShowMarketTicker(data.showMarketTicker ?? true);
+      }
+    } catch (err) {
+      console.error("Failed to fetch market ticker preference");
+    }
+  };
 
   const handleAlertToggle = async () => {
     setAlertLoading(true);
@@ -111,6 +127,35 @@ export default function SettingsContent({
       newValue ? "Ticker coloring enabled" : "Ticker coloring disabled"
     );
     setTimeout(() => setTickerColoringMessage(""), 3000);
+  };
+
+  const handleMarketTickerToggle = async () => {
+    setMarketTickerLoading(true);
+    setMarketTickerMessage("");
+    const newValue = !showMarketTicker;
+
+    try {
+      const res = await fetch("/api/user/market-ticker", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ showMarketTicker: newValue }),
+      });
+
+      if (res.ok) {
+        setShowMarketTicker(newValue);
+        setMarketTickerMessage(
+          newValue ? "Market ticker enabled" : "Market ticker hidden"
+        );
+        setTimeout(() => setMarketTickerMessage(""), 3000);
+        window.location.href = "/";
+      } else {
+        setMarketTickerMessage("Failed to update preference");
+      }
+    } catch (err) {
+      setMarketTickerMessage("An error occurred");
+    } finally {
+      setMarketTickerLoading(false);
+    }
   };
 
   const fetchSubscriptionStatus = async () => {
@@ -517,6 +562,10 @@ export default function SettingsContent({
           tickerColoringEnabled={preferences.tickerColoring}
           tickerColoringMessage={tickerColoringMessage}
           handleTickerColoringToggle={handleTickerColoringToggle}
+          showMarketTicker={showMarketTicker}
+          marketTickerLoading={marketTickerLoading}
+          marketTickerMessage={marketTickerMessage}
+          handleMarketTickerToggle={handleMarketTickerToggle}
         />
       )}
 
@@ -567,6 +616,10 @@ function ThemeAwarePreferences({
   tickerColoringEnabled,
   tickerColoringMessage,
   handleTickerColoringToggle,
+  showMarketTicker,
+  marketTickerLoading,
+  marketTickerMessage,
+  handleMarketTickerToggle,
 }: {
   alertsEnabled: boolean;
   alertLoading: boolean;
@@ -575,6 +628,10 @@ function ThemeAwarePreferences({
   tickerColoringEnabled: boolean;
   tickerColoringMessage: string;
   handleTickerColoringToggle: () => void;
+  showMarketTicker: boolean;
+  marketTickerLoading: boolean;
+  marketTickerMessage: string;
+  handleMarketTickerToggle: () => void;
 }) {
   const { theme, setTheme } = useTheme();
 
@@ -699,6 +756,44 @@ function ThemeAwarePreferences({
           <p className="mt-4 text-sm text-emerald-500">
             {tickerColoringMessage}
           </p>
+        )}
+      </div>
+
+      {/* Market Ticker Visibility */}
+      <div className="bg-card border border-border rounded-lg p-6">
+        <h2 className="text-xl font-semibold mb-4">Market Ticker</h2>
+        <p className="text-muted-foreground mb-4">
+          Show or hide the scrolling market ticker at the top of the page
+          displaying real-time market indices.
+        </p>
+
+        <label className="flex items-center justify-between cursor-pointer">
+          <div>
+            <span className="text-foreground font-medium">
+              Show Market Ticker
+            </span>
+            <p className="text-muted-foreground text-sm">
+              Display market indices ticker
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleMarketTickerToggle}
+            disabled={marketTickerLoading}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              showMarketTicker ? "bg-primary" : "bg-muted"
+            } ${marketTickerLoading ? "opacity-50" : ""}`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                showMarketTicker ? "translate-x-6" : "translate-x-1"
+              }`}
+            />
+          </button>
+        </label>
+
+        {marketTickerMessage && (
+          <p className="mt-4 text-sm text-emerald-500">{marketTickerMessage}</p>
         )}
       </div>
     </div>

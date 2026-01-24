@@ -119,17 +119,20 @@ export default async function RootLayout({
 
   let needsVerification = false;
   let userEmail = "";
+  let showMarketTicker = true;
 
   if (session?.user?.email) {
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { emailVerified: true, email: true },
+      select: { emailVerified: true, email: true, showMarketTicker: true },
     });
 
     if (user && !user.emailVerified) {
       needsVerification = true;
       userEmail = user.email!;
     }
+
+    showMarketTicker = user?.showMarketTicker ?? true;
   }
 
   return (
@@ -174,14 +177,21 @@ export default async function RootLayout({
               <MobileMenuProvider>
                 <ScrollToTop />
                 {/* Sidebar handles its own responsive behavior */}
-                <Sidebar user={session?.user} />
+                <Sidebar
+                  user={session?.user}
+                  showMarketTicker={showMarketTicker}
+                />
 
                 {/* Market ticker - fixed at very top */}
-                <MarketTicker />
+                {showMarketTicker && <MarketTicker />}
 
                 {/* Main content area */}
                 <div className="min-h-screen md:ml-64">
-                  <main className="mx-auto max-w-[2400px] px-4 py-6 pt-[105px] md:pt-14 md:px-8 pb-20 md:pb-6">
+                  <main
+                    className={`mx-auto max-w-[2400px] px-4 py-6 md:px-8 pb-20 md:pb-6 ${
+                      showMarketTicker ? "pt-[105px] md:pt-14" : ""
+                    }`}
+                  >
                     {/* Email Verification Banner */}
                     {needsVerification && (
                       <div className="mb-6">
