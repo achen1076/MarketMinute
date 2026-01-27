@@ -42,19 +42,19 @@ export function EnhancedPredictionCard({
     quantScore >= 70
       ? "text-emerald-400"
       : quantScore >= 50
-      ? "text-blue-400"
-      : quantScore >= 30
-      ? "text-amber-400"
-      : "text-muted-foreground";
+        ? "text-blue-400"
+        : quantScore >= 30
+          ? "text-amber-400"
+          : "text-muted-foreground";
 
   const scoreBarColor =
     quantScore >= 70
       ? "bg-emerald-500"
       : quantScore >= 50
-      ? "bg-blue-500"
-      : quantScore >= 30
-      ? "bg-amber-500"
-      : "bg-slate-500";
+        ? "bg-blue-500"
+        : quantScore >= 30
+          ? "bg-amber-500"
+          : "bg-slate-500";
 
   // Model quality styling
   const getQualityBadge = () => {
@@ -114,18 +114,18 @@ export function EnhancedPredictionCard({
     ? quality.quality_tier === "excellent"
       ? "border-emerald-500/30 hover:border-emerald-500/50"
       : quality.quality_tier === "good"
-      ? "border-blue-500/30 hover:border-blue-500/50"
-      : quality.quality_tier === "marginal"
-      ? "border-amber-500/30 hover:border-amber-500/50"
-      : quality.quality_tier === "neutral"
-      ? "border-yellow-500/30 hover:border-yellow-500/50"
-      : "border-rose-500/30 hover:border-rose-500/50"
+        ? "border-blue-500/30 hover:border-blue-500/50"
+        : quality.quality_tier === "marginal"
+          ? "border-amber-500/30 hover:border-amber-500/50"
+          : quality.quality_tier === "neutral"
+            ? "border-yellow-500/30 hover:border-yellow-500/50"
+            : "border-rose-500/30 hover:border-rose-500/50"
     : "hover:border-border";
 
   return (
     <Card
       className={`p-3 sm:p-5 transition-all ${cardBorderClass} ${cn(
-        hover && "hover:bg-muted/20"
+        hover && "hover:bg-muted/20",
       )}`}
     >
       {/* Model Quality Badge */}
@@ -234,6 +234,47 @@ export function EnhancedPredictionCard({
           </p>
         </div>
       </div>
+
+      {/* Take Profit & Stop Loss */}
+      {(signal.take_profit !== null || signal.stop_loss !== null) && (
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3 sm:mb-4">
+          {signal.take_profit !== null && (
+            <div className="p-2 sm:p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+              <p className="text-[10px] sm:text-xs text-emerald-400/80 mb-0.5 sm:mb-1">
+                Take Profit
+              </p>
+              <p className="text-sm sm:text-base font-bold text-emerald-400">
+                ${signal.take_profit.toFixed(2)}
+              </p>
+              <p className="text-[10px] sm:text-xs text-emerald-400/60 mt-0.5">
+                +
+                {(
+                  ((signal.take_profit - current_price) / current_price) *
+                  100
+                ).toFixed(2)}
+                %
+              </p>
+            </div>
+          )}
+          {signal.stop_loss !== null && (
+            <div className="p-2 sm:p-3 rounded-lg bg-rose-500/10 border border-rose-500/20">
+              <p className="text-[10px] sm:text-xs text-rose-400/80 mb-0.5 sm:mb-1">
+                Stop Loss
+              </p>
+              <p className="text-sm sm:text-base font-bold text-rose-400">
+                ${signal.stop_loss.toFixed(2)}
+              </p>
+              <p className="text-[10px] sm:text-xs text-rose-400/60 mt-0.5">
+                {(
+                  ((signal.stop_loss - current_price) / current_price) *
+                  100
+                ).toFixed(2)}
+                %
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* News Impact Comparison (if news was applied) */}
       {hasNewsAdjustment && (
@@ -347,8 +388,8 @@ export function EnhancedPredictionCard({
               signal.signal === "NEUTRAL"
                 ? "text-muted-foreground"
                 : directionalConfidence >= 0.7
-                ? "text-emerald-400"
-                : "text-amber-400"
+                  ? "text-emerald-400"
+                  : "text-amber-400"
             }`}
           >
             {(directionalConfidence * 100).toFixed(1)}%

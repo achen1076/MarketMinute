@@ -9,7 +9,7 @@ export function ModelData() {
         </span>
         <span className="text-muted-foreground">
           <span className="font-medium">Models Last Retrained:</span> January
-          18, 2026 (weekly retrain)
+          27, 2026 (weekly retrain)
         </span>
       </div>
     </div>

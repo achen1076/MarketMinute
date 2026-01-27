@@ -73,7 +73,9 @@ def hybrid_balance(X, y, multiplier=1.4):
 
 
 def load_dataset(ticker: str):
-    file = Path(f"data/processed/{ticker.lower()}_processed.csv")
+    project_root = Path(__file__).resolve().parents[1]
+    file = project_root / "data" / "processed" / \
+        f"{ticker.lower()}_processed.csv"
     if not file.exists():
         raise FileNotFoundError(f"No processed dataset found: {file}")
 
@@ -310,7 +312,8 @@ def train_model(
 
 
 def save_artifact(model, ticker, model_type, metrics=None):
-    out_dir = Path("models") / model_type
+    project_root = Path(__file__).resolve().parents[1]
+    out_dir = project_root / "models" / model_type
     out_dir.mkdir(parents=True, exist_ok=True)
 
     filename = out_dir / f"{ticker}_{model_type}.pkl"
@@ -327,7 +330,8 @@ def save_artifact(model, ticker, model_type, metrics=None):
 def save_model_metadata(ticker, model_type, metrics):
     import json
 
-    metadata_file = Path("models") / "model_metadata.json"
+    project_root = Path(__file__).resolve().parents[1]
+    metadata_file = project_root / "models" / "model_metadata.json"
 
     if metadata_file.exists():
         try:
@@ -392,7 +396,8 @@ def save_model_metadata(ticker, model_type, metrics):
 
 def get_model_metadata():
     import json
-    metadata_file = Path("models") / "model_metadata.json"
+    project_root = Path(__file__).resolve().parents[1]
+    metadata_file = project_root / "models" / "model_metadata.json"
 
     if not metadata_file.exists():
         return {"models": {}, "last_updated": None}
@@ -402,7 +407,8 @@ def get_model_metadata():
 
 
 def load_tickers():
-    spec_file = Path("SYSTEM_SPEC.yaml")
+    project_root = Path(__file__).resolve().parents[1]
+    spec_file = project_root / "SYSTEM_SPEC.yaml"
     if not spec_file.exists():
         raise FileNotFoundError("SYSTEM_SPEC.yaml not found")
 
@@ -842,7 +848,8 @@ def main():
     print(f"\n{'='*70}\n")
 
     summary_df = pd.DataFrame(results)
-    summary_path = Path("models") / args.model / "training_summary.csv"
+    project_root = Path(__file__).resolve().parents[1]
+    summary_path = project_root / "models" / args.model / "training_summary.csv"
     summary_path.parent.mkdir(parents=True, exist_ok=True)
     summary_df.to_csv(summary_path, index=False)
     print(f"📊 Summary saved to {summary_path}\n")

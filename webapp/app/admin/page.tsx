@@ -10,6 +10,7 @@ import NewsProcessor from "@/components/admin/NewsProcessor";
 import SentimentAlertsTester from "@/components/admin/SentimentAlertsTester";
 import TickerAlertCreator from "@/components/admin/TickerAlertCreator";
 import SubscriptionManager from "@/components/admin/SubscriptionManager";
+import TradeableSignals from "@/components/admin/TradeableSignals";
 
 // Configure admin emails
 const ADMIN_EMAILS = ["achen1076@gmail.com"];
@@ -41,7 +42,7 @@ export default async function AdminPage() {
   });
 
   const activeWatchlist = user?.watchlists.find(
-    (w) => w.id === user?.activeWatchlistId
+    (w) => w.id === user?.activeWatchlistId,
   );
 
   return (
@@ -59,6 +60,8 @@ export default async function AdminPage() {
           activeWatchlist={activeWatchlist ?? null}
           showManageButton
         />
+
+        <TradeableSignals />
 
         <SubscriptionManager />
         <LambdaCronRunner />

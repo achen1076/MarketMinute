@@ -16,7 +16,9 @@ def main():
     print("="*70)
 
     print("PROGRESS:5:Loading configuration...", flush=True)
-    with open("SYSTEM_SPEC.yaml", 'r') as f:
+    project_root = Path(__file__).resolve().parents[1]
+    config_path = project_root / "SYSTEM_SPEC.yaml"
+    with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
 
     tickers = config['objectives']['universe']['tickers']
@@ -66,8 +68,8 @@ def main():
             # Ensure columns
             df['ticker'] = ticker
 
-            output_path = Path(
-                f"data/processed/{ticker.lower()}_processed.csv")
+            output_path = project_root / "data" / \
+                "processed" / f"{ticker.lower()}_processed.csv"
             output_path.parent.mkdir(parents=True, exist_ok=True)
             df.to_csv(output_path, index=False)
 

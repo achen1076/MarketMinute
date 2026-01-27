@@ -46,11 +46,11 @@ async function fetchTickerEvents(symbol: string): Promise<StockEvent[]> {
   const to = new Date(today.getTime() + lookaheadDays * 24 * 60 * 60 * 1000);
 
   const fromStr = `${today.getFullYear()}-${String(
-    today.getMonth() + 1
+    today.getMonth() + 1,
   ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   const toStr = `${to.getFullYear()}-${String(to.getMonth() + 1).padStart(
     2,
-    "0"
+    "0",
   )}-${String(to.getDate()).padStart(2, "0")}`;
 
   const upper = symbol.toUpperCase();
@@ -58,14 +58,14 @@ async function fetchTickerEvents(symbol: string): Promise<StockEvent[]> {
   try {
     // Build URLs
     const earningsUrl = new URL(
-      "https://financialmodelingprep.com/stable/earnings"
+      "https://financialmodelingprep.com/stable/earnings",
     );
     earningsUrl.searchParams.set("symbol", upper);
     earningsUrl.searchParams.set("limit", "5");
     earningsUrl.searchParams.set("apikey", apiKey);
 
     const dividendUrl = new URL(
-      "https://financialmodelingprep.com/stable/dividends"
+      "https://financialmodelingprep.com/stable/dividends",
     );
     dividendUrl.searchParams.set("symbol", upper);
     dividendUrl.searchParams.set("limit", "5");
@@ -182,11 +182,11 @@ async function fetchMacroEvents(): Promise<MacroEvent[]> {
   const twoMonthsOut = new Date(today.getTime() + 60 * 24 * 60 * 45 * 1000);
 
   const todayStr = `${today.getFullYear()}-${String(
-    today.getMonth() + 1
+    today.getMonth() + 1,
   ).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
   const twoMonthsStr = `${twoMonthsOut.getFullYear()}-${String(
-    twoMonthsOut.getMonth() + 1
+    twoMonthsOut.getMonth() + 1,
   ).padStart(2, "0")}-${String(twoMonthsOut.getDate()).padStart(2, "0")}`;
 
   // Official FOMC meeting dates from Federal Reserve
@@ -336,7 +336,7 @@ export async function GET(request: Request) {
     if (!symbolsParam) {
       return NextResponse.json(
         { error: "symbols parameter required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -394,12 +394,27 @@ export async function GET(request: Request) {
       await setMacroEventsInDb(macroEvents);
     }
 
+    const eventMap = new Map<string, StockEvent>();
+    for (const event of stockEvents) {
+      const key = `${event.symbol}:${event.type}`;
+      const existing = eventMap.get(key);
+
+      // Keep the event with more description data (more recently updated/complete)
+      if (
+        !existing ||
+        (event.description?.length ?? 0) > (existing.description?.length ?? 0)
+      ) {
+        eventMap.set(key, event);
+      }
+    }
+    const deduplicatedStockEvents = Array.from(eventMap.values());
+
     // Sort by date
-    stockEvents.sort((a, b) => a.date.localeCompare(b.date));
+    deduplicatedStockEvents.sort((a, b) => a.date.localeCompare(b.date));
     macroEvents.sort((a, b) => a.date.localeCompare(b.date));
 
     const response: UpcomingEventsResponse = {
-      stockEvents,
+      stockEvents: deduplicatedStockEvents,
       macroEvents,
       fetchedAt: Date.now(),
     };
@@ -412,7 +427,7 @@ export async function GET(request: Request) {
     console.error("[Events] Error fetching events:", error);
     return NextResponse.json(
       { error: "Failed to fetch events" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
