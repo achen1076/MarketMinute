@@ -902,13 +902,10 @@ export const TICKER_TO_COMPANY: Record<string, string[]> = {
   PPC: ["Pilgrim's Pride"],
   CALM: ["Cal-Maine Foods"],
 
-  BBAI: ["BigBear.ai"],
   BITF: ["Bitfarms"],
   GWRE: ["Guidewire Software"],
   IREN: ["Iris Energy"],
   MNDY: ["monday.com"],
-  QBTS: ["D-Wave Quantum"],
-  RGTI: ["Rigetti Computing"],
   SMR: ["NuScale Power"],
   SOUN: ["SoundHound AI"],
   VRT: ["Vertiv Holdings"],
@@ -930,4 +927,6 @@ export const TICKER_TO_COMPANY: Record<string, string[]> = {
 
   DUOL: ["Duolingo"],
   TOST: ["Toast"],
+  CIEN: ["Ciena"],
+  LITE: ["Lumentum"],
 };

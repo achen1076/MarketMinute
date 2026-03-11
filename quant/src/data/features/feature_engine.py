@@ -80,7 +80,7 @@ class FeatureEngine:
         return df
 
     def _momentum_features(self, df):
-        for w in [3, 5, 10, 20]:
+        for w in [3, 5, 10, 20, 50, 100, 200]:
             df[f"mom_{w}"] = df["close"].pct_change(w)
             df[f"roc_{w}"] = df["close"] / df["close"].shift(w) - 1
             df[f"ema_ratio_{w}"] = df["close"] / \
@@ -88,6 +88,8 @@ class FeatureEngine:
 
         df["rsi_14"] = self._calculate_rsi(df["close"], 14)
         df["rsi_7"] = self._calculate_rsi(df["close"], 7)
+        df["rsi_21"] = self._calculate_rsi(df["close"], 21)
+        df["rsi_50"] = self._calculate_rsi(df["close"], 50)
 
         df["stoch_k"] = self._calculate_stochastic(df, 14)
         df["stoch_d"] = df["stoch_k"].rolling(3).mean()
@@ -131,7 +133,7 @@ class FeatureEngine:
         return -100 * (high_max - df["close"]) / (high_max - low_min).replace(0, np.nan)
 
     def _volatility_features(self, df):
-        for w in [5, 10, 20]:
+        for w in [5, 10, 20, 60, 120]:
             df[f"vol_{w}"] = df["return_1d"].rolling(w).std()
             df[f"range_vol_{w}"] = (df["high"] - df["low"]).rolling(w).std()
 
@@ -208,7 +210,7 @@ class FeatureEngine:
         return (typical_price * df["volume"]).rolling(period).sum() / df["volume"].rolling(period).sum()
 
     def _stat_features(self, df):
-        for w in [5, 10, 20]:
+        for w in [5, 10, 20, 50]:
             df[f"zscore_{w}"] = (
                 df["close"] - df["close"].rolling(w).mean()) / df["close"].rolling(w).std()
             df[f"minmax_{w}"] = (df["close"] - df["close"].rolling(w).min()) / (
@@ -273,7 +275,7 @@ class FeatureEngine:
 
     def _mean_reversion_features(self, df):
         """Features indicating mean reversion potential."""
-        for w in [5, 10, 20]:
+        for w in [5, 10, 20, 50, 100, 200]:
             sma = df["close"].rolling(w).mean()
             df[f"dist_from_sma_{w}"] = (df["close"] - sma) / sma
 
@@ -291,52 +293,31 @@ class FeatureEngine:
         return df
 
     def _candle_pattern_features(self, df):
-        """Candlestick pattern recognition."""
+        """Multi-day pattern aggregates suited for 10-day horizon."""
         body = df["close"] - df["open"]
         body_abs = abs(body)
-        upper_wick = df["high"] - df[["open", "close"]].max(axis=1)
-        lower_wick = df[["open", "close"]].min(axis=1) - df["low"]
         total_range = df["high"] - df["low"]
 
-        df["doji"] = (body_abs / total_range.replace(0, np.nan)
-                      < 0.1).astype(int)
+        # Rolling pattern frequency over 5- and 10-day windows (not single-bar)
+        doji_raw = (body_abs / total_range.replace(0, np.nan)
+                    < 0.1).astype(int)
+        df["doji_freq_5"] = doji_raw.rolling(5).mean()
+        df["doji_freq_10"] = doji_raw.rolling(10).mean()
 
-        df["hammer"] = (
-            (lower_wick > 2 * body_abs) &
-            (upper_wick < body_abs * 0.5) &
-            (body > 0)
-        ).astype(int)
+        # Rolling body direction ratio (bullish bar frequency)
+        bullish_bar = (body > 0).astype(int)
+        df["bullish_bar_ratio_5"] = bullish_bar.rolling(5).mean()
+        df["bullish_bar_ratio_10"] = bullish_bar.rolling(10).mean()
 
-        df["shooting_star"] = (
-            (upper_wick > 2 * body_abs) &
-            (lower_wick < body_abs * 0.5) &
-            (body < 0)
-        ).astype(int)
+        # Average body-to-range ratio over windows (conviction measure)
+        body_range_ratio = body_abs / total_range.replace(0, np.nan)
+        df["body_range_ratio_5"] = body_range_ratio.rolling(5).mean()
+        df["body_range_ratio_10"] = body_range_ratio.rolling(10).mean()
 
-        prev_body = body.shift(1)
-        df["engulfing_bull"] = (
-            (prev_body < 0) &
-            (body > 0) &
-            (df["open"] < df["close"].shift(1)) &
-            (df["close"] > df["open"].shift(1))
-        ).astype(int)
-
-        df["engulfing_bear"] = (
-            (prev_body > 0) &
-            (body < 0) &
-            (df["open"] > df["close"].shift(1)) &
-            (df["close"] < df["open"].shift(1))
-        ).astype(int)
-
-        df["inside_bar"] = (
-            (df["high"] < df["high"].shift(1)) &
-            (df["low"] > df["low"].shift(1))
-        ).astype(int)
-
-        df["outside_bar"] = (
-            (df["high"] > df["high"].shift(1)) &
-            (df["low"] < df["low"].shift(1))
-        ).astype(int)
+        # Gap frequency (gaps indicate momentum regime)
+        gap = (df["open"] - df["close"].shift(1)).abs() / df["close"].shift(1)
+        df["gap_freq_5"] = (gap > 0.005).astype(int).rolling(5).mean()
+        df["gap_freq_10"] = (gap > 0.005).astype(int).rolling(10).mean()
 
         return df
 
@@ -388,13 +369,17 @@ class FeatureEngine:
         df = self._price_features(df)
         df = self._lag_features(df)
         df = self._momentum_features(df)
+        # Defragment after heavy column additions to avoid PerformanceWarning
+        df = df.copy()
         df = self._volatility_features(df)
         df = self._volume_features(df)
         df = self._stat_features(df)
+        df = df.copy()
         df = self._autocorrelation_features(df)
         df = self._mean_reversion_features(df)
         df = self._candle_pattern_features(df)
         df = self._relative_strength_features(df)
+        df = df.copy()
 
         df = df.dropna(axis=1, how="all")
         df = df.replace([np.inf, -np.inf], np.nan)

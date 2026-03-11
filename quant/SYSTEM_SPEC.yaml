@@ -243,7 +243,6 @@ objectives:
         "FTV",
         "GD",
         "GDDY",
-        "GEHC",
         "GEN",
         "GILD",
         "GIS",
@@ -516,16 +515,16 @@ objectives:
         "DUOL",
         "HIMS",
         "SOUN",
-        "BBAI",
         "RKLB",
         "ASTS",
         "IONQ",
-        "RGTI",
-        "QBTS",
         "SMR",
         "VRT",
         "SMCI",
         "MNDY",
+        "CIEN",
+        "MELI",
+        "LITE",
       ]
 
     selection_rules: ""

@@ -237,7 +237,6 @@ const AVAILABLE_TICKERS = [
   "FTV",
   "GD",
   "GDDY",
-  "GEHC",
   "GEN",
   "GILD",
   "GIS",
@@ -510,16 +509,16 @@ const AVAILABLE_TICKERS = [
   "DUOL",
   "HIMS",
   "SOUN",
-  "BBAI",
   "RKLB",
   "ASTS",
   "IONQ",
-  "RGTI",
-  "QBTS",
   "SMR",
   "VRT",
   "SMCI",
   "MNDY",
+  "CIEN",
+  "MELI",
+  "LITE",
 ];
 
 export function QuantLabAvailableTickers() {
@@ -725,10 +724,10 @@ export function QuantLabAvailableTickers() {
                           quality && TICKER_TO_COMPANY[ticker]
                             ? `${TICKER_TO_COMPANY[ticker][0]} | Model Quality: ${quality.quality_tier}`
                             : TICKER_TO_COMPANY[ticker]
-                            ? `${TICKER_TO_COMPANY[ticker][0]}`
-                            : quality
-                            ? `Model Quality: ${quality.quality_tier}`
-                            : `${ticker}`
+                              ? `${TICKER_TO_COMPANY[ticker][0]}`
+                              : quality
+                                ? `Model Quality: ${quality.quality_tier}`
+                                : `${ticker}`
                         }
                       >
                         {ticker}
@@ -737,12 +736,12 @@ export function QuantLabAvailableTickers() {
                             {quality.quality_tier === "excellent"
                               ? "🏆"
                               : quality.quality_tier === "good"
-                              ? "✓"
-                              : quality.quality_tier === "marginal"
-                              ? ""
-                              : quality.quality_tier === "neutral"
-                              ? "○"
-                              : "⚠"}
+                                ? "✓"
+                                : quality.quality_tier === "marginal"
+                                  ? ""
+                                  : quality.quality_tier === "neutral"
+                                    ? "○"
+                                    : "⚠"}
                           </span>
                         )}
                       </div>

@@ -13,6 +13,7 @@ class MultiClassLabeler:
         strong_vol_scale=2.0,
         max_strong_ratio=0.12,
         mode='strong_moves',
+        subsample_interval=1,
     ):
         self.forward_periods = forward_periods
         self.neutral_threshold_pct = neutral_threshold_pct
@@ -23,6 +24,7 @@ class MultiClassLabeler:
         self.strong_vol_scale = strong_vol_scale
         self.max_strong_ratio = max_strong_ratio
         self.mode = mode
+        self.subsample_interval = subsample_interval
 
     def fit_transform(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.copy()
@@ -32,8 +34,11 @@ class MultiClassLabeler:
         df["return_at_label"] = df["forward_ret"]
 
         if self.dynamic_vol:
+            # Scale vol window by sqrt(forward_periods) for multi-day horizon
+            import numpy as np
+            horizon_scale = np.sqrt(self.forward_periods)
             df["rolling_vol"] = df["close"].pct_change().rolling(
-                self.vol_window).std()
+                self.vol_window).std() * horizon_scale
             df["neutral_thresh"] = df["rolling_vol"] * self.neutral_vol_scale
             df["strong_thresh"] = df["rolling_vol"] * self.strong_vol_scale
             neutral_thresh = df["neutral_thresh"]
@@ -55,4 +60,11 @@ class MultiClassLabeler:
             df.loc[strong_mask & (~df.index.isin(idx_strong)), "label"] = 0
 
         df = df.dropna().reset_index(drop=True)
+
+        # Subsample to reduce label overlap (serial correlation)
+        # For 10-day forward returns on daily bars, subsample_interval=5
+        # keeps every 5th row, reducing 80% label overlap
+        if self.subsample_interval > 1:
+            df = df.iloc[::self.subsample_interval].reset_index(drop=True)
+
         return df

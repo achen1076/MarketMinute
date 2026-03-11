@@ -29,11 +29,11 @@ def calculate_magnitude_probabilities(prob_up, prob_down, historical_vol):
     std_pct = historical_vol * 100
 
     boundaries = {
-        "large_down": (-100, -2.0),
-        "mild_down": (-2.0, -0.5),
-        "flat": (-0.5, 0.5),
-        "mild_up": (0.5, 2.0),
-        "large_up": (2.0, 100)
+        "large_down": (-100, -6.0),
+        "mild_down": (-6.0, -1.5),
+        "flat": (-1.5, 1.5),
+        "mild_up": (1.5, 6.0),
+        "large_up": (6.0, 100)
     }
 
     probabilities = {}

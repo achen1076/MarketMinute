@@ -99,7 +99,10 @@ def generate_live_predictions(raw_predictions, prices, volatilities, raw_data, w
             low_close = abs(df['low'] - df['close'].shift(1))
             tr = pd.concat([high_low, high_close, low_close],
                            axis=1).max(axis=1)
-            atr = tr.rolling(14).mean().iloc[-1]
+            atr_daily = tr.rolling(14).mean().iloc[-1]
+            # Scale ATR for 10-day holding period: ATR * sqrt(holding_days)
+            holding_days = 10
+            atr = atr_daily * np.sqrt(holding_days)
         else:
             atr = None
 

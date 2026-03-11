@@ -48,19 +48,24 @@ class LGBMReturnTuner:
         self.best_params = None
         self.best_threshold = None
 
-    def _calculate_sharpe(self, returns: np.ndarray) -> float:
-        """Calculate annualized Sharpe ratio from daily returns"""
-        if len(returns) < 2:
+    def _calculate_sharpe(self, trade_returns: np.ndarray) -> float:
+        """Calculate annualized Sharpe ratio from trade-level returns."""
+        if len(trade_returns) < 2:
             return -10.0
 
-        returns = returns[~np.isnan(returns) & ~np.isinf(returns)]
-        if len(returns) < 2 or np.std(returns) < 1e-8:
+        trade_returns = trade_returns[~np.isnan(
+            trade_returns) & ~np.isinf(trade_returns)]
+        if len(trade_returns) < 2 or np.std(trade_returns) < 1e-8:
             return -10.0
 
-        # Annualized Sharpe (assuming 252 trading days)
-        mean_ret = np.mean(returns)
-        std_ret = np.std(returns, ddof=1)
-        sharpe = (mean_ret / std_ret) * np.sqrt(252)
+        periods_per_year = 252 / self.forward_periods
+        rf_per_period = 0.05 / periods_per_year
+
+        excess = trade_returns - rf_per_period
+        mean_excess = np.mean(excess)
+        std_excess = np.std(excess, ddof=1)
+
+        sharpe = (mean_excess / std_excess) * np.sqrt(periods_per_year)
 
         return float(np.clip(sharpe, -10, 10))
 
@@ -71,20 +76,31 @@ class LGBMReturnTuner:
         long_threshold: float,
         short_threshold: float
     ) -> np.ndarray:
-        """Simulate trading and return strategy returns"""
-        # Generate signals
-        signals = np.zeros(len(predictions))
-        signals[predictions > long_threshold] = 1
-        signals[predictions < short_threshold] = -1
+        """Simulate trading with cooldown and return trade-level returns."""
+        n = len(predictions)
+        positions = np.zeros(n)
+        cooldown_until = 0
 
-        # Strategy returns
-        gross_returns = signals * forward_returns
+        for i in range(n):
+            if i >= cooldown_until:
+                if predictions[i] > long_threshold:
+                    positions[i] = 1.0
+                    cooldown_until = i + self.forward_periods
+                elif predictions[i] < short_threshold and predictions[i] < 0:
+                    positions[i] = -1.0
+                    cooldown_until = i + self.forward_periods
+
+        gross_returns = positions * forward_returns
 
         # Transaction costs on position changes
-        position_changes = np.abs(np.diff(signals, prepend=0))
+        position_changes = np.abs(np.diff(positions, prepend=0))
         costs = position_changes * self.transaction_cost
 
-        return gross_returns - costs
+        strategy_returns = gross_returns - costs
+
+        # Return only trade-level returns (non-idle bars)
+        trade_mask = positions != 0
+        return strategy_returns[trade_mask]
 
     def objective(self, trial, X_train, y_train, X_val, y_val):
         """Optuna objective: maximize Sharpe ratio"""
@@ -135,28 +151,21 @@ class LGBMReturnTuner:
             ]
         )
 
-        # Predict on validation
-        predictions = model.predict(X_val_scaled)
+        # Calibrate thresholds from TRAINING predictions (no lookahead)
+        train_preds = model.predict(X_train_scaled)
+        train_mean = np.mean(train_preds)
+        train_std = max(np.std(train_preds), 1e-6)
 
-        # Adaptive threshold based on prediction distribution
-        pred_mean = np.mean(predictions)
-        pred_std = np.std(predictions)
+        long_thresh = train_mean + threshold_scale * train_std
+        short_thresh = train_mean - threshold_scale * train_std
 
-        long_thresh = pred_mean + threshold_scale * pred_std
-        short_thresh = pred_mean - threshold_scale * pred_std
+        # Predict on validation and simulate with cooldown
+        val_preds = model.predict(X_val_scaled)
+        trade_returns = self._simulate_trading(
+            val_preds, y_val, long_thresh, short_thresh
+        )
 
-        # Generate signals (only short if prediction is negative)
-        signals = np.zeros(len(predictions))
-        signals[predictions > long_thresh] = 1
-        signals[(predictions < short_thresh) & (predictions < 0)] = -1
-
-        # Calculate strategy returns
-        gross_returns = signals * y_val
-        position_changes = np.abs(np.diff(signals, prepend=0))
-        costs = position_changes * self.transaction_cost
-        strategy_returns = gross_returns - costs
-
-        sharpe = self._calculate_sharpe(strategy_returns)
+        sharpe = self._calculate_sharpe(trade_returns)
 
         return sharpe
 

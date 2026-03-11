@@ -38,6 +38,9 @@ class TradingMetrics:
     annualized_return: float
     num_trades: int
     avg_holding_period: float
+    alpha: float = 0.0
+    benchmark_sharpe: float = 0.0
+    long_ratio: float = 0.0
 
     def to_dict(self) -> Dict:
         return {
@@ -53,7 +56,10 @@ class TradingMetrics:
             'total_return': self.total_return,
             'annualized_return': self.annualized_return,
             'num_trades': self.num_trades,
-            'avg_holding_period': self.avg_holding_period
+            'avg_holding_period': self.avg_holding_period,
+            'alpha': self.alpha,
+            'benchmark_sharpe': self.benchmark_sharpe,
+            'long_ratio': self.long_ratio
         }
 
     def summary(self) -> str:
@@ -62,7 +68,8 @@ class TradingMetrics:
             f"MaxDD: {self.max_drawdown*100:.1f}% | "
             f"WinRate: {self.win_rate*100:.1f}% | "
             f"PF: {self.profit_factor:.2f} | "
-            f"Return: {self.total_return*100:.1f}%"
+            f"Return: {self.total_return*100:.1f}% | "
+            f"α: {self.alpha:.2f}"
         )
 
 
@@ -122,27 +129,45 @@ class FinancialMetrics:
         accuracy = np.mean(y_true == y_pred)
 
         # Simulate trading returns
-        strategy_returns = self._simulate_trading(
+        strategy_returns, trade_returns = self._simulate_trading(
             y_pred, forward_returns, holding_period
         )
 
-        # Compute all metrics
-        sharpe = self._sharpe_ratio(strategy_returns)
-        sortino = self._sortino_ratio(strategy_returns)
-        max_dd = self._max_drawdown(strategy_returns)
-        calmar = self._calmar_ratio(strategy_returns, max_dd)
+        # Store holding period for annualization
+        self._holding_period = holding_period
 
-        # Trade-level metrics
-        pf, win_rate, avg_win, avg_loss = self._trade_metrics(
-            y_pred, forward_returns
-        )
+        # Risk-adjusted metrics on TRADE-LEVEL returns only (no idle-bar dilution)
+        sharpe = self._sharpe_ratio(trade_returns, holding_period)
+        sortino = self._sortino_ratio(trade_returns, holding_period)
+
+        # Equity-curve metrics on full series
+        max_dd = self._max_drawdown(strategy_returns)
+        calmar = self._calmar_ratio(trade_returns, max_dd, holding_period)
+
+        # Trade-level metrics (same cooldown-filtered trades)
+        pf, win_rate, avg_win, avg_loss = self._trade_metrics(trade_returns)
 
         # Return metrics
-        total_ret = self._total_return(strategy_returns)
-        annual_ret = self._annualized_return(strategy_returns)
+        total_ret = self._total_return(trade_returns)
+        annual_ret = self._annualized_return(trade_returns, holding_period)
 
-        # Count actual trades (non-zero predictions)
-        num_trades = np.sum(y_pred != 0)
+        # Count actual trades (after cooldown)
+        num_trades = len(trade_returns)
+
+        # Benchmark: buy-and-hold (always long) on same bar-level series
+        benchmark_returns = np.nan_to_num(
+            forward_returns, nan=0.0, posinf=0.0, neginf=0.0)
+        benchmark_comparison = self.compare_to_benchmark(
+            strategy_returns, benchmark_returns)
+        alpha = benchmark_comparison['alpha']
+        benchmark_sharpe = benchmark_comparison['benchmark_sharpe']
+
+        # Long/short ratio of actual traded positions
+        long_count = np.sum(y_pred == 1)
+        short_count = np.sum(y_pred == -1)
+        total_signals = long_count + short_count
+        long_ratio = float(
+            long_count / total_signals) if total_signals > 0 else 0.0
 
         return TradingMetrics(
             accuracy=accuracy,
@@ -157,7 +182,10 @@ class FinancialMetrics:
             total_return=total_ret,
             annualized_return=annual_ret,
             num_trades=num_trades,
-            avg_holding_period=holding_period
+            avg_holding_period=holding_period,
+            alpha=alpha,
+            benchmark_sharpe=benchmark_sharpe,
+            long_ratio=long_ratio
         )
 
     def _simulate_trading(
@@ -167,7 +195,11 @@ class FinancialMetrics:
         holding_period: int
     ) -> np.ndarray:
         """
-        Simulate trading based on predictions.
+        Simulate trading based on predictions with position overlap handling.
+
+        For multi-day holding periods, new signals during an active hold are
+        ignored to prevent double-counting overlapping positions. Each trade
+        locks out new entries for `holding_period` bars.
 
         Position:
             +1 prediction -> Long (benefit from positive returns)
@@ -178,10 +210,15 @@ class FinancialMetrics:
         forward_returns = np.nan_to_num(
             forward_returns, nan=0.0, posinf=0.0, neginf=0.0)
 
-        # Strategy returns = position * market return
-        # For multiclass: prediction directly determines position
-        positions = np.where(predictions == 1, 1.0,
-                             np.where(predictions == -1, -1.0, 0.0))
+        n = len(predictions)
+        positions = np.zeros(n)
+        cooldown_until = 0
+
+        for i in range(n):
+            if i >= cooldown_until and predictions[i] != 0:
+                positions[i] = 1.0 if predictions[i] == 1 else -1.0
+                cooldown_until = i + holding_period
+            # else: positions[i] stays 0 (in cooldown or neutral prediction)
 
         gross_returns = positions * forward_returns
 
@@ -191,17 +228,25 @@ class FinancialMetrics:
 
         strategy_returns = gross_returns - costs
 
-        return strategy_returns
+        # Extract trade-level returns (only bars where a trade was entered)
+        trade_mask = positions != 0
+        trade_returns = strategy_returns[trade_mask]
 
-    def _sharpe_ratio(self, returns: np.ndarray) -> float:
-        """Calculate annualized Sharpe ratio"""
+        return strategy_returns, trade_returns
+
+    def _sharpe_ratio(self, returns: np.ndarray, holding_period: int = None) -> float:
+        """Calculate annualized Sharpe ratio, scaled by holding period."""
         # Filter out NaN/inf values
         returns = returns[~np.isnan(returns) & ~np.isinf(returns)]
 
         if len(returns) < 2:
             return 0.0
 
-        excess_returns = returns - (self.risk_free_rate / self.trading_days)
+        hp = holding_period or getattr(self, '_holding_period', 1)
+        periods_per_year = self.trading_days / hp
+        rf_per_period = self.risk_free_rate / periods_per_year
+
+        excess_returns = returns - rf_per_period
 
         mean_excess = np.mean(excess_returns)
         std_excess = np.std(excess_returns, ddof=1)
@@ -210,21 +255,25 @@ class FinancialMetrics:
         if std_excess < 1e-8 or np.isnan(std_excess):
             return 0.0
 
-        daily_sharpe = mean_excess / std_excess
-        annual_sharpe = daily_sharpe * np.sqrt(self.trading_days)
+        period_sharpe = mean_excess / std_excess
+        annual_sharpe = period_sharpe * np.sqrt(periods_per_year)
 
         # Clip to reasonable range
         return float(np.clip(annual_sharpe, -10, 10))
 
-    def _sortino_ratio(self, returns: np.ndarray) -> float:
-        """Calculate Sortino ratio (downside deviation only)"""
+    def _sortino_ratio(self, returns: np.ndarray, holding_period: int = None) -> float:
+        """Calculate Sortino ratio (downside deviation only), scaled by holding period."""
         # Filter out NaN/inf values
         returns = returns[~np.isnan(returns) & ~np.isinf(returns)]
 
         if len(returns) < 2:
             return 0.0
 
-        excess_returns = returns - (self.risk_free_rate / self.trading_days)
+        hp = holding_period or getattr(self, '_holding_period', 1)
+        periods_per_year = self.trading_days / hp
+        rf_per_period = self.risk_free_rate / periods_per_year
+
+        excess_returns = returns - rf_per_period
         mean_excess = np.mean(excess_returns)
 
         # Downside deviation
@@ -237,8 +286,8 @@ class FinancialMetrics:
         if downside_std == 0 or np.isnan(downside_std):
             return 0.0
 
-        daily_sortino = mean_excess / downside_std
-        annual_sortino = daily_sortino * np.sqrt(self.trading_days)
+        period_sortino = mean_excess / downside_std
+        annual_sortino = period_sortino * np.sqrt(periods_per_year)
 
         # Clip to reasonable range
         return float(np.clip(annual_sortino, -10, 10))
@@ -269,39 +318,31 @@ class FinancialMetrics:
         # Clip to reasonable range (0 to 1)
         return float(np.clip(abs(max_dd), 0, 1))
 
-    def _calmar_ratio(self, returns: np.ndarray, max_dd: float) -> float:
+    def _calmar_ratio(self, returns: np.ndarray, max_dd: float, holding_period: int = 1) -> float:
         """Calculate Calmar ratio (annual return / max drawdown)"""
         if max_dd == 0 or np.isnan(max_dd):
             return 0.0
 
-        annual_ret = self._annualized_return(returns)
+        annual_ret = self._annualized_return(returns, holding_period)
 
         return float(annual_ret / max_dd) if max_dd > 0 else 0.0
 
     def _trade_metrics(
         self,
-        predictions: np.ndarray,
-        forward_returns: np.ndarray
+        trade_returns: np.ndarray
     ) -> Tuple[float, float, float, float]:
         """
-        Calculate trade-level metrics.
+        Calculate trade-level metrics from cooldown-filtered trade returns.
+
+        Args:
+            trade_returns: Returns from actual trades (already filtered by cooldown,
+                           with transaction costs applied)
 
         Returns:
             (profit_factor, win_rate, avg_win, avg_loss)
         """
-        # Only count actual trades (non-zero predictions)
-        trade_mask = predictions != 0
-
-        if not np.any(trade_mask):
+        if len(trade_returns) == 0:
             return 0.0, 0.0, 0.0, 0.0
-
-        # Trade returns: position * forward return
-        positions = np.where(predictions == 1, 1.0,
-                             np.where(predictions == -1, -1.0, 0.0))
-        trade_returns = (positions * forward_returns)[trade_mask]
-
-        # Apply transaction costs
-        trade_returns = trade_returns - self.transaction_cost
 
         wins = trade_returns[trade_returns > 0]
         losses = trade_returns[trade_returns < 0]
@@ -318,8 +359,8 @@ class FinancialMetrics:
         gross_profit = np.sum(wins) if len(wins) > 0 else 0.0
         gross_loss = np.sum(np.abs(losses)) if len(losses) > 0 else 0.0
 
-        profit_factor = gross_profit / \
-            gross_loss if gross_loss > 0 else float('inf')
+        profit_factor = gross_profit / gross_loss if gross_loss > 0 else (
+            99.0 if gross_profit > 0 else 0.0)
 
         return float(profit_factor), float(win_rate), float(avg_win), float(avg_loss)
 
@@ -329,13 +370,20 @@ class FinancialMetrics:
             return 0.0
         return float(np.prod(1 + returns) - 1)
 
-    def _annualized_return(self, returns: np.ndarray) -> float:
-        """Calculate annualized return"""
+    def _annualized_return(self, returns: np.ndarray, holding_period: int = 1) -> float:
+        """Calculate annualized return.
+
+        Args:
+            returns: Return series (bar-level or trade-level).
+            holding_period: Days per return entry. For trade-level returns,
+                each entry spans holding_period trading days.
+        """
         if len(returns) < 2:
             return 0.0
 
         total_ret = self._total_return(returns)
-        n_years = len(returns) / self.trading_days
+        # Each return entry spans holding_period trading days
+        n_years = len(returns) * holding_period / self.trading_days
 
         if n_years <= 0:
             return 0.0

@@ -29,14 +29,14 @@ class LGBMReturnPredictor:
 
     def __init__(
         self,
-        long_threshold: float = 0.01,
-        short_threshold: float = -0.01,
+        long_threshold: float = 0.025,
+        short_threshold: float = -0.025,
         use_gpu: bool = False
     ):
         """
         Args:
-            long_threshold: Minimum predicted return to go long (e.g., 0.01 = 1%)
-            short_threshold: Maximum predicted return to go short (e.g., -0.01 = -1%)
+            long_threshold: Minimum predicted return to go long (e.g., 0.025 = 2.5% for 10-day)
+            short_threshold: Maximum predicted return to go short (e.g., -0.025 = -2.5% for 10-day)
             use_gpu: Whether to use GPU for training
         """
         self.long_threshold = long_threshold
@@ -47,13 +47,13 @@ class LGBMReturnPredictor:
             'objective': 'regression',
             'metric': 'mae',
             'learning_rate': 0.01,
-            'num_leaves': 63,
-            'max_depth': 8,
+            'num_leaves': 31,
+            'max_depth': 6,
             'min_child_samples': 30,
-            'subsample': 0.85,
-            'colsample_bytree': 0.85,
-            'reg_alpha': 0.05,
-            'reg_lambda': 0.05,
+            'subsample': 0.8,
+            'colsample_bytree': 0.8,
+            'reg_alpha': 0.5,
+            'reg_lambda': 0.5,
             'random_state': 42,
             'n_jobs': -1,
             'verbosity': -1
@@ -65,6 +65,9 @@ class LGBMReturnPredictor:
         self.model = None
         self.scaler = StandardScaler()
         self.feature_names = None
+        # Training-set prediction distribution for threshold calibration
+        self._train_pred_mean = 0.0
+        self._train_pred_std = 0.01
 
     def fit(self, X, y_returns, X_val=None, y_val_returns=None):
         """
@@ -98,7 +101,7 @@ class LGBMReturnPredictor:
         self.model = lgb.train(
             self.params,
             train_data,
-            num_boost_round=500,
+            num_boost_round=300,
             valid_sets=valid_sets,
             valid_names=valid_names,
             callbacks=[
@@ -107,8 +110,15 @@ class LGBMReturnPredictor:
             ]
         )
 
+        # Calibrate adaptive thresholds from training predictions (no lookahead)
+        train_preds = self.model.predict(X_scaled)
+        self._train_pred_mean = float(np.mean(train_preds))
+        self._train_pred_std = float(max(np.std(train_preds), 1e-6))
+
         logger.info(
             f"[LGBM-Return] Best iteration: {self.model.best_iteration}")
+        logger.info(
+            f"[LGBM-Return] Train pred dist: mean={self._train_pred_mean:.4f}, std={self._train_pred_std:.4f}")
         return self
 
     def predict_returns(self, X):
@@ -120,31 +130,36 @@ class LGBMReturnPredictor:
         """
         Predict trading signals (-1, 0, +1) based on predicted returns.
 
-        Uses adaptive threshold based on prediction distribution:
-        - Long if prediction > mean + scale*std (above average)
-        - Short if prediction < mean - scale*std (below average)  
-        - Only short if prediction is actually negative
+        Uses adaptive threshold calibrated from TRAINING predictions:
+        - Long if prediction > train_mean + scale*train_std
+        - Short if prediction < train_mean - scale*train_std AND negative
 
-        This handles clustered predictions better than fixed thresholds.
+        No test-set lookahead: thresholds are fixed at training time.
+        Works identically for batch evaluation and single-bar production.
         """
         pred_returns = self.predict_returns(X)
         signals = np.zeros(len(pred_returns))
 
-        # Use model's threshold_scale if not provided
         if threshold_scale is None:
             threshold_scale = getattr(self, 'threshold_scale', 0.5)
 
-        # Adaptive threshold based on prediction distribution
-        pred_mean = np.mean(pred_returns)
-        pred_std = np.std(pred_returns)
+        # Use training-set distribution (calibrated during fit, no lookahead)
+        pred_mean = self._train_pred_mean
+        pred_std = self._train_pred_std
 
-        # Long: prediction significantly above average
+        # Long: prediction significantly above training average
         long_thresh = pred_mean + threshold_scale * pred_std
         signals[pred_returns > long_thresh] = 1
 
-        # Short: prediction significantly below average AND actually negative
+        # Short: prediction significantly below training average AND negative
         short_thresh = pred_mean - threshold_scale * pred_std
         signals[(pred_returns < short_thresh) & (pred_returns < 0)] = -1
+
+        # Fallback: if adaptive thresholds produce zero signals (model barely
+        # learned, predictions cluster too tightly), use fixed thresholds
+        if np.sum(signals != 0) == 0:
+            signals[pred_returns > self.long_threshold] = 1
+            signals[pred_returns < self.short_threshold] = -1
 
         return signals.astype(int)
 
@@ -186,7 +201,9 @@ class LGBMReturnPredictor:
             "feature_names": self.feature_names,
             "params": self.params,
             "long_threshold": self.long_threshold,
-            "short_threshold": self.short_threshold
+            "short_threshold": self.short_threshold,
+            "train_pred_mean": self._train_pred_mean,
+            "train_pred_std": self._train_pred_std
         }
         with open(path, "wb") as f:
             pickle.dump(artifact, f)
@@ -205,5 +222,7 @@ class LGBMReturnPredictor:
         instance.scaler = artifact["scaler"]
         instance.feature_names = artifact.get("feature_names")
         instance.params = artifact.get("params", instance.params)
+        instance._train_pred_mean = artifact.get("train_pred_mean", 0.0)
+        instance._train_pred_std = artifact.get("train_pred_std", 0.01)
 
         return instance
