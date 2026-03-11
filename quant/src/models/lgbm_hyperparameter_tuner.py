@@ -59,6 +59,11 @@ class LightGBMHyperparameterTuner:
     # Optimizable Objective
     def objective(self, trial, X_train, y_train, X_val, y_val):
 
+        # Remap labels from (-1,0,1) to (0,1,2) for LightGBM multiclass
+        label_map = {-1: 0, 0: 1, 1: 2}
+        y_train = np.array([label_map.get(int(l), int(l)) for l in y_train])
+        y_val = np.array([label_map.get(int(l), int(l)) for l in y_val])
+
         # Hybrid balance
         Xb, yb = hybrid_balance(X_train, y_train)
         class_weights = compute_class_weights(yb)
@@ -106,8 +111,10 @@ class LightGBMHyperparameterTuner:
             train_data,
             valid_sets=[train_data, val_data],
             num_boost_round=800,
-            early_stopping_rounds=50,
-            verbose_eval=False,
+            callbacks=[
+                lgb.early_stopping(50),
+                lgb.log_evaluation(0)
+            ],
         )
 
         # Predict

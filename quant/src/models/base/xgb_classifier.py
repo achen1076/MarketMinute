@@ -146,8 +146,10 @@ class XGBClassifier:
             dtrain=dtrain,
             num_boost_round=800,
             evals=evals,
-            early_stopping_rounds=75,
-            verbose_eval=50
+            callbacks=[
+                xgb.callback.EarlyStopping(rounds=75),
+                xgb.callback.EvaluationMonitor(period=50),
+            ],
         )
 
         logger.info(f"[XGB] Best iteration: {self.model.best_iteration}")

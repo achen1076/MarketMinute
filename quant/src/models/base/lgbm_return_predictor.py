@@ -29,14 +29,14 @@ class LGBMReturnPredictor:
 
     def __init__(
         self,
-        long_threshold: float = 0.025,
-        short_threshold: float = -0.025,
+        long_threshold: float = 0.018,
+        short_threshold: float = -0.018,
         use_gpu: bool = False
     ):
         """
         Args:
-            long_threshold: Minimum predicted return to go long (e.g., 0.025 = 2.5% for 10-day)
-            short_threshold: Maximum predicted return to go short (e.g., -0.025 = -2.5% for 10-day)
+            long_threshold: Minimum predicted return to go long (e.g., 0.018 = 1.8% for 5-day)
+            short_threshold: Maximum predicted return to go short (e.g., -0.018 = -1.8% for 5-day)
             use_gpu: Whether to use GPU for training
         """
         self.long_threshold = long_threshold
@@ -68,6 +68,8 @@ class LGBMReturnPredictor:
         # Training-set prediction distribution for threshold calibration
         self._train_pred_mean = 0.0
         self._train_pred_std = 0.01
+        self._best_iteration = 0
+        self._is_degenerate = False
 
     def fit(self, X, y_returns, X_val=None, y_val_returns=None):
         """
@@ -114,11 +116,26 @@ class LGBMReturnPredictor:
         train_preds = self.model.predict(X_scaled)
         self._train_pred_mean = float(np.mean(train_preds))
         self._train_pred_std = float(max(np.std(train_preds), 1e-6))
+        self._best_iteration = self.model.best_iteration
+
+        # Degenerate model detection: if the model barely learned (<=3 rounds)
+        # or predictions are near-constant, trading on this model is trading
+        # on noise. With vol-normalized targets, std < 0.05 means constant.
+        # With raw returns, std < 0.002 means constant.
+        self._is_degenerate = (
+            self._best_iteration <= 3 or
+            self._train_pred_std < 0.05
+        )
 
         logger.info(
-            f"[LGBM-Return] Best iteration: {self.model.best_iteration}")
+            f"[LGBM-Return] Best iteration: {self._best_iteration}")
         logger.info(
             f"[LGBM-Return] Train pred dist: mean={self._train_pred_mean:.4f}, std={self._train_pred_std:.4f}")
+        if self._is_degenerate:
+            logger.warning(
+                f"[LGBM-Return] DEGENERATE model detected "
+                f"(iter={self._best_iteration}, std={self._train_pred_std:.6f}). "
+                f"Will predict no trades.")
         return self
 
     def predict_returns(self, X):
@@ -137,6 +154,11 @@ class LGBMReturnPredictor:
         No test-set lookahead: thresholds are fixed at training time.
         Works identically for batch evaluation and single-bar production.
         """
+        # Degenerate model: predictions are near-constant noise.
+        # Returning no trades is strictly better than trading on noise.
+        if getattr(self, '_is_degenerate', False):
+            return np.zeros(len(X) if hasattr(X, '__len__') else X.shape[0], dtype=int)
+
         pred_returns = self.predict_returns(X)
         signals = np.zeros(len(pred_returns))
 
@@ -155,11 +177,8 @@ class LGBMReturnPredictor:
         short_thresh = pred_mean - threshold_scale * pred_std
         signals[(pred_returns < short_thresh) & (pred_returns < 0)] = -1
 
-        # Fallback: if adaptive thresholds produce zero signals (model barely
-        # learned, predictions cluster too tightly), use fixed thresholds
-        if np.sum(signals != 0) == 0:
-            signals[pred_returns > self.long_threshold] = 1
-            signals[pred_returns < self.short_threshold] = -1
+        # No fallback: if thresholds produce zero signals, that means the
+        # model has no edge. Forcing trades would be trading on noise.
 
         return signals.astype(int)
 
@@ -203,7 +222,9 @@ class LGBMReturnPredictor:
             "long_threshold": self.long_threshold,
             "short_threshold": self.short_threshold,
             "train_pred_mean": self._train_pred_mean,
-            "train_pred_std": self._train_pred_std
+            "train_pred_std": self._train_pred_std,
+            "best_iteration": self._best_iteration,
+            "is_degenerate": self._is_degenerate
         }
         with open(path, "wb") as f:
             pickle.dump(artifact, f)
@@ -224,5 +245,7 @@ class LGBMReturnPredictor:
         instance.params = artifact.get("params", instance.params)
         instance._train_pred_mean = artifact.get("train_pred_mean", 0.0)
         instance._train_pred_std = artifact.get("train_pred_std", 0.01)
+        instance._best_iteration = artifact.get("best_iteration", 0)
+        instance._is_degenerate = artifact.get("is_degenerate", False)
 
         return instance

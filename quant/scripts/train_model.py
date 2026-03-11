@@ -46,9 +46,9 @@ def main():
     parser = argparse.ArgumentParser(
         description="Train models for all tickers in SYSTEM_SPEC.yaml"
     )
-    parser.add_argument("--model", type=str, default="return",
-                        choices=["lgbm", "xgb", "ensemble", "return"],
-                        help="Model type to train (return = regression-based predictor, recommended)")
+    parser.add_argument("--model", type=str, default="auto",
+                        choices=["lgbm", "xgb", "ensemble", "return", "auto"],
+                        help="Model type (auto = try return+lgbm, pick best Sharpe per ticker)")
     parser.add_argument("--labels", type=str, default="multiclass",
                         choices=["binary", "multiclass"],
                         help="Label type")
@@ -106,9 +106,11 @@ def main():
             pf = result.get('profit_factor', 0)
             alpha = result.get('alpha', 0)
             lr = result.get('long_ratio', 0)
+            mt = result.get('model_type', args.model)
             pf_str = f"{pf:.2f}" if pf != float('inf') else "∞"
+            mt_tag = f"[{mt}] " if args.model == "auto" else ""
             print(
-                f"✓ Acc:{result['accuracy']*100:.1f}% | Sharpe:{sharpe:.2f} | PF:{pf_str} | α:{alpha:.2f} | L/S:{lr*100:.0f}% | {result['samples']} samples")
+                f"✓ {mt_tag}Acc:{result['accuracy']*100:.1f}% | Sharpe:{sharpe:.2f} | PF:{pf_str} | α:{alpha:.2f} | L/S:{lr*100:.0f}% | {result['samples']} samples")
         elif result["status"] == "SKIP":
             print(f"⊘ {result['reason']}")
         else:

@@ -99,8 +99,10 @@ class XGBHyperparameterTuner:
             dtrain,
             num_boost_round=600,
             evals=[(dtrain, "train"), (dval, "val")],
-            early_stopping_rounds=50,
-            verbose_eval=False
+            callbacks=[
+                xgb.callback.EarlyStopping(rounds=50),
+                xgb.callback.EvaluationMonitor(period=0),
+            ],
         )
 
         # Macro-F1 (critical)

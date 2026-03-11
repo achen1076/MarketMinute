@@ -1,6 +1,8 @@
 """Training pipeline configuration constants."""
 
-FORWARD_PERIODS = 10
+FORWARD_PERIODS = 5
+MAX_FEATURES = 20
+VOL_NORMALIZE = True
 
 EXCLUDE_COLS = [
     "timestamp", "open", "high", "low", "close", "volume", "ticker",

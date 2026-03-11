@@ -406,8 +406,24 @@ class FinancialMetrics:
         if len(strategy_returns) != len(benchmark_returns):
             raise ValueError("Strategy and benchmark must have same length")
 
+        _zero = {'alpha': 0.0, 'beta': 0.0, 'information_ratio': 0.0,
+                 'tracking_error': 0.0, 'strategy_sharpe': 0.0, 'benchmark_sharpe': 0.0}
+
+        # Guard: need at least 2 non-constant observations
+        if (len(strategy_returns) < 2 or
+                np.std(strategy_returns) < 1e-12 or
+                np.std(benchmark_returns) < 1e-12):
+            _zero['benchmark_sharpe'] = self._sharpe_ratio(benchmark_returns)
+            return _zero
+
         # Alpha and Beta via linear regression
         cov_matrix = np.cov(strategy_returns, benchmark_returns)
+
+        # Guard against complex or NaN from numerical instability
+        if np.any(np.isnan(cov_matrix)) or np.any(np.iscomplex(cov_matrix)):
+            _zero['benchmark_sharpe'] = self._sharpe_ratio(benchmark_returns)
+            return _zero
+
         beta = cov_matrix[0, 1] / cov_matrix[1,
                                              1] if cov_matrix[1, 1] != 0 else 0
 
@@ -422,10 +438,10 @@ class FinancialMetrics:
         info_ratio_annual = info_ratio * np.sqrt(self.trading_days)
 
         return {
-            'alpha': float(alpha_annual),
-            'beta': float(beta),
-            'information_ratio': float(info_ratio_annual),
-            'tracking_error': float(tracking_error * np.sqrt(self.trading_days)),
+            'alpha': float(np.real(alpha_annual)),
+            'beta': float(np.real(beta)),
+            'information_ratio': float(np.real(info_ratio_annual)),
+            'tracking_error': float(np.real(tracking_error * np.sqrt(self.trading_days))),
             'strategy_sharpe': self._sharpe_ratio(strategy_returns),
             'benchmark_sharpe': self._sharpe_ratio(benchmark_returns)
         }

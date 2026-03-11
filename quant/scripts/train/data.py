@@ -42,8 +42,8 @@ def generate_labels(df, mode="multiclass"):
     else:
         labeler = MultiClassLabeler(
             forward_periods=FORWARD_PERIODS,
-            neutral_threshold_pct=0.015,
-            strong_threshold_pct=0.04,
+            neutral_threshold_pct=0.01,
+            strong_threshold_pct=0.025,
             dynamic_vol=True,
             vol_window=30,
             neutral_vol_scale=0.5,

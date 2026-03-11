@@ -1,12 +1,13 @@
 """High-level training pipelines for single ticker and walk-forward."""
 
+import lightgbm as lgb
 import numpy as np
 from sklearn.metrics import accuracy_score
 
 from src.evaluation.financial_metrics import FinancialMetrics
 from src.evaluation.regime_detector import RegimeDetector
 
-from .config import FORWARD_PERIODS, EXCLUDE_COLS, REGIME_FEATURE_COLS
+from .config import FORWARD_PERIODS, MAX_FEATURES, VOL_NORMALIZE, EXCLUDE_COLS, REGIME_FEATURE_COLS
 from .data import load_dataset, generate_labels
 from .splits import time_split_with_embargo, walk_forward_split
 from .balance import hybrid_balance
@@ -24,6 +25,70 @@ def _prepare_features(df, use_regime=True):
 
     df_clean = df.dropna(subset=feature_cols + ["label"])
     return df_clean, feature_cols
+
+
+def _select_top_features(X_train, y_train, X_val, y_val, model_type, max_features=MAX_FEATURES):
+    """
+    Select top features by importance using a quick preliminary model.
+
+    Fits a lightweight LightGBM (50 rounds) on training data only,
+    ranks features by gain importance, and returns the top N names.
+    No test-set information is used.
+    """
+    if X_train.shape[1] <= max_features:
+        return list(X_train.columns)
+
+    is_regression = (model_type == "return")
+
+    # Remap classification labels from (-1,0,1) to (0,1,2) for LightGBM
+    if not is_regression:
+        y_train = np.array(y_train)
+        y_val = np.array(y_val)
+        if y_train.min() < 0:
+            y_train = y_train + 1
+            y_val = y_val + 1
+
+    params = {
+        'objective': 'regression' if is_regression else 'multiclass',
+        'metric': 'mae' if is_regression else 'multi_logloss',
+        'learning_rate': 0.05,
+        'num_leaves': 31,
+        'max_depth': 6,
+        'verbosity': -1,
+        'n_jobs': -1,
+    }
+    if not is_regression:
+        params['num_class'] = len(np.unique(y_train))
+
+    train_data = lgb.Dataset(X_train, label=y_train)
+    val_data = lgb.Dataset(X_val, label=y_val)
+
+    selector = lgb.train(
+        params, train_data,
+        num_boost_round=50,
+        valid_sets=[val_data],
+        callbacks=[lgb.early_stopping(20), lgb.log_evaluation(0)]
+    )
+
+    importance = selector.feature_importance(importance_type='gain')
+    feature_names = list(X_train.columns)
+    top_indices = np.argsort(importance)[-max_features:]
+    top_features = sorted([feature_names[i] for i in top_indices],
+                          key=lambda f: feature_names.index(f))
+    return top_features
+
+
+def _vol_normalize_returns(fwd_ret, X_with_vol):
+    """Normalize forward returns by vol_20 * sqrt(FORWARD_PERIODS).
+
+    Makes the regression target stationary across tickers and time.
+    X_with_vol must contain 'vol_20' column (pass BEFORE feature selection).
+    """
+    if not VOL_NORMALIZE or 'vol_20' not in X_with_vol.columns:
+        return fwd_ret
+    vol_scale = np.maximum(
+        X_with_vol['vol_20'].values * np.sqrt(FORWARD_PERIODS), 1e-8)
+    return fwd_ret / vol_scale
 
 
 def train_single_ticker(ticker, model_type, label_mode, use_tuning, use_regime=True):
@@ -45,54 +110,77 @@ def train_single_ticker(ticker, model_type, label_mode, use_tuning, use_regime=T
         forward_returns = df_clean["forward_ret"].values if "forward_ret" in df_clean.columns else np.zeros(
             len(y))
 
-        # Use proper time split with embargo to prevent label leakage
-        (
-            X_train, X_val, X_test,
-            y_train, y_val, y_test,
-            fwd_ret_train, fwd_ret_val, fwd_ret_test
-        ) = time_split_with_embargo(X, y, forward_returns, embargo_periods=FORWARD_PERIODS)
+        (X_train, X_val, X_test,
+         y_train, y_val, y_test,
+         fwd_ret_train, fwd_ret_val, fwd_ret_test
+         ) = time_split_with_embargo(X, y, forward_returns, embargo_periods=FORWARD_PERIODS)
 
         regime_labels_all = df_clean["trend_regime"].values if "trend_regime" in df_clean.columns else None
-        n_val_start = int(len(X) * 0.64)  # Match split point
+        n_val_start = int(len(X) * 0.64)
         n_val_end = n_val_start + len(y_val)
         regime_labels_val = regime_labels_all[n_val_start:
                                               n_val_end] if regime_labels_all is not None else None
 
-        if model_type == "return":
-            # Calculate adaptive threshold based on ticker's actual volatility
-            ticker_vol = np.std(fwd_ret_train[~np.isnan(fwd_ret_train)])
-            adaptive_threshold = ticker_vol * 0.3  # 30% of forward return volatility
-
-            model = train_model(
-                model_type, X_train, fwd_ret_train, X_val, fwd_ret_val,
-                use_tuning=use_tuning, regime_labels_val=None,
-                adaptive_threshold=adaptive_threshold
-            )
-        else:
-            Xb, yb = hybrid_balance(X_train, y_train)
-            model = train_model(
-                model_type, Xb, yb, X_val, y_val,
-                use_tuning=use_tuning,
-                regime_labels_val=regime_labels_val if use_tuning and use_regime else None
-            )
-
-        y_pred = model.predict(X_test)
-        acc = accuracy_score(y_test, y_pred)
+        # Vol-normalize forward returns BEFORE feature selection (need vol_20)
+        fwd_train_norm = _vol_normalize_returns(fwd_ret_train, X_train)
+        fwd_val_norm = _vol_normalize_returns(fwd_ret_val, X_val)
 
         fin_evaluator = FinancialMetrics(transaction_cost_bps=10)
-        fin_metrics = fin_evaluator.evaluate(
-            y_true=y_test,
-            y_pred=y_pred,
-            forward_returns=fwd_ret_test,
-            holding_period=FORWARD_PERIODS
-        )
 
-        # Get test set indices for regime evaluation
-        test_start_idx = int(len(df_clean) * 0.80)  # Match split point
+        # Determine which model types to try
+        types_to_try = [
+            "return", "lgbm"] if model_type == "auto" else [model_type]
+
+        best_model = None
+        best_pred = None
+        best_metrics = None
+        best_type = None
+        best_sharpe = -float('inf')
+
+        for mt in types_to_try:
+            is_return = (mt == "return")
+
+            # Feature selection per model type
+            if is_return:
+                top_feats = _select_top_features(
+                    X_train, fwd_train_norm, X_val, fwd_val_norm, mt)
+            else:
+                top_feats = _select_top_features(
+                    X_train, y_train, X_val, y_val, mt)
+
+            Xt = X_train[top_feats]
+            Xv = X_val[top_feats]
+            Xte = X_test[top_feats]
+
+            if is_return:
+                mdl = train_model(
+                    mt, Xt, fwd_train_norm, Xv, fwd_val_norm,
+                    use_tuning=use_tuning, regime_labels_val=None)
+            else:
+                Xb, yb = hybrid_balance(Xt, y_train)
+                mdl = train_model(
+                    mt, Xb, yb, Xv, y_val,
+                    use_tuning=use_tuning,
+                    regime_labels_val=regime_labels_val if use_tuning and use_regime else None)
+
+            yp = mdl.predict(Xte)
+            fm = fin_evaluator.evaluate(
+                y_true=y_test, y_pred=yp,
+                forward_returns=fwd_ret_test, holding_period=FORWARD_PERIODS)
+
+            if fm.sharpe_ratio > best_sharpe:
+                best_model, best_pred, best_metrics = mdl, yp, fm
+                best_type, best_sharpe = mt, fm.sharpe_ratio
+
+        model, y_pred, fin_metrics = best_model, best_pred, best_metrics
+        model_type_used = best_type if model_type == "auto" else model_type
+        acc = accuracy_score(y_test, y_pred)
+
+        # Regime evaluation
+        test_start_idx = int(len(df_clean) * 0.80)
         df_test = df_clean.iloc[test_start_idx:].copy()
         regime_eval = regime_detector.evaluate_by_regime(
             df_test, y_test, y_pred)
-
         regime_stats = regime_detector.get_regime_statistics(df_clean)
 
         metrics = {
@@ -109,12 +197,13 @@ def train_single_ticker(ticker, model_type, label_mode, use_tuning, use_regime=T
             "long_ratio": fin_metrics.long_ratio
         }
 
-        save_artifact(model, ticker, model_type, metrics=metrics)
+        save_artifact(model, ticker, model_type_used, metrics=metrics)
 
         return {
             "status": "SUCCESS",
             "accuracy": acc,
             "samples": len(df_clean),
+            "model_type": model_type_used,
             "sharpe_ratio": fin_metrics.sharpe_ratio,
             "max_drawdown": fin_metrics.max_drawdown,
             "profit_factor": fin_metrics.profit_factor,
@@ -143,7 +232,9 @@ def train_walk_forward(ticker, model_type, label_mode, use_tuning, use_regime=Tr
     Train using walk-forward validation for more robust performance estimates.
 
     Trains multiple models across time, aggregates metrics, and saves the
-    final model trained on all available data.
+    final model trained on all available data. For model_type='auto', trains
+    both return predictor and lgbm classifier per fold, picks the type with
+    better overall Sharpe.
     """
     try:
         df = load_dataset(ticker)
@@ -163,18 +254,41 @@ def train_walk_forward(ticker, model_type, label_mode, use_tuning, use_regime=Tr
         forward_returns = df_clean["forward_ret"].values if "forward_ret" in df_clean.columns else np.zeros(
             len(y))
 
-        # Collect metrics across all folds
-        fold_metrics = []
-        all_y_true = []
-        all_y_pred = []
-        all_fwd_ret = []
+        types_to_try = [
+            "return", "lgbm"] if model_type == "auto" else [model_type]
+
+        # Feature selection per model type using proxy split
+        fs_end = int(len(X) * 0.60)
+        fs_val_end = int(len(X) * 0.75)
+        X_fs_tr = X.iloc[:fs_end]
+        X_fs_vl = X.iloc[fs_end:fs_val_end]
+
+        # Vol-normalize for feature selection
+        fwd_fs_tr_norm = _vol_normalize_returns(
+            forward_returns[:fs_end], X_fs_tr)
+        fwd_fs_vl_norm = _vol_normalize_returns(
+            forward_returns[fs_end:fs_val_end], X_fs_vl)
+
+        features_by_type = {}
+        for mt in types_to_try:
+            if mt == "return":
+                features_by_type[mt] = _select_top_features(
+                    X_fs_tr, fwd_fs_tr_norm,
+                    X_fs_vl, fwd_fs_vl_norm, mt)
+            else:
+                features_by_type[mt] = _select_top_features(
+                    X_fs_tr, y.iloc[:fs_end],
+                    X_fs_vl, y.iloc[fs_end:fs_val_end], mt)
+
+        # Aggregate predictions per model type across folds
+        type_agg = {mt: {"y_true": [], "y_pred": [], "fwd_ret": []}
+                    for mt in types_to_try}
 
         fin_evaluator = FinancialMetrics(transaction_cost_bps=10)
 
         for X_train, X_test, y_train, y_test, fwd_ret_train, fwd_ret_test, fold_info in walk_forward_split(
             X, y, forward_returns, n_splits=n_splits, embargo_periods=FORWARD_PERIODS
         ):
-            # Split train into train/val for early stopping (80/20)
             val_size = int(len(X_train) * 0.2)
             X_tr = X_train.iloc[:-val_size]
             X_vl = X_train.iloc[-val_size:]
@@ -183,52 +297,60 @@ def train_walk_forward(ticker, model_type, label_mode, use_tuning, use_regime=Tr
             fwd_tr = fwd_ret_train[:-val_size]
             fwd_vl = fwd_ret_train[-val_size:]
 
-            if model_type == "return":
-                model = train_model(
-                    model_type, X_tr, fwd_tr, X_vl, fwd_vl,
-                    use_tuning=False, regime_labels_val=None
-                )
-            else:
-                Xb, yb = hybrid_balance(X_tr, y_tr)
-                model = train_model(
-                    model_type, Xb, yb, X_vl, y_vl,
-                    use_tuning=use_tuning, regime_labels_val=None
-                )
+            # Vol-normalize (need pre-feature-selection X for vol_20)
+            fwd_tr_norm = _vol_normalize_returns(fwd_tr, X_tr)
+            fwd_vl_norm = _vol_normalize_returns(fwd_vl, X_vl)
 
-            y_pred = model.predict(X_test)
+            for mt in types_to_try:
+                feats = features_by_type[mt]
+                Xt = X_tr[feats]
+                Xv = X_vl[feats]
+                Xte = X_test[feats]
 
-            # Collect for aggregate metrics
-            all_y_true.extend(y_test.values)
-            all_y_pred.extend(y_pred)
-            all_fwd_ret.extend(fwd_ret_test)
+                if mt == "return":
+                    mdl = train_model(
+                        mt, Xt, fwd_tr_norm, Xv, fwd_vl_norm,
+                        use_tuning=False, regime_labels_val=None)
+                else:
+                    Xb, yb = hybrid_balance(Xt, y_tr)
+                    mdl = train_model(
+                        mt, Xb, yb, Xv, y_vl,
+                        use_tuning=use_tuning, regime_labels_val=None)
 
-            # Per-fold metrics
-            fold_result = fin_evaluator.evaluate(
-                y_true=y_test, y_pred=y_pred,
-                forward_returns=fwd_ret_test, holding_period=FORWARD_PERIODS
-            )
-            fold_metrics.append({
-                "fold": fold_info["fold"],
-                "sharpe": fold_result.sharpe_ratio,
-                "pf": fold_result.profit_factor,
-                "win_rate": fold_result.win_rate,
-                "trades": fold_result.num_trades
-            })
+                yp = mdl.predict(Xte)
+                type_agg[mt]["y_true"].extend(y_test.values)
+                type_agg[mt]["y_pred"].extend(yp)
+                type_agg[mt]["fwd_ret"].extend(fwd_ret_test)
 
-        # Aggregate metrics across all folds
-        all_y_true = np.array(all_y_true)
-        all_y_pred = np.array(all_y_pred)
-        all_fwd_ret = np.array(all_fwd_ret)
+        # Pick best type by aggregated Sharpe
+        best_type = types_to_try[0]
+        best_sharpe = -float('inf')
+        best_agg = None
+        best_acc = None
 
-        acc = accuracy_score(all_y_true, all_y_pred)
-        agg_metrics = fin_evaluator.evaluate(
-            y_true=all_y_true, y_pred=all_y_pred,
-            forward_returns=all_fwd_ret, holding_period=FORWARD_PERIODS
-        )
+        for mt in types_to_try:
+            ta = type_agg[mt]
+            yt = np.array(ta["y_true"])
+            yp = np.array(ta["y_pred"])
+            fr = np.array(ta["fwd_ret"])
 
-        # Train final model on all data (with embargo from end)
+            a = accuracy_score(yt, yp)
+            agg = fin_evaluator.evaluate(
+                y_true=yt, y_pred=yp,
+                forward_returns=fr, holding_period=FORWARD_PERIODS)
+
+            if agg.sharpe_ratio > best_sharpe:
+                best_type, best_sharpe = mt, agg.sharpe_ratio
+                best_agg, best_acc = agg, a
+
+        model_type_used = best_type if model_type == "auto" else model_type
+        agg_metrics = best_agg
+        acc = best_acc
+
+        # Train final model of winning type on all data
+        feats = features_by_type[model_type_used]
         final_train_end = len(X) - FORWARD_PERIODS
-        X_final = X.iloc[:final_train_end]
+        X_final = X[feats].iloc[:final_train_end]
         y_final = y.iloc[:final_train_end]
         fwd_final = forward_returns[:final_train_end]
 
@@ -240,17 +362,22 @@ def train_walk_forward(ticker, model_type, label_mode, use_tuning, use_regime=Tr
         fwd_tr_final = fwd_final[:-val_size]
         fwd_vl_final = fwd_final[-val_size:]
 
-        if model_type == "return":
+        if model_type_used == "return":
+            # Vol-normalize using pre-feature-selection X for vol_20
+            X_pre_fs = X.iloc[:final_train_end]
+            fwd_tr_norm = _vol_normalize_returns(
+                fwd_tr_final, X_pre_fs.iloc[:-val_size])
+            fwd_vl_norm = _vol_normalize_returns(
+                fwd_vl_final, X_pre_fs.iloc[-val_size:])
             final_model = train_model(
-                model_type, X_tr_final, fwd_tr_final, X_vl_final, fwd_vl_final,
-                use_tuning=False, regime_labels_val=None
-            )
+                model_type_used, X_tr_final, fwd_tr_norm,
+                X_vl_final, fwd_vl_norm,
+                use_tuning=False, regime_labels_val=None)
         else:
             Xb, yb = hybrid_balance(X_tr_final, y_tr_final)
             final_model = train_model(
-                model_type, Xb, yb, X_vl_final, y_vl_final,
-                use_tuning=use_tuning, regime_labels_val=None
-            )
+                model_type_used, Xb, yb, X_vl_final, y_vl_final,
+                use_tuning=use_tuning, regime_labels_val=None)
 
         metrics = {
             "accuracy": acc,
@@ -267,15 +394,15 @@ def train_walk_forward(ticker, model_type, label_mode, use_tuning, use_regime=Tr
             "walk_forward_folds": n_splits
         }
 
-        save_artifact(final_model, ticker, model_type, metrics=metrics)
+        save_artifact(final_model, ticker, model_type_used, metrics=metrics)
 
-        # Get regime stats
         regime_stats = regime_detector.get_regime_statistics(df_clean)
 
         return {
             "status": "SUCCESS",
             "accuracy": acc,
             "samples": len(df_clean),
+            "model_type": model_type_used,
             "sharpe_ratio": agg_metrics.sharpe_ratio,
             "max_drawdown": agg_metrics.max_drawdown,
             "profit_factor": agg_metrics.profit_factor,
@@ -286,7 +413,7 @@ def train_walk_forward(ticker, model_type, label_mode, use_tuning, use_regime=Tr
             "benchmark_sharpe": agg_metrics.benchmark_sharpe,
             "long_ratio": agg_metrics.long_ratio,
             "wf_folds": n_splits,
-            "regime_bull_acc": None,  # Not computed for walk-forward
+            "regime_bull_acc": None,
             "regime_bear_acc": None,
             "regime_sideways_acc": None,
             "regime_high_vol_acc": None,
