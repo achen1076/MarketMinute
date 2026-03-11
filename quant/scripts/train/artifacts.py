@@ -44,6 +44,8 @@ def save_model_metadata(ticker, model_type, metrics):
     pf = to_native(metrics.get('profit_factor', 0))
     if pf == float('inf') or pf == float('-inf') or (pf is not None and np.isnan(pf)):
         pf = None
+    elif pf is not None:
+        pf = min(float(pf), 10.0)
 
     sharpe = round(float(to_native(metrics.get('sharpe_ratio', 0))), 2)
     pf_value = round(float(pf), 2) if pf is not None else None

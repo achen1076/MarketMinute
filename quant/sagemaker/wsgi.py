@@ -7,9 +7,9 @@ app = Flask(__name__)
 print("Initializing model directory...")
 model_path = inference.model_fn("/opt/ml/model")
 # Count available models without loading them
-available_models = len(list(model_path.glob("*_lgbm.pkl")))
+available_models = len(list(model_path.glob("*.pkl")))
 print(
-    f"Model directory ready: {available_models} models available for lazy loading")
+    f"Model directory ready: {available_models} model files available for lazy loading")
 
 
 @app.route('/ping', methods=['GET'])

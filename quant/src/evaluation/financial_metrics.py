@@ -360,7 +360,8 @@ class FinancialMetrics:
         gross_loss = np.sum(np.abs(losses)) if len(losses) > 0 else 0.0
 
         profit_factor = gross_profit / gross_loss if gross_loss > 0 else (
-            99.0 if gross_profit > 0 else 0.0)
+            10.0 if gross_profit > 0 else 0.0)
+        profit_factor = min(profit_factor, 10.0)
 
         return float(profit_factor), float(win_rate), float(avg_win), float(avg_loss)
 

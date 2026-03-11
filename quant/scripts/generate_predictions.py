@@ -7,6 +7,7 @@ Updated to work with new optimized model structure:
 
 Usage: python3 scripts/generate_predictions.py [--model lgbm|xgb|ensemble]
 """
+import json
 import pandas as pd
 import numpy as np
 import pickle
@@ -19,7 +20,28 @@ from src.data.features.feature_engine import FeatureEngine
 from src.news.bayesian_update import bayesian_update
 
 
-def generate_predictions(model_type="lgbm"):
+def _load_best_model_map():
+    """Load best model type per ticker from model_metadata.json."""
+    metadata_path = Path("models/model_metadata.json")
+    if not metadata_path.exists():
+        return {}
+    try:
+        with open(metadata_path, 'r') as f:
+            data = json.load(f)
+        models = data.get("models", {})
+        ticker_best = {}
+        for key, meta in models.items():
+            ticker = meta.get("ticker", "")
+            sharpe = meta.get("sharpe_ratio", -999)
+            mtype = meta.get("model_type", "")
+            if ticker not in ticker_best or sharpe > ticker_best[ticker][0]:
+                ticker_best[ticker] = (sharpe, mtype)
+        return {t: info[1] for t, info in ticker_best.items()}
+    except Exception:
+        return {}
+
+
+def generate_predictions(model_type="auto"):
     """Generate predictions for latest data."""
     print("="*70)
     print(f" GENERATING LIVE PREDICTIONS ({model_type.upper()})")
@@ -40,11 +62,11 @@ def generate_predictions(model_type="lgbm"):
     tickers = config['objectives']['universe']['tickers']
     print(f"Processing {len(tickers)} tickers from SYSTEM_SPEC.yaml\n")
 
-    models_path = Path(f"models/{model_type}")
-    if not models_path.exists():
+    # Load best-model map from metadata
+    best_model_map = _load_best_model_map() if model_type == "auto" else {}
+    if best_model_map:
         print(
-            f"ERROR: No {model_type} models directory found. Run: python3 scripts/train_model.py --model {model_type}")
-        return
+            f"Loaded best-model map for {len(best_model_map)} tickers from metadata\n")
 
     # Process tickers from SYSTEM_SPEC that have trained models
     processed = 0
@@ -52,7 +74,18 @@ def generate_predictions(model_type="lgbm"):
 
     for ticker in tickers:
         ticker = ticker.upper()
-        model_path = models_path / f"{ticker.lower()}_{model_type}.pkl"
+
+        # Determine model type for this ticker
+        if model_type == "auto":
+            mtype = best_model_map.get(ticker)
+            if not mtype:
+                skipped += 1
+                continue
+        else:
+            mtype = model_type
+
+        models_path = Path(f"models/{mtype}")
+        model_path = models_path / f"{ticker.lower()}_{mtype}.pkl"
 
         if not model_path.exists():
             skipped += 1
@@ -300,24 +333,34 @@ def predict_single_ticker(ticker, model_path=None, show_details=True):
         old_model_path = Path(
             f"outputs/models/{ticker.lower()}_institutional.pkl")
 
-        if lgbm_path.exists():
+        # Check metadata for best model type
+        best_map = _load_best_model_map()
+        best_type = best_map.get(ticker.upper())
+        if best_type:
+            best_path = Path(
+                f"models/{best_type}/{ticker.lower()}_{best_type}.pkl")
+            if best_path.exists():
+                model_path = best_path
+                print(f"✓ Using best model ({best_type}): {model_path}")
+
+        if model_path is None and lgbm_path.exists():
             model_path = lgbm_path
             print(f"✓ Using LightGBM model: {model_path}")
-        elif xgb_path.exists():
+        elif model_path is None and xgb_path.exists():
             model_path = xgb_path
             print(f"✓ Using XGBoost model: {model_path}")
-        elif ensemble_path.exists():
+        elif model_path is None and ensemble_path.exists():
             model_path = ensemble_path
             print(f"✓ Using Ensemble model: {model_path}")
-        elif old_ensemble_path.exists():
+        elif model_path is None and old_ensemble_path.exists():
             model_path = old_ensemble_path
             print(f"✓ Using old ensemble model: {model_path}")
-        elif old_model_path.exists():
+        elif model_path is None and old_model_path.exists():
             model_path = old_model_path
             print(f"✓ Using old model: {model_path}")
-        else:
+        elif model_path is None:
             print(f"❌ No model found for {ticker}")
-            print(f"   Run: python3 scripts/train_model.py --model lgbm")
+            print(f"   Run: python3 scripts/train_model.py --model auto")
             return None
 
     # Load model
@@ -491,8 +534,8 @@ if __name__ == "__main__":
     parser.add_argument(
         '--ticker', type=str, help='Generate predictions for specific ticker (e.g., SPY)')
     parser.add_argument(
-        '--model', type=str, default='lgbm', choices=['lgbm', 'xgb', 'ensemble'],
-        help='Model type to use for predictions')
+        '--model', type=str, default='auto', choices=['auto', 'lgbm', 'xgb', 'ensemble', 'return'],
+        help='Model type to use for predictions (auto picks best per ticker)')
 
     args = parser.parse_args()
 

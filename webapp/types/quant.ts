@@ -1,4 +1,5 @@
 export type ModelQuality = {
+  model_type?: string;
   sharpe_ratio: number;
   profit_factor: number | null;
   win_rate: number;

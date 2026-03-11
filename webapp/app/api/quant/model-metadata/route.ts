@@ -17,7 +17,7 @@ export type ModelQuality = {
   total_return: number;
   samples: number;
   deployable: boolean;
-  quality_tier: "excellent" | "good" | "marginal" | "poor";
+  quality_tier: "excellent" | "good" | "marginal" | "neutral" | "poor";
   trained_at: string;
 };
 
@@ -62,10 +62,17 @@ export async function GET() {
   try {
     const metadata = await fetchModelMetadata();
 
+    // Pick the best model per ticker by highest Sharpe ratio
     const byTicker: Record<string, ModelQuality> = {};
     for (const [key, value] of Object.entries(metadata)) {
       const ticker = value.ticker;
-      byTicker[ticker] = value;
+      const existing = byTicker[ticker];
+      if (
+        !existing ||
+        (value.sharpe_ratio ?? -999) > (existing.sharpe_ratio ?? -999)
+      ) {
+        byTicker[ticker] = value;
+      }
     }
 
     return NextResponse.json({
@@ -76,7 +83,7 @@ export async function GET() {
     console.error("Failed to load model metadata:", error);
     return NextResponse.json(
       { error: "Failed to load model metadata", models: {} },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

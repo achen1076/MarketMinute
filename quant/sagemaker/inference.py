@@ -8,6 +8,37 @@ MODEL_DIR = "/opt/ml/model"
 
 # Global model cache for lazy loading
 _model_cache = {}
+# Best model type per ticker from metadata
+_best_model_type = {}
+
+
+def _load_best_model_map():
+    """Read model_metadata.json to determine best model type per ticker."""
+    global _best_model_type
+    metadata_path = Path(MODEL_DIR) / "model_metadata.json"
+    if not metadata_path.exists():
+        print("No model_metadata.json found, will fall back to file discovery")
+        return
+
+    try:
+        with open(metadata_path, 'r') as f:
+            data = json.load(f)
+
+        models = data.get("models", {})
+        # Group by ticker, pick model with highest Sharpe
+        ticker_models = {}
+        for key, meta in models.items():
+            ticker = meta.get("ticker", "")
+            sharpe = meta.get("sharpe_ratio", -999)
+            model_type = meta.get("model_type", "")
+            if ticker not in ticker_models or sharpe > ticker_models[ticker][0]:
+                ticker_models[ticker] = (sharpe, model_type)
+
+        _best_model_type = {t: info[1] for t, info in ticker_models.items()}
+        print(
+            f"Loaded best-model map for {len(_best_model_type)} tickers from metadata")
+    except Exception as e:
+        print(f"Failed to load model metadata: {e}")
 
 
 def model_fn(model_dir):
@@ -16,6 +47,10 @@ def model_fn(model_dir):
     Models are loaded on-demand in predict_fn to save memory.
     """
     model_path = Path(MODEL_DIR)
+
+    # Load best-model map from metadata
+    _load_best_model_map()
+
     # Support both return and lgbm models
     available_return = [f.stem.replace("_return", "")
                         for f in model_path.glob("*_return.pkl")]
@@ -23,7 +58,7 @@ def model_fn(model_dir):
                       for f in model_path.glob("*_lgbm.pkl")]
 
     total = len(available_return) + len(available_lgbm)
-    print(f"Model directory ready with {total} models available")
+    print(f"Model directory ready with {total} model files available")
     print(f"  - Return models: {len(available_return)}")
     print(f"  - LGBM models: {len(available_lgbm)}")
     print(f"Memory optimization: Models will be lazy-loaded on demand")
@@ -32,25 +67,39 @@ def model_fn(model_dir):
 
 
 def load_model(ticker):
-    """Lazy-load a model only when needed. Prefers return model over lgbm."""
+    """Lazy-load the best model for a ticker based on metadata Sharpe."""
     if ticker in _model_cache:
         return _model_cache[ticker]
 
-    # Try return model first (better performance), then lgbm
-    model_path = Path(MODEL_DIR) / f"{ticker}_return.pkl"
-    if not model_path.exists():
-        model_path = Path(MODEL_DIR) / f"{ticker}_lgbm.pkl"
-    if not model_path.exists():
-        return None
+    # Use metadata to pick the best model type for this ticker
+    best_type = _best_model_type.get(ticker)
 
-    try:
-        model = joblib.load(model_path)
-        _model_cache[ticker] = model  # Cache for reuse
-        print(f"Lazy-loaded model for {ticker}")
-        return model
-    except Exception as e:
-        print(f"Failed to load model for {ticker}: {e}")
-        return None
+    if best_type:
+        model_path = Path(MODEL_DIR) / f"{ticker}_{best_type}.pkl"
+        if model_path.exists():
+            try:
+                model = joblib.load(model_path)
+                _model_cache[ticker] = model
+                print(
+                    f"Lazy-loaded best model for {ticker} (type={best_type})")
+                return model
+            except Exception as e:
+                print(f"Failed to load best model for {ticker}: {e}")
+
+    # Fallback: try both types, prefer return then lgbm
+    for mtype in ["return", "lgbm"]:
+        model_path = Path(MODEL_DIR) / f"{ticker}_{mtype}.pkl"
+        if model_path.exists():
+            try:
+                model = joblib.load(model_path)
+                _model_cache[ticker] = model
+                print(
+                    f"Lazy-loaded fallback model for {ticker} (type={mtype})")
+                return model
+            except Exception as e:
+                print(f"Failed to load {mtype} model for {ticker}: {e}")
+
+    return None
 
 
 def input_fn(request_body, request_content_type):
