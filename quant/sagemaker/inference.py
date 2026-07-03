@@ -123,6 +123,58 @@ def input_fn(request_body, request_content_type):
             "Unsupported content type: {}".format(request_content_type))
 
 
+def _build_feature_array(model, raw_features):
+    """
+    Build a 2D numpy array of features in the order the model was trained on.
+
+    Accepts two input formats:
+      1. Dict format (preferred):    {feature_name: value, ...}
+                                     {feature_name: [value], ...}
+                                     [{feature_name: value, ...}]   (single row)
+      2. Positional format (legacy): [[v1, v2, ...]]
+         Only works if the array width matches len(model.feature_names).
+
+    Returns np.ndarray of shape (1, n_features).
+    Raises ValueError on missing features or shape mismatch.
+    """
+    expected = getattr(model, "feature_names", None)
+
+    # Normalize: if list of dicts, take first row; if dict-of-lists, take index 0
+    if isinstance(raw_features, list) and len(raw_features) > 0 and isinstance(raw_features[0], dict):
+        raw_features = raw_features[0]
+
+    if isinstance(raw_features, dict):
+        if not expected:
+            raise ValueError(
+                "Model has no feature_names; cannot map dict-format features.")
+        row = []
+        missing = []
+        for name in expected:
+            if name not in raw_features:
+                missing.append(name)
+                continue
+            val = raw_features[name]
+            # Handle scalar or single-element list
+            if isinstance(val, list):
+                val = val[0] if val else float("nan")
+            row.append(float(val))
+        if missing:
+            raise ValueError(
+                f"Missing features for model: {missing[:5]}{'...' if len(missing) > 5 else ''} "
+                f"(model expects {len(expected)}, request had {len(raw_features)})")
+        return np.array([row])
+
+    # Legacy positional path
+    arr = np.array(raw_features)
+    if arr.ndim == 1:
+        arr = arr.reshape(1, -1)
+    if expected and arr.shape[1] != len(expected):
+        raise ValueError(
+            f"Positional feature count mismatch: model expects {len(expected)}, "
+            f"got {arr.shape[1]}. Send features as a dict keyed by feature_name.")
+    return arr
+
+
 def predict_fn(input_data, model_path):
     """Generate predictions for requested tickers with probabilities (lazy-loaded)"""
     predictions = {}
@@ -130,39 +182,44 @@ def predict_fn(input_data, model_path):
     # Single ticker prediction
     if "ticker" in input_data:
         ticker = input_data["ticker"]
-        features = np.array(input_data["features"])
-
         model = load_model(ticker)
-        if model:
-            # Return both class prediction and probabilities
+        if not model:
+            predictions[ticker] = {"error": f"No model available for {ticker}"}
+            return predictions
+        try:
+            features = _build_feature_array(model, input_data["features"])
             pred_class = model.predict(features).tolist()
             pred_proba = model.predict_proba(features).tolist()
             predictions[ticker] = {
                 "class": pred_class,
                 "probabilities": pred_proba
             }
-        else:
-            predictions[ticker] = {"error": f"No model available for {ticker}"}
+        except Exception as e:
+            predictions[ticker] = {"error": f"{type(e).__name__}: {str(e)}"}
 
     # Multiple tickers prediction (batch)
     elif "tickers" in input_data:
+        feats_in = input_data.get("features", {})
         for ticker in input_data["tickers"]:
-            if ticker in input_data.get("features", {}):
-                model = load_model(ticker)
-                if model:
-                    features = np.array(input_data["features"][ticker])
-                    # Return both class prediction and probabilities
-                    pred_class = model.predict(features).tolist()
-                    pred_proba = model.predict_proba(features).tolist()
-                    predictions[ticker] = {
-                        "class": pred_class,
-                        "probabilities": pred_proba
-                    }
-                else:
-                    predictions[ticker] = {
-                        "error": f"No model available for {ticker}"}
-            else:
+            if ticker not in feats_in:
                 predictions[ticker] = {"error": f"No features for {ticker}"}
+                continue
+            model = load_model(ticker)
+            if not model:
+                predictions[ticker] = {
+                    "error": f"No model available for {ticker}"}
+                continue
+            try:
+                features = _build_feature_array(model, feats_in[ticker])
+                pred_class = model.predict(features).tolist()
+                pred_proba = model.predict_proba(features).tolist()
+                predictions[ticker] = {
+                    "class": pred_class,
+                    "probabilities": pred_proba
+                }
+            except Exception as e:
+                predictions[ticker] = {
+                    "error": f"{type(e).__name__}: {str(e)}"}
 
     # Not supported: predicting for all models (would load 223 models!)
     else:

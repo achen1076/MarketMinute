@@ -3,6 +3,7 @@ import os
 import boto3
 import requests
 from datetime import datetime, timedelta
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import pandas as pd
 import numpy as np
 import traceback
@@ -124,7 +125,7 @@ def process_news_for_all_tickers():
                 'from': today,
                 'to': today
             },
-            timeout=120
+            timeout=int(os.environ.get('NEWS_TIMEOUT', '20'))
         )
         response.raise_for_status()
 
@@ -161,7 +162,7 @@ def process_sentiment_alerts(sentiment_data=None):
             alerts_url,
             json=payload,
             headers={'x-api-key': LAMBDA_API_KEY} if LAMBDA_API_KEY else {},
-            timeout=60
+            timeout=int(os.environ.get('SENTIMENT_TIMEOUT', '20'))
         )
         response.raise_for_status()
 
@@ -245,8 +246,42 @@ def handler(event, context):
         }
 
 
+FMP_FETCH_WORKERS = int(os.environ.get("FMP_FETCH_WORKERS", "32"))
+
+
+def _fetch_one_ticker(ticker, fmp_client, feature_engine, from_date, to_date, exclude_cols):
+    """Worker: fetch + compute features for a single ticker. Returns dict or None on failure."""
+    try:
+        df = fmp_client.fetch_aggregates(
+            ticker=ticker,
+            timespan="day",
+            from_date=from_date,
+            to_date=to_date,
+        )
+        if df.empty:
+            return None
+
+        df_features = feature_engine.calculate_all(df)
+        if df_features.empty:
+            return None
+
+        feature_cols = [
+            c for c in df_features.columns if c not in exclude_cols]
+        last_row = df_features[feature_cols].iloc[-1]
+        return {
+            "ticker": ticker,
+            "raw": df,
+            "volatility": calculate_historical_volatility(df),
+            "price": float(df["close"].iloc[-1]),
+            "features": {col: float(last_row[col]) for col in feature_cols},
+        }
+    except Exception as e:
+        print(f"[Lambda] Error processing {ticker}: {str(e)[:200]}")
+        return None
+
+
 def fetch_market_data():
-    """Fetch market data from FMP API and generate features"""
+    """Fetch market data from FMP API and generate features (parallelized)."""
     fmp_api_key = get_fmp_api_key()
     fmp_client = FMPDataFetcher(api_key=fmp_api_key)
     feature_engine = FeatureEngine()
@@ -258,44 +293,49 @@ def fetch_market_data():
         "rolling_vol", "neutral_thresh", "strong_thresh", "dyn_thresh"
     ]
 
-    # Fetch 30 years of historical data (FMP premium supports 30 years)
-    from_date = (datetime.now() - timedelta(days=365*30)).strftime("%Y-%m-%d")
+    # Inference only needs ~252 trading days for the longest rolling feature
+    # (52-week high/low, mom_200, etc). 3 years gives a healthy buffer while
+    # keeping each FMP response small enough for Lambda to fetch all 512
+    # tickers within its timeout window.
+    fetch_years = int(os.environ.get("FMP_FETCH_YEARS", "3"))
+    from_date = (datetime.now() - timedelta(days=365 *
+                 fetch_years)).strftime("%Y-%m-%d")
     to_date = datetime.now().strftime("%Y-%m-%d")
 
-    print(f"[Lambda] Fetching data from {from_date} to {to_date}")
+    print(
+        f"[Lambda] Fetching data from {from_date} to {to_date} "
+        f"for {len(TICKERS)} tickers using {FMP_FETCH_WORKERS} workers"
+    )
 
-    for ticker in TICKERS:
-        try:
-            df = fmp_client.fetch_aggregates(
-                ticker=ticker,
-                timespan="day",
-                from_date=from_date,
-                to_date=to_date
-            )
-
-            if df.empty:
-                print(f"[Lambda] No data for {ticker}")
+    fetch_start = datetime.now()
+    completed = 0
+    with ThreadPoolExecutor(max_workers=FMP_FETCH_WORKERS) as ex:
+        futures = {
+            ex.submit(
+                _fetch_one_ticker, t, fmp_client, feature_engine,
+                from_date, to_date, exclude_cols,
+            ): t
+            for t in TICKERS
+        }
+        for fut in as_completed(futures):
+            completed += 1
+            result = fut.result()
+            if not result:
                 continue
+            t = result["ticker"]
+            raw_data[t] = result["raw"]
+            volatilities[t] = result["volatility"]
+            prices[t] = result["price"]
+            features[t] = result["features"]
+            # Light progress log every 50 completions
+            if completed % 50 == 0:
+                print(f"[Lambda] Progress: {completed}/{len(TICKERS)} fetched")
 
-            raw_data[ticker] = df
-            volatilities[ticker] = calculate_historical_volatility(df)
-            prices[ticker] = float(df['close'].iloc[-1])
-
-            df_features = feature_engine.calculate_all(df)
-            if df_features.empty:
-                print(f"[Lambda] No features generated for {ticker}")
-                continue
-
-            feature_cols = [
-                col for col in df_features.columns if col not in exclude_cols]
-            features[ticker] = [
-                df_features[feature_cols].iloc[-1].values.tolist()]
-
-        except Exception as e:
-            print(f"[Lambda] Error processing {ticker}: {str(e)}")
-            continue
-
-    print(f"[Lambda] Successfully processed {len(features)} tickers")
+    elapsed = (datetime.now() - fetch_start).total_seconds()
+    print(
+        f"[Lambda] Successfully processed {len(features)}/{len(TICKERS)} tickers "
+        f"in {elapsed:.1f}s"
+    )
     return features, prices, volatilities, raw_data
 
 

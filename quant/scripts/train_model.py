@@ -60,11 +60,20 @@ def main():
                         help="Use walk-forward validation (more robust, slower)")
     parser.add_argument("--wf-splits", type=int, default=5,
                         help="Number of walk-forward splits (default: 5)")
+    parser.add_argument("--tickers", type=str, default=None,
+                        help="Comma-separated subset of tickers to train (default: all from SYSTEM_SPEC.yaml)")
 
     args = parser.parse_args()
     use_regime = not args.no_regime
 
     tickers = load_tickers()
+    if args.tickers:
+        requested = [t.strip().upper() for t in args.tickers.split(",") if t.strip()]
+        universe = set(tickers)
+        unknown = [t for t in requested if t not in universe]
+        if unknown:
+            print(f"⚠️  Not in SYSTEM_SPEC universe (training anyway): {', '.join(unknown)}")
+        tickers = requested
     total = len(tickers)
 
     print(f"\n{'='*70}")
