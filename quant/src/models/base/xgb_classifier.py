@@ -123,16 +123,16 @@ class XGBClassifier:
         if isinstance(X, pd.DataFrame):
             self.feature_names = list(X.columns)
 
-        Xb, yb = hybrid_balance(X, y_mapped)
-        class_weights = compute_class_weights(yb)
+        # Class weights are the single imbalance mechanism — no oversampling.
+        class_weights = compute_class_weights(y_mapped)
         logger.info(f"[CLASS WEIGHTS] {class_weights}")
 
         # Assign per-sample weights to DMatrix
-        weight_array = np.array([class_weights[c] for c in yb])
+        weight_array = np.array([class_weights[c] for c in y_mapped])
 
-        Xb_scaled = self.scaler.fit_transform(Xb)
+        Xb_scaled = self.scaler.fit_transform(X)
 
-        dtrain = xgb.DMatrix(Xb_scaled, label=yb, weight=weight_array)
+        dtrain = xgb.DMatrix(Xb_scaled, label=y_mapped, weight=weight_array)
 
         evals = [(dtrain, "train")]
 

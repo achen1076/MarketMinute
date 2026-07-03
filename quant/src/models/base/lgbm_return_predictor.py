@@ -43,17 +43,21 @@ class LGBMReturnPredictor:
         self.short_threshold = short_threshold
         self.use_gpu = use_gpu
 
+        # Huber loss is less dominated by fat-tail outliers than MAE/MSE on
+        # return targets, and smaller trees keep the weak signal from being
+        # swamped by noise (MAE at lr=0.01 routinely early-stopped at iter 1).
         self.params = {
-            'objective': 'regression',
-            'metric': 'mae',
-            'learning_rate': 0.01,
-            'num_leaves': 31,
-            'max_depth': 6,
-            'min_child_samples': 30,
-            'subsample': 0.8,
-            'colsample_bytree': 0.8,
-            'reg_alpha': 0.5,
-            'reg_lambda': 0.5,
+            'objective': 'huber',
+            'metric': 'huber',
+            'learning_rate': 0.02,
+            'num_leaves': 15,
+            'max_depth': 4,
+            'min_child_samples': 60,
+            'subsample': 0.7,
+            'subsample_freq': 1,
+            'colsample_bytree': 0.7,
+            'reg_alpha': 1.0,
+            'reg_lambda': 2.0,
             'random_state': 42,
             'n_jobs': -1,
             'verbosity': -1

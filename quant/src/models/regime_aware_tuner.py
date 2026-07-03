@@ -114,7 +114,8 @@ class RegimeAwareHyperparameterTuner:
         y_val: np.ndarray,
         regime_labels_val: np.ndarray
     ) -> float:
-        Xb, yb = hybrid_balance(X_train, y_train)
+        # Class weights only — must match LGBMClassifier.fit (no oversampling)
+        Xb, yb = X_train, y_train
 
         label_map = {-1: 0, 0: 1, 1: 2}
         yb_mapped = np.array([label_map.get(int(l), int(l)) for l in yb])
@@ -320,7 +321,8 @@ class RegimeAwareXGBTuner:
         """Optuna objective function with regime-aware scoring for XGBoost."""
         import xgboost as xgb
 
-        Xb, yb = hybrid_balance(X_train, y_train)
+        # Class weights only — must match XGBClassifier.fit (no oversampling)
+        Xb, yb = X_train, y_train
         class_weights = compute_class_weights(yb)
         weight_array = np.array([class_weights[c] for c in yb])
 

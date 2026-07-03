@@ -52,8 +52,8 @@ class XGBHyperparameterTuner:
         self.study = None
 
     def objective(self, trial, X_train, y_train, X_val, y_val):
-        # Hybrid balancing
-        Xb, yb = hybrid_balance(X_train, y_train)
+        # Class weights only — must match XGBClassifier.fit (no oversampling)
+        Xb, yb = X_train, y_train
         class_weights = compute_class_weights(yb)
 
         # Per-sample weight

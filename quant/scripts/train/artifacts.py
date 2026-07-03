@@ -50,15 +50,19 @@ def save_model_metadata(ticker, model_type, metrics):
     sharpe = round(float(to_native(metrics.get('sharpe_ratio', 0))), 2)
     pf_value = round(float(pf), 2) if pf is not None else None
     alpha = round(float(to_native(metrics.get('alpha', 0))), 2)
+    tstat = round(float(to_native(metrics.get('sharpe_tstat', 0))), 2)
 
+    # Require the edge to be statistically distinguishable from luck
+    # (t-stat > 1 ≈ ~68% confidence the per-trade mean is positive).
     is_deployable = (
         sharpe > 1.0 and
         pf_value is not None and
         pf_value > 1.5 and
-        alpha > 0
+        alpha > 0 and
+        tstat > 1.0
     )
 
-    if is_deployable and sharpe > 2.0 and (pf_value or 0) > 2.0 and alpha > 0.05:
+    if is_deployable and sharpe > 2.0 and (pf_value or 0) > 2.0 and alpha > 0.05 and tstat > 2.0:
         quality_tier = "excellent"
     elif is_deployable:
         quality_tier = "good"
@@ -78,6 +82,11 @@ def save_model_metadata(ticker, model_type, metrics):
         "win_rate": round(float(to_native(metrics.get('win_rate', 0))), 4),
         "num_trades": int(to_native(metrics.get('num_trades', 0))),
         "accuracy": round(float(to_native(metrics.get('accuracy', 0))), 4),
+        "balanced_accuracy": round(float(to_native(metrics.get('balanced_accuracy', 0))), 4),
+        "hit_rate": round(float(to_native(metrics.get('hit_rate', 0))), 4),
+        "sharpe_tstat": round(float(to_native(metrics.get('sharpe_tstat', 0))), 2),
+        "sortino_ratio": round(float(to_native(metrics.get('sortino_ratio', 0))), 2),
+        "calmar_ratio": round(float(to_native(metrics.get('calmar_ratio', 0))), 2),
         "max_drawdown": round(float(to_native(metrics.get('max_drawdown', 0))), 4),
         "total_return": round(float(to_native(metrics.get('total_return', 0))), 4),
         "alpha": alpha,

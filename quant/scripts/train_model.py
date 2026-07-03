@@ -114,12 +114,14 @@ def main():
             sharpe = result.get('sharpe_ratio', 0)
             pf = result.get('profit_factor', 0)
             alpha = result.get('alpha', 0)
-            lr = result.get('long_ratio', 0)
+            hit = result.get('hit_rate', 0)
+            bacc = result.get('balanced_accuracy', 0)
+            tstat = result.get('sharpe_tstat', 0)
             mt = result.get('model_type', args.model)
             pf_str = f"{pf:.2f}" if pf != float('inf') else "∞"
             mt_tag = f"[{mt}] " if args.model == "auto" else ""
             print(
-                f"✓ {mt_tag}Acc:{result['accuracy']*100:.1f}% | Sharpe:{sharpe:.2f} | PF:{pf_str} | α:{alpha:.2f} | L/S:{lr*100:.0f}% | {result['samples']} samples")
+                f"✓ {mt_tag}Acc:{result['accuracy']*100:.1f}% | BalAcc:{bacc*100:.1f}% | Hit:{hit*100:.1f}% | Sharpe:{sharpe:.2f} (t={tstat:.1f}) | PF:{pf_str} | α:{alpha:.2f} | {result['samples']} samples")
         elif result["status"] == "SKIP":
             print(f"⊘ {result['reason']}")
         else:
@@ -148,8 +150,17 @@ def main():
             'profit_factor', 0) != float('inf')]
         avg_pf = sum(valid_pf) / len(valid_pf) if valid_pf else 0
 
+        avg_bacc = sum(r.get('balanced_accuracy', 0)
+                       for r in successful) / len(successful)
+        avg_hit = sum(r.get('hit_rate', 0)
+                      for r in successful) / len(successful)
+        avg_tstat = sum(r.get('sharpe_tstat', 0)
+                        for r in successful) / len(successful)
+
         print(f"\n   📊 CLASSIFICATION METRICS:")
         print(f"      Avg Accuracy: {avg_acc*100:.1f}%")
+        print(f"      Avg Balanced Accuracy: {avg_bacc*100:.1f}%")
+        print(f"      Avg Directional Hit Rate: {avg_hit*100:.1f}%")
 
         avg_alpha = sum(r.get('alpha', 0)
                         for r in successful) / len(successful)
@@ -157,7 +168,7 @@ def main():
                              for r in successful) / len(successful)
 
         print(f"\n   💰 FINANCIAL METRICS:")
-        print(f"      Avg Sharpe Ratio: {avg_sharpe:.2f}")
+        print(f"      Avg Sharpe Ratio: {avg_sharpe:.2f} (avg t-stat: {avg_tstat:.1f})")
         print(f"      Avg Max Drawdown: {avg_max_dd*100:.1f}%")
         print(f"      Avg Profit Factor: {avg_pf:.2f}")
         print(f"      Avg Win Rate: {avg_win_rate*100:.1f}%")

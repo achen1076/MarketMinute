@@ -41,10 +41,16 @@ class TradingMetrics:
     alpha: float = 0.0
     benchmark_sharpe: float = 0.0
     long_ratio: float = 0.0
+    balanced_accuracy: float = 0.0
+    hit_rate: float = 0.0
+    sharpe_tstat: float = 0.0
 
     def to_dict(self) -> Dict:
         return {
             'accuracy': self.accuracy,
+            'balanced_accuracy': self.balanced_accuracy,
+            'hit_rate': self.hit_rate,
+            'sharpe_tstat': self.sharpe_tstat,
             'sharpe_ratio': self.sharpe_ratio,
             'sortino_ratio': self.sortino_ratio,
             'max_drawdown': self.max_drawdown,
@@ -128,6 +134,24 @@ class FinancialMetrics:
         # Classification accuracy
         accuracy = np.mean(y_true == y_pred)
 
+        # Balanced accuracy: mean per-class recall. Honest under class
+        # imbalance, where plain accuracy is dominated by the neutral class.
+        classes = np.unique(y_true)
+        recalls = [np.mean(y_pred[y_true == c] == c)
+                   for c in classes if np.sum(y_true == c) > 0]
+        balanced_accuracy = float(np.mean(recalls)) if recalls else 0.0
+
+        # Directional hit rate: among bars where the model trades, how often
+        # the sign of the realized forward return matches the position
+        # (pre-cost, the rawest measure of predictive edge).
+        signal_mask = y_pred != 0
+        if np.sum(signal_mask) > 0:
+            fwd_clean = np.nan_to_num(forward_returns, nan=0.0)
+            hit_rate = float(np.mean(
+                np.sign(fwd_clean[signal_mask]) == y_pred[signal_mask]))
+        else:
+            hit_rate = 0.0
+
         # Simulate trading returns
         strategy_returns, trade_returns = self._simulate_trading(
             y_pred, forward_returns, holding_period
@@ -153,6 +177,17 @@ class FinancialMetrics:
 
         # Count actual trades (after cooldown)
         num_trades = len(trade_returns)
+
+        # Sharpe t-statistic: how distinguishable from zero the per-trade
+        # edge is given the sample size. |t| > 2 ≈ statistically meaningful.
+        clean_trades = trade_returns[~np.isnan(
+            trade_returns) & ~np.isinf(trade_returns)]
+        if len(clean_trades) >= 2 and np.std(clean_trades, ddof=1) > 1e-12:
+            sharpe_tstat = float(np.clip(
+                np.mean(clean_trades) / np.std(clean_trades, ddof=1)
+                * np.sqrt(len(clean_trades)), -50, 50))
+        else:
+            sharpe_tstat = 0.0
 
         # Benchmark: buy-and-hold (always long) on same bar-level series
         benchmark_returns = np.nan_to_num(
@@ -185,7 +220,10 @@ class FinancialMetrics:
             avg_holding_period=holding_period,
             alpha=alpha,
             benchmark_sharpe=benchmark_sharpe,
-            long_ratio=long_ratio
+            long_ratio=long_ratio,
+            balanced_accuracy=balanced_accuracy,
+            hit_rate=hit_rate,
+            sharpe_tstat=sharpe_tstat
         )
 
     def _simulate_trading(
@@ -279,7 +317,8 @@ class FinancialMetrics:
         # Downside deviation
         downside_returns = excess_returns[excess_returns < 0]
         if len(downside_returns) == 0:
-            return float('inf') if mean_excess > 0 else 0.0
+            # No downside observations: cap at the clip ceiling (keeps JSON-safe)
+            return 10.0 if mean_excess > 0 else 0.0
 
         downside_std = np.std(downside_returns, ddof=1)
 

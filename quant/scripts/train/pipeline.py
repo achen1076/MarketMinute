@@ -10,9 +10,46 @@ from src.evaluation.regime_detector import RegimeDetector
 from .config import FORWARD_PERIODS, MAX_FEATURES, VOL_NORMALIZE, EXCLUDE_COLS, REGIME_FEATURE_COLS
 from .data import load_dataset, generate_labels
 from .splits import time_split_with_embargo, walk_forward_split
-from .balance import hybrid_balance
 from .trainer import train_model
 from .artifacts import save_artifact
+from .calibration import calibrate_decision_threshold
+
+# A model with fewer test trades than this is effectively inactive; prefer
+# an active model with decent Sharpe over a zero-trade "Sharpe 0.0" one.
+MIN_ACTIVE_TRADES = 10
+
+
+def _is_better_candidate(candidate_metrics, best_metrics):
+    """Prefer active models (enough trades), then higher Sharpe."""
+    if best_metrics is None:
+        return True
+    cand_active = candidate_metrics.num_trades >= MIN_ACTIVE_TRADES
+    best_active = best_metrics.num_trades >= MIN_ACTIVE_TRADES
+    if cand_active != best_active:
+        return cand_active
+    return candidate_metrics.sharpe_ratio > best_metrics.sharpe_ratio
+
+
+def _metrics_dict(acc, samples, fm):
+    """Flatten TradingMetrics into the dict saved with each artifact."""
+    return {
+        "accuracy": acc,
+        "balanced_accuracy": fm.balanced_accuracy,
+        "hit_rate": fm.hit_rate,
+        "samples": samples,
+        "sharpe_ratio": fm.sharpe_ratio,
+        "sharpe_tstat": fm.sharpe_tstat,
+        "sortino_ratio": fm.sortino_ratio,
+        "calmar_ratio": fm.calmar_ratio,
+        "max_drawdown": fm.max_drawdown,
+        "profit_factor": fm.profit_factor,
+        "win_rate": fm.win_rate,
+        "total_return": fm.total_return,
+        "num_trades": fm.num_trades,
+        "alpha": fm.alpha,
+        "benchmark_sharpe": fm.benchmark_sharpe,
+        "long_ratio": fm.long_ratio,
+    }
 
 
 def _prepare_features(df, use_regime=True):
@@ -135,7 +172,6 @@ def train_single_ticker(ticker, model_type, label_mode, use_tuning, use_regime=T
         best_pred = None
         best_metrics = None
         best_type = None
-        best_sharpe = -float('inf')
 
         for mt in types_to_try:
             is_return = (mt == "return")
@@ -157,20 +193,23 @@ def train_single_ticker(ticker, model_type, label_mode, use_tuning, use_regime=T
                     mt, Xt, fwd_train_norm, Xv, fwd_val_norm,
                     use_tuning=use_tuning, regime_labels_val=None)
             else:
-                Xb, yb = hybrid_balance(Xt, y_train)
+                # Imbalance handled via class weights inside the classifier
                 mdl = train_model(
-                    mt, Xb, yb, Xv, y_val,
+                    mt, Xt, y_train, Xv, y_val,
                     use_tuning=use_tuning,
                     regime_labels_val=regime_labels_val if use_tuning and use_regime else None)
+
+            # Calibrate decision threshold on validation (never test)
+            calibrate_decision_threshold(mdl, Xv, y_val, fwd_ret_val)
 
             yp = mdl.predict(Xte)
             fm = fin_evaluator.evaluate(
                 y_true=y_test, y_pred=yp,
                 forward_returns=fwd_ret_test, holding_period=FORWARD_PERIODS)
 
-            if fm.sharpe_ratio > best_sharpe:
+            if _is_better_candidate(fm, best_metrics):
                 best_model, best_pred, best_metrics = mdl, yp, fm
-                best_type, best_sharpe = mt, fm.sharpe_ratio
+                best_type = mt
 
         model, y_pred, fin_metrics = best_model, best_pred, best_metrics
         model_type_used = best_type if model_type == "auto" else model_type
@@ -183,36 +222,14 @@ def train_single_ticker(ticker, model_type, label_mode, use_tuning, use_regime=T
             df_test, y_test, y_pred)
         regime_stats = regime_detector.get_regime_statistics(df_clean)
 
-        metrics = {
-            "accuracy": acc,
-            "samples": len(df_clean),
-            "sharpe_ratio": fin_metrics.sharpe_ratio,
-            "max_drawdown": fin_metrics.max_drawdown,
-            "profit_factor": fin_metrics.profit_factor,
-            "win_rate": fin_metrics.win_rate,
-            "total_return": fin_metrics.total_return,
-            "num_trades": fin_metrics.num_trades,
-            "alpha": fin_metrics.alpha,
-            "benchmark_sharpe": fin_metrics.benchmark_sharpe,
-            "long_ratio": fin_metrics.long_ratio
-        }
+        metrics = _metrics_dict(acc, len(df_clean), fin_metrics)
 
         save_artifact(model, ticker, model_type_used, metrics=metrics)
 
         return {
             "status": "SUCCESS",
-            "accuracy": acc,
-            "samples": len(df_clean),
             "model_type": model_type_used,
-            "sharpe_ratio": fin_metrics.sharpe_ratio,
-            "max_drawdown": fin_metrics.max_drawdown,
-            "profit_factor": fin_metrics.profit_factor,
-            "win_rate": fin_metrics.win_rate,
-            "total_return": fin_metrics.total_return,
-            "num_trades": fin_metrics.num_trades,
-            "alpha": fin_metrics.alpha,
-            "benchmark_sharpe": fin_metrics.benchmark_sharpe,
-            "long_ratio": fin_metrics.long_ratio,
+            **metrics,
             "regime_bull_acc": regime_eval.get("trend_bull_accuracy", None),
             "regime_bear_acc": regime_eval.get("trend_bear_accuracy", None),
             "regime_sideways_acc": regime_eval.get("trend_sideways_accuracy", None),
@@ -257,9 +274,11 @@ def train_walk_forward(ticker, model_type, label_mode, use_tuning, use_regime=Tr
         types_to_try = [
             "return", "lgbm"] if model_type == "auto" else [model_type]
 
-        # Feature selection per model type using proxy split
-        fs_end = int(len(X) * 0.60)
-        fs_val_end = int(len(X) * 0.75)
+        # Feature selection per model type using proxy split.
+        # Must stay strictly before the first walk-forward test fold (which
+        # starts at min_train_size=40% of the series) to avoid look-ahead bias.
+        fs_end = int(len(X) * 0.30)
+        fs_val_end = int(len(X) * 0.40) - FORWARD_PERIODS  # embargo before first test fold
         X_fs_tr = X.iloc[:fs_end]
         X_fs_vl = X.iloc[fs_end:fs_val_end]
 
@@ -312,19 +331,20 @@ def train_walk_forward(ticker, model_type, label_mode, use_tuning, use_regime=Tr
                         mt, Xt, fwd_tr_norm, Xv, fwd_vl_norm,
                         use_tuning=False, regime_labels_val=None)
                 else:
-                    Xb, yb = hybrid_balance(Xt, y_tr)
                     mdl = train_model(
-                        mt, Xb, yb, Xv, y_vl,
+                        mt, Xt, y_tr, Xv, y_vl,
                         use_tuning=use_tuning, regime_labels_val=None)
+
+                # Calibrate decision threshold on fold validation slice
+                calibrate_decision_threshold(mdl, Xv, y_vl, fwd_vl)
 
                 yp = mdl.predict(Xte)
                 type_agg[mt]["y_true"].extend(y_test.values)
                 type_agg[mt]["y_pred"].extend(yp)
                 type_agg[mt]["fwd_ret"].extend(fwd_ret_test)
 
-        # Pick best type by aggregated Sharpe
+        # Pick best type by aggregated Sharpe (preferring active models)
         best_type = types_to_try[0]
-        best_sharpe = -float('inf')
         best_agg = None
         best_acc = None
 
@@ -339,8 +359,8 @@ def train_walk_forward(ticker, model_type, label_mode, use_tuning, use_regime=Tr
                 y_true=yt, y_pred=yp,
                 forward_returns=fr, holding_period=FORWARD_PERIODS)
 
-            if agg.sharpe_ratio > best_sharpe:
-                best_type, best_sharpe = mt, agg.sharpe_ratio
+            if _is_better_candidate(agg, best_agg):
+                best_type = mt
                 best_agg, best_acc = agg, a
 
         model_type_used = best_type if model_type == "auto" else model_type
@@ -374,25 +394,16 @@ def train_walk_forward(ticker, model_type, label_mode, use_tuning, use_regime=Tr
                 X_vl_final, fwd_vl_norm,
                 use_tuning=False, regime_labels_val=None)
         else:
-            Xb, yb = hybrid_balance(X_tr_final, y_tr_final)
             final_model = train_model(
-                model_type_used, Xb, yb, X_vl_final, y_vl_final,
+                model_type_used, X_tr_final, y_tr_final, X_vl_final, y_vl_final,
                 use_tuning=use_tuning, regime_labels_val=None)
 
-        metrics = {
-            "accuracy": acc,
-            "samples": len(df_clean),
-            "sharpe_ratio": agg_metrics.sharpe_ratio,
-            "max_drawdown": agg_metrics.max_drawdown,
-            "profit_factor": agg_metrics.profit_factor,
-            "win_rate": agg_metrics.win_rate,
-            "total_return": agg_metrics.total_return,
-            "num_trades": agg_metrics.num_trades,
-            "alpha": agg_metrics.alpha,
-            "benchmark_sharpe": agg_metrics.benchmark_sharpe,
-            "long_ratio": agg_metrics.long_ratio,
-            "walk_forward_folds": n_splits
-        }
+        # Calibrate the production model's decision threshold on its val slice
+        calibrate_decision_threshold(
+            final_model, X_vl_final, y_vl_final, fwd_vl_final)
+
+        metrics = _metrics_dict(acc, len(df_clean), agg_metrics)
+        metrics["walk_forward_folds"] = n_splits
 
         save_artifact(final_model, ticker, model_type_used, metrics=metrics)
 
@@ -400,19 +411,8 @@ def train_walk_forward(ticker, model_type, label_mode, use_tuning, use_regime=Tr
 
         return {
             "status": "SUCCESS",
-            "accuracy": acc,
-            "samples": len(df_clean),
             "model_type": model_type_used,
-            "sharpe_ratio": agg_metrics.sharpe_ratio,
-            "max_drawdown": agg_metrics.max_drawdown,
-            "profit_factor": agg_metrics.profit_factor,
-            "win_rate": agg_metrics.win_rate,
-            "total_return": agg_metrics.total_return,
-            "num_trades": agg_metrics.num_trades,
-            "alpha": agg_metrics.alpha,
-            "benchmark_sharpe": agg_metrics.benchmark_sharpe,
-            "long_ratio": agg_metrics.long_ratio,
-            "wf_folds": n_splits,
+            **metrics,
             "regime_bull_acc": None,
             "regime_bear_acc": None,
             "regime_sideways_acc": None,

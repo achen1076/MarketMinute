@@ -64,8 +64,9 @@ class LightGBMHyperparameterTuner:
         y_train = np.array([label_map.get(int(l), int(l)) for l in y_train])
         y_val = np.array([label_map.get(int(l), int(l)) for l in y_val])
 
-        # Hybrid balance
-        Xb, yb = hybrid_balance(X_train, y_train)
+        # Class weights only — must match LGBMClassifier.fit (no oversampling),
+        # otherwise tuned params are optimized for a different data distribution
+        Xb, yb = X_train, y_train
         class_weights = compute_class_weights(yb)
 
         # Per-sample weights

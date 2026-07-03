@@ -99,18 +99,23 @@ class LGBMClassifier:
         else:
             self.use_gpu = use_gpu
 
+        # Conservative capacity: ~3-4k daily samples with overlapping 5-day
+        # labels overfit quickly at num_leaves=31/depth=6 (train logloss can
+        # reach 0.1 while val stalls at 0.6). Smaller trees + stronger
+        # row/feature subsampling narrows that gap.
         default_params = {
             'objective': 'multiclass',
             'num_class': 3,
             'metric': 'multi_logloss',
             'learning_rate': 0.02,
-            'num_leaves': 31,
-            'max_depth': 6,
-            'min_child_samples': 30,
+            'num_leaves': 23,
+            'max_depth': 5,
+            'min_child_samples': 40,
             'subsample': 0.8,
+            'subsample_freq': 1,
             'colsample_bytree': 0.8,
             'reg_alpha': 0.5,
-            'reg_lambda': 0.5,
+            'reg_lambda': 1.0,
             'random_state': 42,
             'n_jobs': -1,
             'verbosity': -1
@@ -150,16 +155,18 @@ class LGBMClassifier:
         if isinstance(X, pd.DataFrame):
             self.feature_names = list(X.columns)
 
-        Xb, yb = hybrid_balance(X, y_mapped)
-        class_weights = compute_class_weights(yb)
+        # Class weights are the single imbalance mechanism — no oversampling.
+        # Duplicating rows on top of weights overcompensates minority classes
+        # and inflates train/val divergence.
+        class_weights = compute_class_weights(y_mapped)
         logger.info(f"[CLASS WEIGHTS] {class_weights}")
 
         # Convert class weights to per-sample weights
-        weight_array = np.array([class_weights[c] for c in yb])
+        weight_array = np.array([class_weights[c] for c in y_mapped])
 
-        Xb_scaled = self.scaler.fit_transform(Xb)
+        Xb_scaled = self.scaler.fit_transform(X)
 
-        train_data = lgb.Dataset(Xb_scaled, label=yb, weight=weight_array)
+        train_data = lgb.Dataset(Xb_scaled, label=y_mapped, weight=weight_array)
 
         valid_sets = [train_data]
         valid_names = ["train"]
