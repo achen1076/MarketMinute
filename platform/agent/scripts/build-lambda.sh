@@ -51,8 +51,10 @@ npx esbuild \
 
 # Copy Prisma client
 echo "Copying Prisma client..."
-cp -r "$WEBAPP_DIR/node_modules/.prisma" dist/prisma
-cp -r "$WEBAPP_DIR/node_modules/@prisma" dist/@prisma
+# npm workspaces hoist Prisma to the repo root
+ROOT_NM="$PLATFORM_DIR/../node_modules"
+cp -r "$ROOT_NM/.prisma" dist/prisma
+cp -r "$ROOT_NM/@prisma" dist/@prisma
 
 echo "Bundle size: $(du -h dist/handler.js | cut -f1)"
 
