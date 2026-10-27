@@ -55,7 +55,8 @@ const PLATFORM_INFO = {
   quantlab: `QuantLab is Mintalyze's machine learning trading signal system that generates BUY, SELL, or NEUTRAL recommendations for stocks.
 
 How it works:
-- Models analyze 30 years of historical price data and technical indicators
+- Per-ticker gradient-boosted models trained on ~20 years of daily data: technical indicators, residual momentum and beta vs the S&P 500, and fractionally differentiated prices
+- Validated with purged walk-forward (out-of-sample) testing; decision thresholds calibrated per ticker
 - Signals are automatically adjusted based on breaking news sentiment
 - Each signal includes a confidence score (0-100) and quality rating
 

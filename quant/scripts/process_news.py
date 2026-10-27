@@ -54,6 +54,7 @@ def process_news_for_tickers(from_date=None, to_date=None):
         response = requests.post(
             url,
             json=payload,
+            headers={"x-api-key": os.environ.get("LAMBDA_API_KEY", "")},
             timeout=300
         )
         response.raise_for_status()

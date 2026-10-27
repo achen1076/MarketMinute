@@ -51,6 +51,19 @@ export async function handler(event: LambdaEvent) {
     };
   }
 
+  // Function URL is public (auth NONE) — only the webapp, holding the shared key, may call it
+  const apiKey = process.env.LAMBDA_API_KEY;
+  const headers = Object.fromEntries(
+    Object.entries(event.headers || {}).map(([k, v]) => [k.toLowerCase(), v])
+  );
+  if (!apiKey || headers["x-api-key"] !== apiKey) {
+    return {
+      statusCode: 401,
+      headers: corsHeaders(),
+      body: JSON.stringify({ error: "Unauthorized" }),
+    };
+  }
+
   // POST - chat request
   if (method === "POST") {
     try {

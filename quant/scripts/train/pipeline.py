@@ -7,7 +7,7 @@ from sklearn.metrics import accuracy_score
 from src.evaluation.financial_metrics import FinancialMetrics
 from src.evaluation.regime_detector import RegimeDetector
 
-from .config import FORWARD_PERIODS, MAX_FEATURES, VOL_NORMALIZE, EXCLUDE_COLS, REGIME_FEATURE_COLS
+from .config import FORWARD_PERIODS, MAX_FEATURES, VOL_NORMALIZE, EXCLUDE_COLS
 from .data import load_dataset, generate_labels
 from .splits import time_split_with_embargo, walk_forward_split
 from .trainer import train_model
@@ -54,11 +54,9 @@ def _metrics_dict(acc, samples, fm):
 
 def _prepare_features(df, use_regime=True):
     """Extract feature columns and clean data."""
+    # Regime columns are excluded from features (not computed at inference);
+    # use_regime only drives regime-aware tuning via trend_regime labels.
     feature_cols = [c for c in df.columns if c not in EXCLUDE_COLS]
-    if use_regime:
-        feature_cols = [
-            c for c in feature_cols if c not in REGIME_FEATURE_COLS
-        ] + REGIME_FEATURE_COLS
 
     df_clean = df.dropna(subset=feature_cols + ["label"])
     return df_clean, feature_cols
@@ -308,12 +306,15 @@ def train_walk_forward(ticker, model_type, label_mode, use_tuning, use_regime=Tr
         for X_train, X_test, y_train, y_test, fwd_ret_train, fwd_ret_test, fold_info in walk_forward_split(
             X, y, forward_returns, n_splits=n_splits, embargo_periods=FORWARD_PERIODS
         ):
+            # Purge FORWARD_PERIODS between train and val so overlapping
+            # labels don't leak into early stopping / threshold calibration
             val_size = int(len(X_train) * 0.2)
-            X_tr = X_train.iloc[:-val_size]
+            tr_end = -(val_size + FORWARD_PERIODS)
+            X_tr = X_train.iloc[:tr_end]
             X_vl = X_train.iloc[-val_size:]
-            y_tr = y_train.iloc[:-val_size]
+            y_tr = y_train.iloc[:tr_end]
             y_vl = y_train.iloc[-val_size:]
-            fwd_tr = fwd_ret_train[:-val_size]
+            fwd_tr = fwd_ret_train[:tr_end]
             fwd_vl = fwd_ret_train[-val_size:]
 
             # Vol-normalize (need pre-feature-selection X for vol_20)
@@ -375,18 +376,19 @@ def train_walk_forward(ticker, model_type, label_mode, use_tuning, use_regime=Tr
         fwd_final = forward_returns[:final_train_end]
 
         val_size = int(len(X_final) * 0.15)
-        X_tr_final = X_final.iloc[:-val_size]
+        tr_end = -(val_size + FORWARD_PERIODS)
+        X_tr_final = X_final.iloc[:tr_end]
         X_vl_final = X_final.iloc[-val_size:]
-        y_tr_final = y_final.iloc[:-val_size]
+        y_tr_final = y_final.iloc[:tr_end]
         y_vl_final = y_final.iloc[-val_size:]
-        fwd_tr_final = fwd_final[:-val_size]
+        fwd_tr_final = fwd_final[:tr_end]
         fwd_vl_final = fwd_final[-val_size:]
 
         if model_type_used == "return":
             # Vol-normalize using pre-feature-selection X for vol_20
             X_pre_fs = X.iloc[:final_train_end]
             fwd_tr_norm = _vol_normalize_returns(
-                fwd_tr_final, X_pre_fs.iloc[:-val_size])
+                fwd_tr_final, X_pre_fs.iloc[:tr_end])
             fwd_vl_norm = _vol_normalize_returns(
                 fwd_vl_final, X_pre_fs.iloc[-val_size:])
             final_model = train_model(

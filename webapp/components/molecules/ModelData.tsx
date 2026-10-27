@@ -8,8 +8,16 @@ export function ModelData() {
           <span className="font-medium">Lookahead Window:</span> 5 trading days
         </span>
         <span className="text-muted-foreground">
-          <span className="font-medium">Models Last Retrained:</span> April 24,
-          2026 (weekly retrain)
+          <span className="font-medium">Models Last Retrained:</span> October 25, 2026
+          (weekly retrain)
+        </span>
+        <span className="text-muted-foreground">
+          <span className="font-medium">Validation:</span> Purged walk-forward,
+          out-of-sample
+        </span>
+        <span className="text-muted-foreground">
+          <span className="font-medium">Signals:</span> Market-relative (vs
+          S&amp;P 500) residual momentum, beta, fractional differencing
         </span>
       </div>
     </div>

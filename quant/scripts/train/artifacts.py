@@ -1,6 +1,7 @@
 """Model artifact saving and metadata management."""
 
 import json
+import os
 import pickle
 import numpy as np
 import pandas as pd
@@ -8,8 +9,7 @@ from pathlib import Path
 
 
 def save_artifact(model, ticker, model_type, metrics=None):
-    project_root = Path(__file__).resolve().parents[2]
-    out_dir = project_root / "models" / model_type
+    out_dir = _models_dir() / model_type
     out_dir.mkdir(parents=True, exist_ok=True)
 
     filename = out_dir / f"{ticker}_{model_type}.pkl"
@@ -23,9 +23,14 @@ def save_artifact(model, ticker, model_type, metrics=None):
         save_model_metadata(ticker, model_type, metrics)
 
 
+def _models_dir():
+    # QUANT_MODELS_DIR lets experiments train without touching production artifacts
+    default = Path(__file__).resolve().parents[2] / "models"
+    return Path(os.environ.get("QUANT_MODELS_DIR", default))
+
+
 def save_model_metadata(ticker, model_type, metrics):
-    project_root = Path(__file__).resolve().parents[2]
-    metadata_file = project_root / "models" / "model_metadata.json"
+    metadata_file = _models_dir() / "model_metadata.json"
 
     if metadata_file.exists():
         try:
@@ -105,8 +110,7 @@ def save_model_metadata(ticker, model_type, metrics):
 
 
 def get_model_metadata():
-    project_root = Path(__file__).resolve().parents[2]
-    metadata_file = project_root / "models" / "model_metadata.json"
+    metadata_file = _models_dir() / "model_metadata.json"
 
     if not metadata_file.exists():
         return {"models": {}, "last_updated": None}

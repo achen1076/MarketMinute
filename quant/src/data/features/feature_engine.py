@@ -100,6 +100,7 @@ class FeatureEngine:
         df["macd_signal"] = df["macd_line"].ewm(span=9).mean()
         df["macd_hist"] = df["macd_line"] - df["macd_signal"]
         df["macd_hist_slope"] = df["macd_hist"].diff(3)
+        df["macd_pct"] = df["macd_line"] / df["close"]
 
         df["williams_r"] = self._calculate_williams_r(df, 14)
 
@@ -136,6 +137,8 @@ class FeatureEngine:
         for w in [5, 10, 20, 60, 120]:
             df[f"vol_{w}"] = df["return_1d"].rolling(w).std()
             df[f"range_vol_{w}"] = (df["high"] - df["low"]).rolling(w).std()
+            df[f"range_vol_pct_{w}"] = (
+                (df["high"] - df["low"]) / df["close"]).rolling(w).std()
 
         df["atr_14"] = self._calculate_atr(df, 14)
         df["atr_pct"] = df["atr_14"] / df["close"]
@@ -149,6 +152,8 @@ class FeatureEngine:
 
         df["keltner_upper"], df["keltner_lower"] = self._calculate_keltner(
             df, 20, 2)
+        df["keltner_position"] = (df["close"] - df["keltner_lower"]) / \
+            (df["keltner_upper"] - df["keltner_lower"]).replace(0, np.nan)
         df["squeeze"] = ((df["bb_upper"] < df["keltner_upper"]) &
                          (df["bb_lower"] > df["keltner_lower"])).astype(int)
 
@@ -362,7 +367,54 @@ class FeatureEngine:
 
         return adx
 
-    def calculate_all(self, df: pd.DataFrame) -> pd.DataFrame:
+    def _fracdiff_features(self, df, d=0.4, window=100):
+        """Fixed-width fractional differentiation of log price (Lopez de Prado,
+        AFML ch.5): stationary like returns, but keeps long-memory level info."""
+        w = [1.0]
+        for k in range(1, window):
+            w.append(-w[-1] * (d - k + 1) / k)
+        logp = np.log(df["close"].values)
+        out = np.full(len(logp), np.nan)
+        if len(logp) >= window:
+            # w[0] applies to the current bar, w[k] to the bar k days back
+            out[window - 1:] = np.convolve(logp, np.array(w), mode="valid")
+        df["fracdiff_logp"] = out
+        df["fracdiff_z"] = (df["fracdiff_logp"] - df["fracdiff_logp"].rolling(
+            252).mean()) / df["fracdiff_logp"].rolling(252).std()
+        return df
+
+    def _market_features(self, df, market_df):
+        """Market-relative features vs SPY: rolling beta, residual (idiosyncratic)
+        momentum (Blitz, Huij & Martens 2011), idiosyncratic vol, market state."""
+        mkt = market_df[["timestamp", "close"]].rename(
+            columns={"close": "_mkt_close"})
+        mkt["timestamp"] = pd.to_datetime(mkt["timestamp"]).dt.normalize()
+        df["timestamp"] = pd.to_datetime(df["timestamp"])
+        key = df["timestamp"].dt.normalize()
+        mkt_close = key.map(mkt.drop_duplicates("timestamp").set_index(
+            "timestamp")["_mkt_close"]).ffill()
+        mkt_ret = mkt_close.pct_change()
+        ret = df["return_1d"]
+
+        cov = ret.rolling(60).cov(mkt_ret)
+        var = mkt_ret.rolling(60).var()
+        beta = cov / var.replace(0, np.nan)
+        resid = ret - beta * mkt_ret
+
+        df["beta_60"] = beta
+        df["mkt_corr_60"] = ret.rolling(60).corr(mkt_ret)
+        df["idio_vol_60"] = resid.rolling(60).std()
+        for w in [5, 20, 60, 120]:
+            # Residual momentum scaled by idio vol (risk-adjusted, per paper)
+            df[f"resid_mom_{w}"] = resid.rolling(w).sum() / \
+                (df["idio_vol_60"] * np.sqrt(w)).replace(0, np.nan)
+        df["rel_strength_20"] = df["close"].pct_change(20) - mkt_close.pct_change(20)
+        df["mkt_mom_20"] = mkt_close.pct_change(20)
+        df["mkt_vol_20"] = mkt_ret.rolling(20).std()
+        df["mkt_dist_sma_200"] = mkt_close / mkt_close.rolling(200).mean() - 1
+        return df
+
+    def calculate_all(self, df: pd.DataFrame, market_df: pd.DataFrame = None) -> pd.DataFrame:
         df = df.copy()
         df = df.sort_values("timestamp")
 
@@ -379,6 +431,9 @@ class FeatureEngine:
         df = self._mean_reversion_features(df)
         df = self._candle_pattern_features(df)
         df = self._relative_strength_features(df)
+        df = self._fracdiff_features(df)
+        if market_df is not None:
+            df = self._market_features(df, market_df)
         df = df.copy()
 
         df = df.dropna(axis=1, how="all")

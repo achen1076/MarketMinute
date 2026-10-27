@@ -3,6 +3,11 @@
 .terraform.lock.hcl
 terraform.tfstate
 terraform.tfstate.backup
+# timestamped state backups (terraform.tfstate.1764998335.backup) — these contain
+# secret_string values in plaintext and must never be committed
+terraform.tfstate.*.backup
+*.tfstate
+*.tfstate.*
 *.tfvars
 !terraform.tfvars.example
 ~/.aws/credentials

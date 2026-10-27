@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { shouldSummarize, summarizeArticle } from "@/lib/articleSummarizer";
+import { isInternalRequest } from "@/lib/authz";
 
 /**
  * Batch news processing endpoint for Lambda
@@ -9,6 +10,10 @@ import { shouldSummarize, summarizeArticle } from "@/lib/articleSummarizer";
  * Body: { tickers: string[] }
  */
 export async function POST(req: NextRequest) {
+  if (!isInternalRequest(req)) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
   try {
     const { tickers, from, to } = await req.json();
 

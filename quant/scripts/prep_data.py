@@ -22,6 +22,9 @@ def main():
         config = yaml.safe_load(f)
 
     tickers = config['objectives']['universe']['tickers']
+    # SPY is the market reference for beta/residual features, even if not traded
+    if 'SPY' not in tickers:
+        tickers = tickers + ['SPY']
     total_tickers = len(tickers)
     print(f"\nTickers: {tickers}")
     print(f"Total: {total_tickers} tickers")

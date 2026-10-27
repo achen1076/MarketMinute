@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { isInternalRequest } from "@/lib/authz";
 
 export async function POST(request: Request) {
-  // No auth required - this is an internal service endpoint called by Lambda
+  if (!isInternalRequest(request)) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
   try {
     const body = await request.json();
     const { live_predictions, distributional_forecasts, timestamp } = body;

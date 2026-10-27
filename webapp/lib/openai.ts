@@ -11,7 +11,7 @@ export async function runMiniChat(opts: { system: string; user: string }) {
   ];
 
   const completion = await openai.responses.create({
-    model: "gpt-5.2",
+    model: "gpt-5.5",
     input: messages,
     reasoning: { effort: "medium" },
     text: { verbosity: "low" },

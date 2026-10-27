@@ -3,6 +3,7 @@
 import yaml
 import numpy as np
 import pandas as pd
+from functools import lru_cache
 from pathlib import Path
 
 from src.data.features.feature_engine import FeatureEngine
@@ -12,7 +13,7 @@ from src.data.labels.multiclass_labeler import MultiClassLabeler
 from .config import FORWARD_PERIODS
 
 
-def load_dataset(ticker: str):
+def _read_processed(ticker: str):
     project_root = Path(__file__).resolve().parents[2]
     file = project_root / "data" / "processed" / \
         f"{ticker.lower()}_processed.csv"
@@ -21,10 +22,21 @@ def load_dataset(ticker: str):
 
     df = pd.read_csv(file)
     df["timestamp"] = pd.to_datetime(df["timestamp"])
+    return df
+
+
+@lru_cache(maxsize=1)
+def load_market():
+    """SPY bars used as the market reference for beta/residual features."""
+    return _read_processed("SPY")
+
+
+def load_dataset(ticker: str):
+    df = _read_processed(ticker)
 
     # Feature generation
     fe = FeatureEngine()
-    df = fe.calculate_all(df)
+    df = fe.calculate_all(df, market_df=load_market())
 
     # Drop unusable rows
     df = df.replace([np.inf, -np.inf], np.nan).dropna()

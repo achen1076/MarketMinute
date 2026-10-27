@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+import { isAdmin } from "@/lib/authz";
 import { z } from "zod";
 import { shouldSummarize, summarizeArticle } from "@/lib/articleSummarizer";
 
@@ -28,6 +30,11 @@ interface RelevanceResponse {
 }
 
 export async function POST(request: Request) {
+  const session = await auth();
+  if (!isAdmin(session?.user?.email)) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const { headline, ticker, url, publishedDate } =

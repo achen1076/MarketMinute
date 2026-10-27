@@ -65,6 +65,7 @@ def save_results_to_db(live_predictions, distributional_forecasts):
                 'distributional_forecasts': distributional_forecasts,
                 'timestamp': datetime.now().isoformat()
             },
+            headers={'x-api-key': LAMBDA_API_KEY},
             timeout=30
         )
         response.raise_for_status()
@@ -91,7 +92,7 @@ def trigger_sentinel_agent():
         sentinel_url = f"{WEBAPP_URL}/api/sentinel"
         print(f"[Lambda] Triggering Sentinel agent at {sentinel_url}")
 
-        response = requests.post(sentinel_url, timeout=60)
+        response = requests.post(sentinel_url, headers={'x-api-key': LAMBDA_API_KEY}, timeout=60)
         response.raise_for_status()
 
         data = response.json()
@@ -125,6 +126,7 @@ def process_news_for_all_tickers():
                 'from': today,
                 'to': today
             },
+            headers={'x-api-key': LAMBDA_API_KEY},
             timeout=int(os.environ.get('NEWS_TIMEOUT', '20'))
         )
         response.raise_for_status()
@@ -183,6 +185,12 @@ def process_sentiment_alerts(sentiment_data=None):
 def handler(event, context):
     """Lambda orchestrator for daily market analysis"""
     print(f"[Lambda] Starting analysis at {datetime.now().isoformat()}")
+
+    # Function URL invocations are public (auth NONE) — require the shared key. EventBridge invokes directly.
+    if 'requestContext' in event:
+        headers = {k.lower(): v for k, v in (event.get('headers') or {}).items()}
+        if not LAMBDA_API_KEY or headers.get('x-api-key') != LAMBDA_API_KEY:
+            return {'statusCode': 401, 'body': json.dumps({'error': 'Unauthorized'})}
 
     try:
         task = event.get('task', 'daily_analysis')
@@ -249,7 +257,7 @@ def handler(event, context):
 FMP_FETCH_WORKERS = int(os.environ.get("FMP_FETCH_WORKERS", "32"))
 
 
-def _fetch_one_ticker(ticker, fmp_client, feature_engine, from_date, to_date, exclude_cols):
+def _fetch_one_ticker(ticker, fmp_client, feature_engine, from_date, to_date, exclude_cols, market_df=None):
     """Worker: fetch + compute features for a single ticker. Returns dict or None on failure."""
     try:
         df = fmp_client.fetch_aggregates(
@@ -261,7 +269,7 @@ def _fetch_one_ticker(ticker, fmp_client, feature_engine, from_date, to_date, ex
         if df.empty:
             return None
 
-        df_features = feature_engine.calculate_all(df)
+        df_features = feature_engine.calculate_all(df, market_df=market_df)
         if df_features.empty:
             return None
 
@@ -308,12 +316,17 @@ def fetch_market_data():
     )
 
     fetch_start = datetime.now()
+    # SPY is the market reference for beta/residual-momentum features
+    market_df = fmp_client.fetch_aggregates(
+        ticker="SPY", timespan="day", from_date=from_date, to_date=to_date)
+    if market_df.empty:
+        raise RuntimeError("SPY market data unavailable — models need market features")
     completed = 0
     with ThreadPoolExecutor(max_workers=FMP_FETCH_WORKERS) as ex:
         futures = {
             ex.submit(
                 _fetch_one_ticker, t, fmp_client, feature_engine,
-                from_date, to_date, exclude_cols,
+                from_date, to_date, exclude_cols, market_df,
             ): t
             for t in TICKERS
         }

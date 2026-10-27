@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { isAdmin } from "@/lib/authz";
 import {
   getExplanationCacheStats,
   clearExplanationCache,
@@ -9,7 +10,7 @@ import { getEventsDbStats, clearEventsDb } from "@/lib/eventsDb";
 
 export async function POST(req: Request) {
   const session = await auth();
-  if (!session?.user?.email) {
+  if (!session?.user?.email || !isAdmin(session.user.email)) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
 
 export async function GET() {
   const session = await auth();
-  if (!session?.user?.email) {
+  if (!session?.user?.email || !isAdmin(session.user.email)) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 

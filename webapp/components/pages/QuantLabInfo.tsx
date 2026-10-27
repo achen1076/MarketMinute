@@ -10,7 +10,7 @@ export default function QuantLabInfo() {
     {
       title: "ML-Powered Predictions",
       description:
-        "Machine learning models trained on historical price patterns and 30+ technical indicators to generate directional signals",
+        "Per-ticker gradient-boosted models using 100+ stationary features — including residual momentum vs the S&P 500, rolling beta, and fractionally differentiated prices — validated with purged walk-forward testing",
     },
     {
       title: "Quant Scores",

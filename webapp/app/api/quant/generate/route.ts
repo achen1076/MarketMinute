@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { isAdmin } from "@/lib/authz";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { join } from "path";
@@ -9,7 +10,7 @@ const execAsync = promisify(exec);
 
 export async function POST() {
   const session = await auth();
-  if (!session?.user?.email) {
+  if (!session?.user?.email || !isAdmin(session.user.email)) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 

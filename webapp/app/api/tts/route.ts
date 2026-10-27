@@ -1,15 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { auth } from "@/auth";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
 export async function POST(request: NextRequest) {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const { text } = await request.json();
 
-    if (!text || typeof text !== "string") {
+    if (!text || typeof text !== "string" || text.length > 4096) {
       return NextResponse.json({ error: "Text is required" }, { status: 400 });
     }
 

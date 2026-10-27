@@ -80,3 +80,6 @@ tmp/
 
 #md
 RATE_LIMITS.md
+# terraform state (contains secrets)
+*.tfstate
+*.tfstate.*

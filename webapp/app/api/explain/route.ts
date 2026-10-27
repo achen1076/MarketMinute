@@ -239,7 +239,7 @@ export async function POST(req: Request) {
 `.trim();
 
   const model = new ChatOpenAI({
-    model: "gpt-5.2",
+    model: "gpt-5.5",
   });
 
   const structuredModel = model.withStructuredOutput(explanationSchema);
@@ -396,7 +396,7 @@ async function refreshExplanation(
 `.trim();
 
     const model = new ChatOpenAI({
-      model: "gpt-5.2",
+      model: "gpt-5.5",
     });
 
     const structuredModel = model.withStructuredOutput(explanationSchema);

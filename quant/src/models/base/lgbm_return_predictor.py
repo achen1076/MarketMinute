@@ -188,21 +188,27 @@ class LGBMReturnPredictor:
 
     def predict_proba(self, X):
         """
-        Return pseudo-probabilities based on predicted returns.
-        Maps returns to [0, 1] range for compatibility with existing code.
+        Pseudo-probabilities [down, neutral, up] anchored to the calibrated
+        decision rule: the directional probability crosses 0.65 exactly where
+        predict() starts trading, and rises/falls 2 logits per train-std of edge.
+        (The old raw-return sigmoid saturated at ~0.99 on vol-normalized targets.)
         """
-        pred_returns = self.predict_returns(X)
+        n = len(X) if hasattr(X, '__len__') else X.shape[0]
+        if getattr(self, '_is_degenerate', False):
+            return np.tile([0.1, 0.8, 0.1], (n, 1))
 
-        # Clip returns to reasonable range for sigmoid
-        clipped = np.clip(pred_returns, -0.1, 0.1)
-
-        # Sigmoid to get probability-like values
-        # Scale factor for sensitivity
-        prob_long = 1 / (1 + np.exp(-clipped * 50))
-        prob_short = 1 - prob_long
-        prob_neutral = 1 - np.abs(prob_long - 0.5) * 2
-
-        return np.column_stack([prob_short, prob_neutral, prob_long])
+        pred = self.predict_returns(X)
+        z = (pred - self._train_pred_mean) / self._train_pred_std
+        scale = getattr(self, 'threshold_scale', 0.5)
+        edge = np.abs(z) - scale
+        p_dir = 1 / (1 + np.exp(-(2 * edge + np.log(0.65 / 0.35))))
+        # predict() only shorts when the raw prediction is also negative
+        short_blocked = (z < 0) & (pred >= 0)
+        p_dir = np.where(short_blocked, np.minimum(p_dir, 0.5), p_dir)
+        rest = 1 - p_dir
+        p_up = np.where(z >= 0, p_dir, 0.2 * rest)
+        p_down = np.where(z < 0, p_dir, 0.2 * rest)
+        return np.column_stack([p_down, 0.8 * rest, p_up])
 
     def get_feature_importance(self, importance_type="gain"):
         if self.model is None:

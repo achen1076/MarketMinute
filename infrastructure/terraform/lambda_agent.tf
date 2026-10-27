@@ -36,6 +36,7 @@ resource "aws_lambda_function" "agent" {
       OPENAI_API_KEY          = var.openai_api_key
       DATABASE_URL            = var.database_url
       FMP_API_KEY             = var.fmp_api_key
+      LAMBDA_API_KEY          = var.lambda_api_key
       SAGEMAKER_ENDPOINT_NAME = aws_sagemaker_endpoint.quant.name
       PROJECT_NAME            = var.project_name
       ENVIRONMENT             = var.environment

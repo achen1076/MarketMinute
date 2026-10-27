@@ -7,7 +7,7 @@ const LAMBDA_API_KEY = process.env.LAMBDA_API_KEY;
 export async function POST(req: Request) {
   // Verify API key for cron jobs
   const apiKey = req.headers.get("x-api-key");
-  if (LAMBDA_API_KEY && apiKey !== LAMBDA_API_KEY) {
+  if (!LAMBDA_API_KEY || apiKey !== LAMBDA_API_KEY) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 

@@ -1,11 +1,20 @@
 import { NextRequest } from "next/server";
+import { auth } from "@/auth";
 
 const AGENT_URL = process.env.AGENT_URL || "http://localhost:3100";
 const IS_LAMBDA = AGENT_URL.includes("lambda-url");
 
 export async function POST(req: NextRequest) {
   try {
-    const { prompt, userId, conversationId, history } = await req.json();
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const { prompt, conversationId, history } = await req.json();
 
     if (!prompt || typeof prompt !== "string") {
       return new Response(JSON.stringify({ error: "Missing prompt" }), {
@@ -18,7 +27,10 @@ export async function POST(req: NextRequest) {
 
     const response = await fetch(endpoint, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": process.env.LAMBDA_API_KEY || "",
+      },
       body: JSON.stringify({ prompt, userId, conversationId, history }),
     });
 

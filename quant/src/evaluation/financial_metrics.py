@@ -428,6 +428,8 @@ class FinancialMetrics:
         if n_years <= 0:
             return 0.0
 
+        if total_ret <= -1:
+            return -1.0  # wiped out; fractional power of a negative base is complex
         annual_ret = (1 + total_ret) ** (1 / n_years) - 1
 
         return float(annual_ret)

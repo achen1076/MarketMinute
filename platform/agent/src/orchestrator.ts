@@ -90,7 +90,7 @@ export class MarketOrchestrator {
       onStatus?.("Thinking...");
 
       const response = await this.openai.responses.create({
-        model: "gpt-5-mini",
+        model: "gpt-5.4-mini",
         input,
         tools,
         reasoning: { effort: "medium" },

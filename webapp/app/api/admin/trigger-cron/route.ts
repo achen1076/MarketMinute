@@ -51,6 +51,7 @@ export async function POST() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "x-api-key": process.env.LAMBDA_API_KEY || "",
       },
       body: JSON.stringify({
         task: "daily_analysis",

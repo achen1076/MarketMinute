@@ -114,7 +114,9 @@ def generate_live_predictions(raw_predictions, prices, volatilities, raw_data, w
         else:
             take_profit = stop_loss = None
 
-        should_trade = confidence >= 0.64 and signal != "NEUTRAL"
+        # The model's class already applies its per-ticker calibrated threshold;
+        # only trade when news-adjusted signal still agrees with it.
+        should_trade = signal != "NEUTRAL" and signal == raw_signal
 
         predictions.append({
             'ticker': ticker,

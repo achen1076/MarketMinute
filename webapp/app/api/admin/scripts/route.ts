@@ -1,11 +1,12 @@
 import { auth } from "@/auth";
+import { isAdmin } from "@/lib/authz";
 import { spawn } from "child_process";
 import { join } from "path";
 import { checkRateLimit, createRateLimitResponse } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
   const session = await auth();
-  if (!session?.user?.email) {
+  if (!session?.user?.email || !isAdmin(session.user.email)) {
     return new Response("Unauthorized", { status: 401 });
   }
 
